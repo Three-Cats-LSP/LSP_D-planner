@@ -251,6 +251,29 @@ header {
   box-shadow: 0 2px 8px rgba(0, 200, 255, 0.25);
 }
 
+/* Custom GF Input Styling */
+#gfLowInput, #gfHighInput {
+  border: 1px solid var(--border);
+  background: var(--bg-alt);
+  color: var(--muted);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+#gfLowInput:focus, #gfHighInput:focus {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  background: rgba(0, 200, 255, 0.08) !important;
+  box-shadow: 0 2px 8px rgba(0, 200, 255, 0.15) !important;
+}
+
+#gfLowInput.active, #gfHighInput.active {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  background: rgba(0, 200, 255, 0.15) !important;
+  box-shadow: 0 2px 8px rgba(0, 200, 255, 0.25) !important;
+}
+
 .header-warn {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
@@ -683,10 +706,10 @@ body.algo-buh .buh-only { display: flex !important; }
     
     <!-- Row 3: Custom GF (hidden by default) -->
     <div id="gfCustomRow" style="display: none; align-items: center; gap: 8px;">
-      <span style="color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Custom GF</span>
-      <input type="number" id="gfLowInput" min="5" max="100" value="30" style="width: 45px; padding: 8px 6px; border-radius: 5px; border: 1px solid var(--accent); background: var(--bg-alt); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; text-align: center; cursor: text;" oninput="setCustomGF()" onchange="setCustomGF()" maxlength="3">
-      <span style="color: var(--accent); font-size: 12px; font-weight: 700;">/</span>
-      <input type="number" id="gfHighInput" min="5" max="100" value="70" style="width: 45px; padding: 8px 6px; border-radius: 5px; border: 1px solid var(--accent); background: var(--bg-alt); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; text-align: center; cursor: text;" oninput="setCustomGF()" onchange="setCustomGF()" maxlength="3">
+      <button class="gf-btn" style="background: var(--bg-alt); border: 1px solid var(--border); cursor: default; pointer-events: none;" title="Custom Gradient Factors">Custom GF</button>
+      <input type="number" id="gfLowInput" min="5" max="100" placeholder="30" style="width: 55px; padding: 6px 8px; border-radius: 5px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-align: center; cursor: text;" oninput="setCustomGF()" onchange="setCustomGF()" maxlength="3">
+      <span style="color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">/</span>
+      <input type="number" id="gfHighInput" min="5" max="100" placeholder="70" style="width: 55px; padding: 6px 8px; border-radius: 5px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-align: center; cursor: text;" oninput="setCustomGF()" onchange="setCustomGF()" maxlength="3">
     </div>
     
     <div class="header-warn">⚠ Training Use Only</div>
@@ -1168,24 +1191,46 @@ function setGF(low, high) {
 function setCustomGF() {
   const lowInput = document.getElementById('gfLowInput');
   const highInput = document.getElementById('gfHighInput');
+  const customButton = document.querySelector('#gfCustomRow .gf-btn');
   
   const lowVal = lowInput ? lowInput.value : '';
   const highVal = highInput ? highInput.value : '';
   
-  const low = (lowVal === '' || lowVal === null) ? 30 : parseInt(lowVal) || 30;
-  const high = (highVal === '' || highVal === null) ? 70 : parseInt(highVal) || 70;
+  // If empty, use current mGF values (from preset) as defaults
+  const low = (lowVal === '' || lowVal === null) ? mGF.low : parseInt(lowVal) || mGF.low;
+  const high = (highVal === '' || highVal === null) ? mGF.high : parseInt(highVal) || mGF.high;
   
   mGF.low = Math.max(5, Math.min(100, low));
   mGF.high = Math.max(5, Math.min(100, high));
   
-  // Update inputs with validated values
-  if (lowInput) lowInput.value = mGF.low;
-  if (highInput) highInput.value = mGF.high;
-  
-  // Mark as custom (no preset active)
-  document.querySelectorAll('.gf-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
+  // Mark as custom (no preset active) only if user has entered values
+  if (lowVal !== '' || highVal !== '') {
+    // Remove active from all preset buttons
+    document.querySelectorAll('.gf-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    // Add active to custom button and inputs
+    if (customButton) {
+      customButton.classList.add('active');
+    }
+    if (lowInput) {
+      lowInput.classList.add('active');
+    }
+    if (highInput) {
+      highInput.classList.add('active');
+    }
+  } else {
+    // If empty, remove active from custom button and inputs
+    if (customButton) {
+      customButton.classList.remove('active');
+    }
+    if (lowInput) {
+      lowInput.classList.remove('active');
+    }
+    if (highInput) {
+      highInput.classList.remove('active');
+    }
+  }
   
   renderNDLTable();
   document.getElementById('plannerResult').style.display = 'none';
@@ -2618,18 +2663,6 @@ window.addEventListener('beforeunload', function() {
 document.addEventListener('DOMContentLoaded', function() {
   console.log('[LSP] DOMContentLoaded fired');
   
-  // Initialize GF inputs with mGF values FIRST
-  setTimeout(() => {
-    const lowInput = document.getElementById('gfLowInput');
-    const highInput = document.getElementById('gfHighInput');
-    
-    if (lowInput && highInput) {
-      lowInput.value = mGF.low || 30;
-      highInput.value = mGF.high || 70;
-      console.log('[LSP] Initialized GF inputs:', mGF.low, mGF.high);
-    }
-  }, 100);
-  
   // Try to load immediately
   appSettings.load();
   
@@ -2637,18 +2670,6 @@ document.addEventListener('DOMContentLoaded', function() {
   setTimeout(() => {
     console.log('[LSP] Retry load after render');
     appSettings.load();
-    // Re-initialize GF inputs after load
-    const lowInput = document.getElementById('gfLowInput');
-    const highInput = document.getElementById('gfHighInput');
-    if (lowInput && highInput) {
-      if (!lowInput.value || lowInput.value === '' || lowInput.value === null) {
-        lowInput.value = mGF.low || 30;
-      }
-      if (!highInput.value || highInput.value === '' || highInput.value === null) {
-        highInput.value = mGF.high || 70;
-      }
-      console.log('[LSP] Final GF input values:', lowInput.value, highInput.value);
-    }
   }, 1000);
 });
 
