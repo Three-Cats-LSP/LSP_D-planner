@@ -683,10 +683,10 @@ body.algo-buh .buh-only { display: flex !important; }
     
     <!-- Row 3: Custom GF (hidden by default) -->
     <div id="gfCustomRow" style="display: none; align-items: center; gap: 8px;">
-      <button class="gf-btn" style="background: var(--bg-alt); border: 1px solid var(--border); cursor: default;" title="Custom Gradient Factors">Custom GF</button>
-      <input type="number" id="gfLowInput" min="5" max="100" value="30" style="width: 40px; padding: 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-alt); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 11px; text-align: center;" oninput="setCustomGF()" maxlength="3">
-      <span style="color: var(--muted); font-size: 11px; font-weight: 600;">/</span>
-      <input type="number" id="gfHighInput" min="5" max="100" value="70" style="width: 40px; padding: 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-alt); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 11px; text-align: center;" oninput="setCustomGF()" maxlength="3">
+      <span style="color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Custom GF</span>
+      <input type="number" id="gfLowInput" min="5" max="100" value="30" style="width: 45px; padding: 8px 6px; border-radius: 5px; border: 1px solid var(--accent); background: var(--bg-alt); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; text-align: center; cursor: text;" oninput="setCustomGF()" onchange="setCustomGF()" maxlength="3">
+      <span style="color: var(--accent); font-size: 12px; font-weight: 700;">/</span>
+      <input type="number" id="gfHighInput" min="5" max="100" value="70" style="width: 45px; padding: 8px 6px; border-radius: 5px; border: 1px solid var(--accent); background: var(--bg-alt); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; text-align: center; cursor: text;" oninput="setCustomGF()" onchange="setCustomGF()" maxlength="3">
     </div>
     
     <div class="header-warn">⚠ Training Use Only</div>
@@ -817,14 +817,6 @@ body.algo-buh .buh-only { display: flex !important; }
         <button class="seg-btn active" onclick="setDiveCount(2)" id="dc2">2</button>
         <button class="seg-btn" onclick="setDiveCount(3)" id="dc3">3</button>
         <button class="seg-btn" onclick="setDiveCount(4)" id="dc4">4</button>
-      </div>
-      <div id="mGFRow" style="display:none; align-items:center; gap:8px;">
-        <span class="ctrl-label">GF:</span>
-        <div class="seg">
-          <button class="seg-btn active" onclick="setMGF('cons')" id="mgfC">30/70</button>
-          <button class="seg-btn" onclick="setMGF('mod')" id="mgfM">40/85</button>
-          <button class="seg-btn" onclick="setMGF('lib')" id="mgfL">50/100</button>
-        </div>
       </div>
     </div>
     <div id="diveBlocks"></div>
@@ -1121,7 +1113,6 @@ function setAlgo(a) {
   document.getElementById('brandIcon').textContent = isBuh ? '🫧' : '🤿';
   document.getElementById('plannerTitle').textContent = isBuh ? 'Bühlmann Dive Plan' : 'Single Dive Plan';
   document.getElementById('gasMixField').style.display = isBuh ? 'block' : 'none';
-  document.getElementById('mGFRow').style.display = isBuh ? 'flex' : 'none';
   document.getElementById('buhRefCard').style.display = isBuh ? 'block' : 'none';
   document.getElementById('gfPresetsRow').style.display = isBuh ? 'flex' : 'none';
   document.getElementById('gfCustomRow').style.display = isBuh ? 'flex' : 'none';
@@ -1149,9 +1140,14 @@ function setAlgo(a) {
 function setGF(low, high) {
   mGF.low = low;
   mGF.high = high;
-  // Update input fields
-  document.getElementById('gfLowInput').value = low;
-  document.getElementById('gfHighInput').value = high;
+  
+  // Update input fields with explicit values
+  const lowInput = document.getElementById('gfLowInput');
+  const highInput = document.getElementById('gfHighInput');
+  
+  if (lowInput) lowInput.value = low;
+  if (highInput) highInput.value = high;
+  
   // Update button states
   document.querySelectorAll('.gf-btn').forEach(btn => {
     btn.classList.remove('active');
@@ -1170,14 +1166,21 @@ function setGF(low, high) {
 }
 
 function setCustomGF() {
-  const low = parseInt(document.getElementById('gfLowInput').value) || 30;
-  const high = parseInt(document.getElementById('gfHighInput').value) || 70;
+  const lowInput = document.getElementById('gfLowInput');
+  const highInput = document.getElementById('gfHighInput');
+  
+  const lowVal = lowInput ? lowInput.value : '';
+  const highVal = highInput ? highInput.value : '';
+  
+  const low = (lowVal === '' || lowVal === null) ? 30 : parseInt(lowVal) || 30;
+  const high = (highVal === '' || highVal === null) ? 70 : parseInt(highVal) || 70;
+  
   mGF.low = Math.max(5, Math.min(100, low));
   mGF.high = Math.max(5, Math.min(100, high));
   
   // Update inputs with validated values
-  document.getElementById('gfLowInput').value = mGF.low;
-  document.getElementById('gfHighInput').value = mGF.high;
+  if (lowInput) lowInput.value = mGF.low;
+  if (highInput) highInput.value = mGF.high;
   
   // Mark as custom (no preset active)
   document.querySelectorAll('.gf-btn').forEach(btn => {
@@ -1300,11 +1303,6 @@ function updateGF() {
   // Just validate on input via autoSlashGF
 }
 
-function setMGF(preset) {
-  const p = { cons:{low:30,high:70}, mod:{low:40,high:85}, lib:{low:50,high:100} };
-  mGF = p[preset];
-  ['C','M','L'].forEach((k,i) => document.getElementById('mgf'+k).classList.toggle('active', ['cons','mod','lib'][i]===preset));
-}
 
 // ═══════════════════════════════════════════════
 // BÜHLMANN PHYSICS
@@ -2619,6 +2617,19 @@ window.addEventListener('beforeunload', function() {
 // Load settings when page loads
 document.addEventListener('DOMContentLoaded', function() {
   console.log('[LSP] DOMContentLoaded fired');
+  
+  // Initialize GF inputs with mGF values FIRST
+  setTimeout(() => {
+    const lowInput = document.getElementById('gfLowInput');
+    const highInput = document.getElementById('gfHighInput');
+    
+    if (lowInput && highInput) {
+      lowInput.value = mGF.low || 30;
+      highInput.value = mGF.high || 70;
+      console.log('[LSP] Initialized GF inputs:', mGF.low, mGF.high);
+    }
+  }, 100);
+  
   // Try to load immediately
   appSettings.load();
   
@@ -2626,6 +2637,18 @@ document.addEventListener('DOMContentLoaded', function() {
   setTimeout(() => {
     console.log('[LSP] Retry load after render');
     appSettings.load();
+    // Re-initialize GF inputs after load
+    const lowInput = document.getElementById('gfLowInput');
+    const highInput = document.getElementById('gfHighInput');
+    if (lowInput && highInput) {
+      if (!lowInput.value || lowInput.value === '' || lowInput.value === null) {
+        lowInput.value = mGF.low || 30;
+      }
+      if (!highInput.value || highInput.value === '' || highInput.value === null) {
+        highInput.value = mGF.high || 70;
+      }
+      console.log('[LSP] Final GF input values:', lowInput.value, highInput.value);
+    }
   }, 1000);
 });
 
