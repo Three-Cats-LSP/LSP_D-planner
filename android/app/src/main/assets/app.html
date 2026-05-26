@@ -933,9 +933,7 @@ body.algo-buh .buh-only { display: flex !important; }
   <button class="tab-btn active" onclick="switchTab('planner',this)">Dive Planner</button>
   <button class="tab-btn" onclick="switchTab('ndlref',this)">NDL Tables</button>
   <button class="tab-btn" onclick="switchTab('multi',this)">Multi Dive</button>
-  <button class="tab-btn buh-only" onclick="switchTab('tissues',this)">Tissue Sat.</button>
   <button class="tab-btn buh-only" onclick="switchTab('deco',this)">Deco Schedule</button>
-  <button class="tab-btn buh-only" onclick="switchTab('gfcurve',this)">GF Curve</button>
   <button class="tab-btn" onclick="switchTab('cns',this)">CNS O₂</button>
   <button class="tab-btn" onclick="switchTab('reference',this)">Reference</button>
 </div>
@@ -1072,25 +1070,6 @@ body.algo-buh .buh-only { display: flex !important; }
 <!-- ══════════════════════════════════════
      TISSUE SATURATION (Bühlmann only)
 ══════════════════════════════════════ -->
-<div class="panel" id="tissues">
-  <div class="card">
-    <div class="card-title">Compartment Saturation</div>
-    <div class="info-box">Bühlmann ZH-L16C models <strong>16 tissue compartments</strong> with N₂ half-times from 4 to 635 min. Bars show saturation relative to GF-adjusted M-value. Calculate a dive on the Planner tab first.</div>
-    <div class="tissue-grid" id="tissueGrid">
-      <div style="grid-column:1/-1;text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;padding:24px;">Run a Bühlmann dive calculation to see tissue saturation.</div>
-    </div>
-  </div>
-  <div class="card" id="tissueTableCard" style="display:none;">
-    <div class="card-title">Compartment Detail</div>
-    <div style="overflow-x:auto;">
-      <table class="deco-table">
-        <thead><tr><th>#</th><th>Half-time</th><th>N₂ Load (bar)</th><th>M-value (bar)</th><th>Sat %</th><th>Status</th></tr></thead>
-        <tbody id="tissueTableBody"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
 <!-- ══════════════════════════════════════
      DECO SCHEDULE (Bühlmann only)
 ══════════════════════════════════════ -->
@@ -1257,18 +1236,29 @@ body.algo-buh .buh-only { display: flex !important; }
       </div>
     </div>
   </div>
-</div>
 
-<!-- ══════════════════════════════════════
-     REFERENCE TAB
-══════════════════════════════════════ -->
-<!-- ══════════════════════════════════════
-   GF CURVE PANEL (Bühlmann only)
-══════════════════════════════════════ -->
-<div class="panel buh-only-panel" id="gfcurve">
-  <div class="card">
+  <!-- ── Tissue Saturation (inline) ── -->
+  <div class="card" id="tissueInlineCard" style="display:none;">
+    <div class="card-title">Tissue Saturation</div>
+    <div class="info-box">Bühlmann ZH-L16C models <strong>16 tissue compartments</strong> with N₂ half-times from 4 to 635 min. Bars show saturation relative to GF-adjusted M-value.</div>
+    <div class="tissue-grid" id="tissueGrid">
+      <div style="grid-column:1/-1;text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;padding:24px;">Run a deco calculation to see tissue saturation.</div>
+    </div>
+  </div>
+  <div class="card" id="tissueTableCard" style="display:none;">
+    <div class="card-title">Compartment Detail</div>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+      <table class="deco-table tissue-table table-view">
+        <thead><tr><th>#</th><th>Half-time</th><th>N₂ Load (bar)</th><th>M-value (bar)</th><th>Sat %</th><th>Status</th></tr></thead>
+        <tbody id="tissueTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── GF Curve (inline) ── -->
+  <div class="card" id="gfCurveInlineCard" style="display:none;">
     <div class="card-title">GF Gradient Factor Curve</div>
-    <p style="color:var(--muted);font-size:12px;margin-bottom:16px;">Visualizes how gradient factors control the ascent ceiling at each deco stop. The curve interpolates linearly from GF Low (first stop) to GF High (surface).</p>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:16px;">Visualizes how gradient factors control the ascent ceiling at each deco stop. Interpolates linearly from GF Low (first stop) to GF High (surface).</p>
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
       <div class="stat" style="min-width:80px;"><div class="stat-val" id="gfCurveGFL" style="color:var(--accent)">30</div><div class="stat-lbl">GF Low</div></div>
       <div class="stat" style="min-width:80px;"><div class="stat-val" id="gfCurveGFH" style="color:var(--accent)">70</div><div class="stat-lbl">GF High</div></div>
@@ -1287,6 +1277,7 @@ body.algo-buh .buh-only { display: flex !important; }
       </div>
     </div>
   </div>
+
 </div>
 
 <!-- ══════════════════════════════════════
@@ -1503,9 +1494,8 @@ function setAlgo(a) {
   // Reset result
   document.getElementById('plannerResult').style.display = 'none';
   document.getElementById('multiResult').style.display = 'none';
-  // Ensure active tab is valid
-  const activeBuhOnly = document.querySelector('.panel.active.buh-only-panel');
-  if (!isBuh && ['tissues','deco'].includes(document.querySelector('.panel.active')?.id)) {
+  // Ensure active tab is valid for Rec mode
+  if (!isBuh && document.querySelector('.panel.active')?.id === 'deco') {
     switchTab('planner', null);
   }
   renderNDLTable();
@@ -1708,8 +1698,7 @@ function switchTab(name, btn) {
     });
   }
   // Trigger tab-specific updates
-  if (name === 'gfcurve') setTimeout(drawGFCurve, 50);
-  if (name === 'cns')     setTimeout(calcCNS, 50);
+  if (name === 'cns') setTimeout(calcCNS, 50);
 }
 
 // ═══════════════════════════════════════════════
@@ -2415,7 +2404,7 @@ function runDecoSchedule() {
       tbody.innerHTML += `<tr style="background:${swBg};" data-phase="switch">
         <td style="color:${swColor};font-size:16px;text-align:center;padding:9px 6px;">⇄</td>
         <td colspan="6" style="color:${swColor};font-weight:700;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:1px;padding:9px 10px;">
-          <strong>${s.gas.toUpperCase()}</strong> &nbsp;·&nbsp; at ${switchDepthDisp} &nbsp;·&nbsp; <span style="${sppColor}">ppO₂ ${switchPpO2}</span>
+          <strong>${s.gas.toUpperCase()}</strong> @ ${switchDepthDisp} &nbsp;·&nbsp; <span style="${sppColor}">ppO₂ ${switchPpO2}</span>
         </td>
       </tr>`;
     }
@@ -2470,7 +2459,11 @@ function runDecoSchedule() {
   updateTissueViz(tissues, mGF.high);
 
   document.getElementById('decoResult').style.display = 'block';
+  document.getElementById('tissueInlineCard').style.display = 'block';
+  document.getElementById('tissueTableCard').style.display = 'block';
+  document.getElementById('gfCurveInlineCard').style.display = 'block';
   setTimeout(drawDecoProfile, 30);
+  setTimeout(drawGFCurve, 60);
   } catch(err) {
     document.getElementById('decoSummary').innerHTML = `<div class="alert dang"><span>⚠</span><div><strong>Error:</strong> ${err.message}</div></div>`;
     document.getElementById('decoResult').style.display = 'block';
@@ -2865,8 +2858,9 @@ self.addEventListener('fetch', e => {
       const lastStopVal = document.getElementById('lastDecoStop').value;
       const decoStepVal = document.getElementById('decoStep').value;
       
-      // Get summary stats
-      const summaryText = document.getElementById('decoSummary').innerText;
+      // Get summary stats — strip all emoji
+      const summaryText = document.getElementById('decoSummary').innerText
+        .replace(/[🟣🔵🔴🟢⇄↓↑⚠️🤿]/g, '').trim();
       
       // Get table rows
       const tableBody = document.getElementById('decoTableBody');
@@ -2890,37 +2884,73 @@ self.addEventListener('fetch', e => {
       exportText += `GF Low/High: ${gfVal}\n`;
       exportText += `Last Stop: ${lastStopVal} m\n`;
       exportText += `Step Size: ${decoStepVal} m\n\n`;
+
+      // Gas mix info
+      const gasTags = Array.from(document.querySelectorAll('#decoSummary span[style*="border-radius"]'));
+      if (gasTags.length) {
+        exportText += '━━━ GAS MIXES ━━━\n';
+        gasTags.forEach(t => {
+          exportText += t.innerText.trim().replace(/ppO₂/g,'ppO2').replace(/O₂/g,'O2') + '\n';
+        });
+        exportText += '\n';
+      }
       
       // Add summary info
       exportText += '━━━ DIVE SUMMARY ━━━\n';
-      exportText += summaryText.replace(/Deco Stops|Deco Time|Descent|Bottom Time|Total Run Time|ppO₂ Limits|Last Stop|Step Size/g, '\n$&').trim() + '\n\n';
+      exportText += summaryText.replace(/Deco Stops|Deco Time|Descent|Bottom Time|Total Run Time|ppO₂ Limits|Last Stop|Step Size/g, '\n$&').trim()
+        .replace(/ppO₂/g, 'ppO2').replace(/O₂/g, 'O2') + '\n\n';
       
       // Add ascent table
       exportText += '━━━ ASCENT SCHEDULE ━━━\n';
-      exportText += 'Phase        | Depth      | Duration | Run Time | Type       | Gas\n';
-      exportText += '─────────────┼────────────┼──────────┼──────────┼────────────┼──────────────\n';
-      
+      exportText += 'Phase     | Depth         | Stop    | Run     | Mix            | PPO2  | CNS%\n';
+      exportText += '──────────┼───────────────┼─────────┼─────────┼────────────────┼───────┼──────\n';
+
+      const phaseLabel = {
+        'descent': 'Descent',
+        'bottom':  'Bottom',
+        'ascent':  'Ascent',
+        'deco':    'Deco',
+        'safety':  'Safety',
+        'switch':  'Gas Switch',
+      };
+
       rows.forEach(row => {
+        const phase = row.dataset.phase || '';
         const cells = row.querySelectorAll('td');
-        if (cells.length > 0) {
-          const rowText = Array.from(cells).map((cell, idx) => {
-            const text = cell.innerText.trim().replace(/[↑🟣🟢]/g, '').trim();
-            if (idx === 0) return text.padEnd(12);
-            if (idx === 1) return text.padEnd(11);
-            if (idx === 2) return text.padEnd(9);
-            if (idx === 3) return text.padEnd(9);
-            if (idx === 4) return text.padEnd(11);
-            return text;
-          }).join('| ');
-          exportText += rowText + '\n';
+        if (!cells.length) return;
+
+        // Gas switch row — single colspan cell
+        if (phase === 'switch') {
+          const txt = Array.from(cells).map(c => c.innerText.trim()).join(' ')
+            .replace(/[🔵🔴🟢⇄↓↑]/g, '').replace(/ppO₂/g, 'ppO2').replace(/O₂/g, 'O2').trim();
+          exportText += `Gas Switch   | ${txt}\n`;
+          return;
         }
+
+        const label = (phaseLabel[phase] || phase).padEnd(9);
+        const cellTexts = Array.from(cells).map(c =>
+          c.innerText.trim()
+            .replace(/[🔵🔴🟢⇄↓↑]/g, '')   // remove all icons
+            .replace(/ppO₂/g, 'ppO2')         // fix subscripts
+            .replace(/O₂/g, 'O2')
+            .trim()
+        );
+
+        // cols: 0=icon(skip), 1=depth, 2=stop, 3=run, 4=mix, 5=ppo2, 6=cns
+        const depth = (cellTexts[1] || '').padEnd(14);
+        const stop  = (cellTexts[2] || '').padEnd(8);
+        const run   = (cellTexts[3] || '').padEnd(8);
+        const mix   = (cellTexts[4] || '').padEnd(15);
+        const ppo2  = (cellTexts[5] || '').padEnd(6);
+        const cns   = (cellTexts[6] || '');
+        exportText += `${label}| ${depth}| ${stop}| ${run}| ${mix}| ${ppo2}| ${cns}\n`;
       });
       
       exportText += '\n═══════════════════════════════════════════\n';
       exportText += '⚠️  IMPORTANT REMINDERS ⚠️\n';
       exportText += '═══════════════════════════════════════════\n';
       exportText += '• Do NOT skip mandatory decompression stops\n';
-      exportText += '• Check ppO₂ before each gas switch\n';
+      exportText += '• Check ppO2 before each gas switch\n';
       exportText += '• Never exceed your certification depth\n';
       exportText += '• Plan conservatively - never dive the tables exactly\n';
       exportText += '• Carry 3+ min of reserve gas\n';
