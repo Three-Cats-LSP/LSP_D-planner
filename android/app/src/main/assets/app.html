@@ -213,35 +213,34 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 0 20px;
+  padding: 20px 0 18px;
   border-bottom: 1px solid var(--border-hi);
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   gap: 16px;
   flex-wrap: wrap;
 }
 
-.brand { display: flex; align-items: center; gap: 14px; }
+.brand { display: flex; align-items: center; gap: 12px; }
 
 .brand-icon {
-  width: 52px; height: 52px;
-  border-radius: 12px;
+  width: 44px; height: 44px;
+  border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 26px;
-  background: linear-gradient(135deg, rgba(0,200,255,0.15), rgba(0,100,200,0.1));
+  font-size: 22px;
+  background: linear-gradient(135deg, rgba(0,200,255,0.12), rgba(0,100,200,0.08));
   border: 1px solid var(--accent);
-  box-shadow: 0 0 24px rgba(0,200,255,0.2);
   transition: all 0.4s ease;
   animation: iconGlow 4s ease-in-out infinite;
 }
 @keyframes iconGlow {
-  0%,100% { box-shadow: 0 0 20px rgba(0,200,255,0.2); }
-  50%      { box-shadow: 0 0 40px rgba(0,200,255,0.4); }
+  0%,100% { box-shadow: 0 0 12px rgba(0,200,255,0.15); }
+  50%      { box-shadow: 0 0 24px rgba(0,200,255,0.3); }
 }
 
 .brand-text h1 {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 26px;
-  letter-spacing: 4px;
+  font-size: 24px;
+  letter-spacing: 3px;
   color: var(--text);
   line-height: 1;
 }
@@ -249,23 +248,23 @@ header {
 
 .brand-text p {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 9px;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--muted);
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
 /* ── ALGO SWITCHER ── */
 .algo-switcher {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .algo-label-text {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 9px;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--muted);
@@ -281,25 +280,25 @@ header {
 }
 
 .algo-btn {
-  padding: 8px 16px;
+  padding: 7px 14px;
   border: none;
   background: transparent;
   color: #00d9ff;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 1px;
   text-transform: uppercase;
   cursor: pointer;
   border-radius: 6px;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
   white-space: nowrap;
 }
-.algo-btn:hover { color: #00d9ff; }
+.algo-btn:hover { background: rgba(0,200,255,0.07); }
 .algo-btn.active {
-  background: linear-gradient(135deg, rgba(0,200,255,0.2), rgba(0,100,200,0.25));
+  background: linear-gradient(135deg, rgba(0,200,255,0.18), rgba(0,100,200,0.22));
   color: #00d9ff;
-  border: 1px solid rgba(0,200,255,0.3);
+  border: 1px solid rgba(0,200,255,0.28);
 }
 
 .gf-btn {
@@ -400,37 +399,39 @@ header {
 /* ── TABS ── */
 .tabs-nav {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 4px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   overflow-x: auto;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
 }
+.tabs-nav::-webkit-scrollbar { display: none; }
 
 .tab-btn {
   flex-shrink: 0;
-  padding: 9px 14px;
+  padding: 8px 13px;
   border: none;
   background: transparent;
   color: var(--muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 1px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
   cursor: pointer;
   border-radius: 7px;
-  transition: all 0.25s;
+  transition: all 0.2s;
   white-space: nowrap;
 }
-.tab-btn:hover { color: var(--text); background: rgba(0,200,255,0.06); }
+.tab-btn:hover { color: var(--text); background: rgba(0,200,255,0.05); }
 .tab-btn.active {
-  background: linear-gradient(135deg, rgba(0,200,255,0.15), rgba(0,100,200,0.2));
+  background: linear-gradient(135deg, rgba(0,200,255,0.14), rgba(0,100,200,0.18));
   color: var(--accent);
-  border: 1px solid rgba(0,200,255,0.2);
+  border: 1px solid rgba(0,200,255,0.18);
 }
 
 /* Bühlmann-only tabs hidden in PADI mode */
@@ -438,10 +439,10 @@ header {
 body.algo-buh .buh-only { display: flex !important; }
 
 /* ── PANELS ── */
-.panel { display: none; animation: fadeUp 0.35s ease; }
+.panel { display: none; animation: fadeUp 0.3s ease; }
 .panel.active { display: block; }
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
@@ -449,50 +450,50 @@ body.algo-buh .buh-only { display: flex !important; }
 .card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 22px;
-  margin-bottom: 16px;
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 14px;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(6px);
 }
 .card::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; height: 1px;
   background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  opacity: 0.3;
+  opacity: 0.2;
 }
 
 .card-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 16px;
-  letter-spacing: 3px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: color 0.4s;
 }
 .card-title::after {
   content: ''; flex: 1; height: 1px;
   background: linear-gradient(90deg, var(--border-hi), transparent);
-  margin-left: 8px;
+  margin-left: 4px;
 }
 
 /* ── UNIT / SEG CONTROLS ── */
 .ctrl-row {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
 
 .ctrl-label {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 9px;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--muted);
@@ -507,12 +508,12 @@ body.algo-buh .buh-only { display: flex !important; }
 }
 
 .seg-btn {
-  padding: 7px 13px;
+  padding: 6px 12px;
   border: none;
   background: transparent;
   color: var(--muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -521,15 +522,15 @@ body.algo-buh .buh-only { display: flex !important; }
 }
 .seg-btn:hover { color: var(--text); }
 .seg-btn.active {
-  background: rgba(0,200,255,0.14);
+  background: rgba(0,200,255,0.12);
   color: var(--accent);
 }
 
 /* ── FORM ── */
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 12px;
   margin-bottom: 12px;
 }
 
@@ -537,18 +538,18 @@ body.algo-buh .buh-only { display: flex !important; }
   display: block;
   font-family: 'JetBrains Mono', monospace;
   font-size: 9px;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
 
 .field input, .field select {
   width: 100%;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 7px;
-  padding: 9px 11px;
+  border-radius: 8px;
+  padding: 8px 10px;
   color: var(--text);
   font-family: 'JetBrains Mono', monospace;
   font-size: 13px;
@@ -558,7 +559,7 @@ body.algo-buh .buh-only { display: flex !important; }
 }
 .field input:focus, .field select:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(0,200,255,0.1);
+  box-shadow: 0 0 0 3px rgba(0,200,255,0.08);
 }
 .field select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%2300d9ff' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
@@ -571,29 +572,32 @@ body.algo-buh .buh-only { display: flex !important; }
 /* ── BUTTON ── */
 .btn-calc {
   width: 100%;
-  padding: 13px;
+  padding: 12px;
   border: 1px solid var(--accent);
   border-radius: 9px;
-  background: linear-gradient(135deg, rgba(0,200,255,0.12), rgba(0,100,200,0.18));
+  background: linear-gradient(135deg, rgba(0,200,255,0.10), rgba(0,100,200,0.16));
   color: var(--accent);
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 16px;
-  letter-spacing: 3px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
   cursor: pointer;
   margin-top: 14px;
-  transition: all 0.25s;
+  transition: all 0.2s;
 }
 .btn-calc:hover {
-  background: linear-gradient(135deg, rgba(0,200,255,0.25), rgba(0,100,200,0.32));
-  box-shadow: 0 0 20px rgba(0,200,255,0.2);
+  background: linear-gradient(135deg, rgba(0,200,255,0.2), rgba(0,100,200,0.28));
+  box-shadow: 0 4px 16px rgba(0,200,255,0.15);
   transform: translateY(-1px);
 }
+.btn-calc:active { transform: translateY(0); }
 
 /* ── STATS ── */
 .stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
   margin-top: 14px;
 }
 
@@ -601,15 +605,15 @@ body.algo-buh .buh-only { display: flex !important; }
   background: var(--card2);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 13px;
+  padding: 12px 10px;
   text-align: center;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, transform 0.2s;
 }
-.stat:hover { border-color: var(--border-hi); }
+.stat:hover { border-color: var(--border-hi); transform: translateY(-1px); }
 
 .stat-val {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 28px;
+  font-size: 26px;
   line-height: 1;
   margin-bottom: 5px;
   color: var(--accent);
@@ -621,8 +625,8 @@ body.algo-buh .buh-only { display: flex !important; }
 
 .stat-lbl {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 1.5px;
+  font-size: 8px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -630,9 +634,9 @@ body.algo-buh .buh-only { display: flex !important; }
 /* ── ALERTS ── */
 .alert {
   border-radius: 8px;
-  padding: 11px 14px;
+  padding: 10px 14px;
   margin: 10px 0;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Outfit', sans-serif;
   font-size: 12px;
   line-height: 1.5;
   display: flex;
@@ -645,7 +649,7 @@ body.algo-buh .buh-only { display: flex !important; }
 .warn  { background:rgba(255,183,3,0.07);   border-color:rgba(255,183,3,0.22);  color:#ffcc40; }
 .dang  { background:rgba(255,71,87,0.07);   border-color:rgba(255,71,87,0.22);  color:#ff7080; }
 .info  { background:rgba(0,200,255,0.06);   border-color:rgba(0,200,255,0.2);   color:#60d8ff; }
-.deco  { background:rgba(255,71,87,0.07);  border-color:rgba(255,71,87,0.25); color:#ff8090; }
+.deco  { background:rgba(255,71,87,0.07);   border-color:rgba(255,71,87,0.25);  color:#ff8090; }
 
 /* ── BAR ── */
 .bar-wrap { background:var(--dim); border-radius:4px; height:6px; overflow:hidden; margin-top:8px; }
@@ -702,27 +706,42 @@ body.algo-buh .buh-only { display: flex !important; }
 .si-inner input:focus { border-color:var(--accent); }
 
 /* Result dive cards */
-.result-card { background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:8px; }
-.result-card.c-ok   { border-left:3px solid var(--green); }
-.result-card.c-warn { border-left:3px solid var(--yellow); }
-.result-card.c-dang { border-left:3px solid var(--red); }
-.result-card.c-deco { border-left:3px solid #e040fb; }
+.result-card {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 8px;
+  transition: border-color 0.2s;
+}
+.result-card.c-ok   { border-left: 3px solid var(--green); }
+.result-card.c-warn { border-left: 3px solid var(--yellow); }
+.result-card.c-dang { border-left: 3px solid var(--red); }
+.result-card.c-deco { border-left: 3px solid #e040fb; }
 
 .rc-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-.rc-title { display:flex; align-items:center; gap:8px; font-family:'Bebas Neue',sans-serif; font-size:13px; letter-spacing:2px; color:var(--accent); }
+.rc-title {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--accent);
+}
 
 .si-strip {
-  display:flex; align-items:center; gap:10px; padding:6px 12px; margin:3px 0;
-  background:rgba(0,200,255,0.03); border-radius:5px;
-  font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted);
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 12px; margin: 3px 0;
+  background: rgba(0,200,255,0.03); border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text);
 }
 
 /* ── INFO BOX ── */
 .info-box {
-  border-left:2px solid var(--accent); background:rgba(0,200,255,0.04);
-  padding:10px 14px; border-radius:0 6px 6px 0;
-  font-family:'JetBrains Mono',monospace; font-size:11px; line-height:1.6; margin:10px 0;
-  transition: border-color 0.4s;
+  border-left: 2px solid var(--accent);
+  background: rgba(0,200,255,0.03);
+  padding: 10px 14px; border-radius: 0 8px 8px 0;
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px; line-height: 1.6; margin: 10px 0;
+  color: var(--muted);
 }
 
 /* ── TISSUE BARS (Bühlmann) ── */
@@ -930,12 +949,12 @@ body.algo-buh .buh-only { display: flex !important; }
 
 <!-- ══ TABS ══ -->
 <div class="tabs-nav">
-  <button class="tab-btn active" onclick="switchTab('planner',this)">Dive Planner</button>
-  <button class="tab-btn" onclick="switchTab('ndlref',this)">NDL Tables</button>
-  <button class="tab-btn" onclick="switchTab('multi',this)">Multi Dive</button>
-  <button class="tab-btn buh-only" onclick="switchTab('deco',this)">Deco Schedule</button>
-  <button class="tab-btn" onclick="switchTab('cns',this)">CNS O₂</button>
-  <button class="tab-btn" onclick="switchTab('reference',this)">Reference</button>
+  <button class="tab-btn buh-only" id="tab-deco" onclick="switchTab('deco',this)">Deco Schedule</button>
+  <button class="tab-btn active" id="tab-planner" onclick="switchTab('planner',this)">Dive Planner</button>
+  <button class="tab-btn" id="tab-multi" onclick="switchTab('multi',this)">Multi Dive</button>
+  <button class="tab-btn" id="tab-cns" onclick="switchTab('cns',this)">CNS O₂</button>
+  <button class="tab-btn" id="tab-ndlref" onclick="switchTab('ndlref',this)">NDL Tables</button>
+  <button class="tab-btn" id="tab-reference" onclick="switchTab('reference',this)">Reference</button>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -994,6 +1013,7 @@ body.algo-buh .buh-only { display: flex !important; }
 
   <div id="plannerResult" style="display:none;"></div>
   <canvas id="plannerProfileCanvas" width="700" height="240" style="display:none;width:100%;margin-top:16px;border-radius:10px;background:var(--card2);border:1px solid var(--border);"></canvas>
+  <div id="plannerProfileLegend" style="display:none;margin-top:4px;"></div>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -1208,7 +1228,6 @@ body.algo-buh .buh-only { display: flex !important; }
         </div>
       </div>
       <div id="decoSummary"></div>
-      <canvas id="decoProfileCanvas" width="700" height="240" style="width:100%;margin:14px 0;border-radius:10px;background:var(--card2);border:1px solid var(--border);"></canvas>
       <table class="deco-table">
         <thead><tr><th>Phase</th><th>Depth</th><th>Stop</th><th>Run</th><th>Mix</th><th>PPO2</th><th>CNS%</th></tr></thead>
         <tbody id="decoTableBody"></tbody>
@@ -1234,6 +1253,32 @@ body.algo-buh .buh-only { display: flex !important; }
           <span style="font-size:15px;">⇄</span> Gas Switch
         </div>
       </div>
+      <canvas id="decoProfileCanvas" width="700" height="240" style="width:100%;margin:14px 0;border-radius:10px;background:var(--card2);border:1px solid var(--border);"></canvas>
+      <div id="decoProfileLegend" style="display:none;margin-top:4px;"></div>
+    </div>
+  </div>
+
+  <!-- ── GF Curve (inline) ── -->
+  <div class="card" id="gfCurveInlineCard" style="display:none;">
+    <div class="card-title">GF Gradient Factor Curve</div>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:16px;">Visualizes how gradient factors control the ascent ceiling at each deco stop. Interpolates linearly from GF Low (first stop) to GF High (surface).</p>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+      <div class="stat" style="min-width:80px;"><div class="stat-val" id="gfCurveGFL" style="color:var(--accent)">30</div><div class="stat-lbl">GF Low</div></div>
+      <div class="stat" style="min-width:80px;"><div class="stat-val" id="gfCurveGFH" style="color:var(--accent)">70</div><div class="stat-lbl">GF High</div></div>
+      <div class="stat" style="min-width:80px;"><div class="stat-val" id="gfCurveStops">—</div><div class="stat-lbl">Deco Stops</div></div>
+    </div>
+    <canvas id="gfCurveCanvas" width="700" height="320" style="width:100%;border-radius:8px;background:var(--card2);border:1px solid var(--border);"></canvas>
+    <div id="gfCurveLegend" style="display:none;margin-top:4px;"></div>
+    <div style="margin-top:12px;display:flex;gap:20px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);">
+        <div style="width:20px;height:3px;background:#00d9ff;border-radius:2px;"></div> GF Ceiling line
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);">
+        <div style="width:20px;height:3px;background:var(--green);border-radius:2px;"></div> Actual ascent
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);">
+        <div style="width:12px;height:12px;border-radius:50%;background:var(--red);"></div> Deco stop
+      </div>
     </div>
   </div>
 
@@ -1252,29 +1297,6 @@ body.algo-buh .buh-only { display: flex !important; }
         <thead><tr><th>#</th><th>Half-time</th><th>N₂ Load (bar)</th><th>M-value (bar)</th><th>Sat %</th><th>Status</th></tr></thead>
         <tbody id="tissueTableBody"></tbody>
       </table>
-    </div>
-  </div>
-
-  <!-- ── GF Curve (inline) ── -->
-  <div class="card" id="gfCurveInlineCard" style="display:none;">
-    <div class="card-title">GF Gradient Factor Curve</div>
-    <p style="color:var(--muted);font-size:12px;margin-bottom:16px;">Visualizes how gradient factors control the ascent ceiling at each deco stop. Interpolates linearly from GF Low (first stop) to GF High (surface).</p>
-    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
-      <div class="stat" style="min-width:80px;"><div class="stat-val" id="gfCurveGFL" style="color:var(--accent)">30</div><div class="stat-lbl">GF Low</div></div>
-      <div class="stat" style="min-width:80px;"><div class="stat-val" id="gfCurveGFH" style="color:var(--accent)">70</div><div class="stat-lbl">GF High</div></div>
-      <div class="stat" style="min-width:80px;"><div class="stat-val" id="gfCurveStops">—</div><div class="stat-lbl">Deco Stops</div></div>
-    </div>
-    <canvas id="gfCurveCanvas" width="700" height="320" style="width:100%;border-radius:8px;background:var(--card2);border:1px solid var(--border);"></canvas>
-    <div style="margin-top:12px;display:flex;gap:20px;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);">
-        <div style="width:20px;height:3px;background:#00d9ff;border-radius:2px;"></div> GF Ceiling line
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);">
-        <div style="width:20px;height:3px;background:var(--green);border-radius:2px;"></div> Actual ascent
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);">
-        <div style="width:12px;height:12px;border-radius:50%;background:var(--red);"></div> Deco stop
-      </div>
     </div>
   </div>
 
@@ -1496,7 +1518,11 @@ function setAlgo(a) {
   document.getElementById('multiResult').style.display = 'none';
   // Ensure active tab is valid for Rec mode
   if (!isBuh && document.querySelector('.panel.active')?.id === 'deco') {
-    switchTab('planner', null);
+    switchTab('planner', document.getElementById('tab-planner'));
+  }
+  // Default to Deco Schedule when switching to Bühlmann
+  if (isBuh) {
+    switchTab('deco', document.getElementById('tab-deco'));
   }
   renderNDLTable();
   buildDiveBlocks();
@@ -3043,22 +3069,40 @@ function getCNSLimit(ppo2) {
 // DIVE PROFILE GRAPH
 // ═══════════════════════════════════════════════
 
+// ─── HiDPI canvas setup ─────────────────────────────────────────────────────
+function setupHiDPI(canvas) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.offsetWidth  || 700;
+  const h = canvas.offsetHeight || 240;
+  canvas.width  = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  return { ctx, W: w, H: h };
+}
+
 function drawDiveProfile(canvasId, waypoints, opts) {
   // waypoints: [{t, depth, type, label, ppo2, cns}]
   // opts: { maxDepth, totalTime, isLight }
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
+  const { ctx, W, H } = setupHiDPI(canvas);
   const PAD = { top: 20, right: 20, bottom: 40, left: 52 };
   const PW = W - PAD.left - PAD.right;
   const PH = H - PAD.top - PAD.bottom;
 
   ctx.clearRect(0, 0, W, H);
 
-  const isLight  = opts?.isLight ?? document.body.classList.contains('light-theme');
-  const maxDepth = (opts?.maxDepth || 10) * 1.15;
+  const isLight   = opts?.isLight ?? document.body.classList.contains('light-theme');
+  const maxDepth  = (opts?.maxDepth || 10) * 1.15;
   const totalTime = opts?.totalTime || 60;
+
+  const isMobile  = W < 480;
+  const monoFont  = isMobile ? '300 8px "JetBrains Mono",monospace' : '300 9px "JetBrains Mono",monospace';
+  const labelFont = isMobile ? '300 8px "JetBrains Mono",monospace' : '500 10px "JetBrains Mono",monospace';
+  const axisFont  = isMobile ? '300 7.5px "Outfit",sans-serif'       : '300 9px "Outfit",sans-serif';
+  const dotRadius = isMobile ? 3 : 5;
+  const haloRadius = isMobile ? 6 : 8;
 
   const bg      = isLight ? '#eff3f8' : '#0a1828';
   const grid    = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)';
@@ -3077,23 +3121,24 @@ function drawDiveProfile(canvasId, waypoints, opts) {
   function toY(depth) { return PAD.top  + (depth / maxDepth) * PH; }
 
   // ── Grid ──
-  // Depth lines
-  const depStep = maxDepth > 50 ? 10 : maxDepth > 20 ? 5 : 3;
+  const depStep = maxDepth > 80 ? 20 : maxDepth > 40 ? 10 : 10;
   for (let d = 0; d <= maxDepth; d += depStep) {
     const y = toY(d);
     ctx.strokeStyle = grid; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + PW, y); ctx.stroke();
-    ctx.fillStyle = muted; ctx.font = '10px JetBrains Mono,monospace'; ctx.textAlign = 'right';
+    ctx.fillStyle = muted; ctx.font = monoFont; ctx.textAlign = 'right';
     if (d > 0) ctx.fillText(d + 'm', PAD.left - 5, y + 4);
   }
-  // Time lines
-  const timeStep = totalTime > 120 ? 20 : totalTime > 60 ? 10 : 5;
+  const rawTimeStep = totalTime > 120 ? 20 : totalTime > 60 ? 10 : 5;
+  const minPxBetween = 50;
+  const pxPerStep = (PW / totalTime) * rawTimeStep;
+  const timeStep = pxPerStep < minPxBetween ? rawTimeStep * Math.ceil(minPxBetween / pxPerStep) : rawTimeStep;
   for (let t = 0; t <= totalTime; t += timeStep) {
     const x = toX(t);
     ctx.strokeStyle = grid; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top + PH); ctx.stroke();
-    ctx.fillStyle = muted; ctx.font = '10px JetBrains Mono,monospace'; ctx.textAlign = 'center';
-    ctx.fillText(t + 'min', x, PAD.top + PH + 16);
+    ctx.fillStyle = muted; ctx.font = monoFont; ctx.textAlign = 'center';
+    ctx.fillText(t + 'min', x, PAD.top + PH + 15);
   }
 
   // ── Axes ──
@@ -3126,7 +3171,7 @@ function drawDiveProfile(canvasId, waypoints, opts) {
   if (waypoints.length > 1) {
     ctx.beginPath();
     ctx.strokeStyle = profileLine;
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = isMobile ? 1.5 : 2;
     ctx.lineJoin = 'round';
     waypoints.forEach((wp, i) => {
       i === 0 ? ctx.moveTo(toX(wp.t), toY(wp.depth)) : ctx.lineTo(toX(wp.t), toY(wp.depth));
@@ -3148,7 +3193,9 @@ function drawDiveProfile(canvasId, waypoints, opts) {
     ctx.fill();
   }
 
-  // ── Stop dots with PPO2/CNS colour ──
+  // ── Stop dots with labels ──
+  const usedY = new Map(); // track used y positions per x-column to stagger labels
+
   waypoints.forEach(wp => {
     if (!wp.dot) return;
     const x = toX(wp.t), y = toY(wp.depth);
@@ -3157,34 +3204,74 @@ function drawDiveProfile(canvasId, waypoints, opts) {
                    : wp.type === 'bottom' ? accent
                    : muted;
 
-    // PPO2 halo if elevated
     if (wp.ppo2 >= 1.4) {
-      ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI*2);
-      ctx.fillStyle = wp.ppo2 >= 1.6 ? 'rgba(255,71,87,0.3)' : 'rgba(255,183,3,0.3)';
+      ctx.beginPath(); ctx.arc(x, y, haloRadius, 0, Math.PI*2);
+      ctx.fillStyle = wp.ppo2 >= 1.6 ? 'rgba(255,71,87,0.2)' : 'rgba(255,183,3,0.2)';
       ctx.fill();
     }
 
-    ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI*2);
+    ctx.beginPath(); ctx.arc(x, y, dotRadius, 0, Math.PI*2);
     ctx.fillStyle = dotColor; ctx.fill();
-    ctx.strokeStyle = bg; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.strokeStyle = bg; ctx.lineWidth = isMobile ? 1 : 1.5; ctx.stroke();
 
-    // Label
-    if (wp.label) {
-      ctx.fillStyle = text; ctx.font = 'bold 9px JetBrains Mono,monospace';
-      ctx.textAlign = x > PAD.left + PW * 0.75 ? 'right' : 'left';
-      const lx = ctx.textAlign === 'left' ? x + 8 : x - 8;
-      ctx.fillText(wp.label, lx, y - 6);
-      if (wp.ppo2) {
-        const pColor = wp.ppo2 >= 1.6 ? red : wp.ppo2 >= 1.4 ? orange : muted;
-        ctx.fillStyle = pColor; ctx.font = '9px JetBrains Mono,monospace';
-        ctx.fillText('ppO₂ ' + wp.ppo2.toFixed(1), lx, y + 14);
-      }
+    // Draw dot number
+    if (wp.dot && wp.num) {
+      ctx.fillStyle = bg;
+      ctx.font = `600 ${isMobile ? 7 : 8}px "JetBrains Mono",monospace`;
+      ctx.textAlign = 'center';
+      ctx.fillText(wp.num, x, y + (isMobile ? 3 : 3));
+    }
+
+    if (!wp.label) return;
+
+    if (isMobile) return; // labels shown in legend below on mobile
+
+    const labelFmt = wp.label.replace(/(\d+m)\s+(\d+)/, '$1 - $2');
+    ctx.textAlign = 'right';
+    ctx.fillStyle = text; ctx.font = labelFont;
+    ctx.fillText((wp.num ? wp.num + '  ' : '') + labelFmt, x - 7, y - 6);
+    if (wp.ppo2) {
+      const pColor = wp.ppo2 >= 1.6 ? red : wp.ppo2 >= 1.4 ? orange : muted;
+      ctx.fillStyle = pColor; ctx.font = monoFont;
+      const nearRight = x > PAD.left + PW * 0.75;
+      ctx.textAlign = nearRight ? 'right' : 'left';
+      ctx.fillText('ppO₂ ' + wp.ppo2.toFixed(1), nearRight ? x - 7 : x + 7, y + 14);
     }
   });
 
-  // ── Surface label ──
-  ctx.fillStyle = muted; ctx.font = '10px JetBrains Mono,monospace'; ctx.textAlign = 'right';
+  // ── Axis label ──
+  ctx.fillStyle = muted; ctx.font = monoFont; ctx.textAlign = 'right';
   ctx.fillText('0m', PAD.left - 5, PAD.top + 4);
+
+  // ── Mobile legend below graph ──
+  const legendEl = document.getElementById(canvasId === 'decoProfileCanvas' ? 'decoProfileLegend' : 'plannerProfileLegend');
+  if (legendEl) {
+    const stops = waypoints.filter(wp => wp.dot && wp.label);
+    if (isMobile && stops.length) {
+      legendEl.style.display = 'block';
+      legendEl.innerHTML = `<table style="width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:11px;">
+        <thead><tr style="border-bottom:1px solid var(--border);">
+          <th style="padding:5px 6px;text-align:left;color:var(--muted);font-size:9px;letter-spacing:1px;text-transform:uppercase;">#</th>
+          <th style="padding:5px 6px;text-align:left;color:var(--muted);font-size:9px;letter-spacing:1px;text-transform:uppercase;">Stop</th>
+          <th style="padding:5px 6px;text-align:right;color:var(--muted);font-size:9px;letter-spacing:1px;text-transform:uppercase;">Run</th>
+          <th style="padding:5px 6px;text-align:right;color:var(--muted);font-size:9px;letter-spacing:1px;text-transform:uppercase;">ppO₂</th>
+        </tr></thead>
+        <tbody>${stops.map((wp, i) => {
+          const dotColor = wp.type==='deco' ? '#ff4757' : wp.type==='safety' ? '#26d07c' : '#00d9ff';
+          const pColor = wp.ppo2 >= 1.6 ? '#ff4757' : wp.ppo2 >= 1.4 ? '#ffb703' : 'var(--muted)';
+          const labelFmt = wp.label.replace(/(\d+m)\s+(\d+)/, '$1 - $2');
+          return `<tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:5px 6px;color:${dotColor};font-weight:600;">${i+1}</td>
+            <td style="padding:5px 6px;color:${dotColor};">${labelFmt}</td>
+            <td style="padding:5px 6px;text-align:right;color:var(--muted);">${Math.round(wp.t)} min</td>
+            <td style="padding:5px 6px;text-align:right;color:${pColor};">${wp.ppo2 ? wp.ppo2.toFixed(2) : '—'}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`;
+    } else {
+      legendEl.style.display = 'none';
+    }
+  }
 }
 
 // ─── Build waypoints from Dive Planner (Rec mode) ───────────────────────────
@@ -3244,25 +3331,31 @@ function drawDecoProfile() {
   wps.push({ t, depth: depthVal, type: 'bottom' });
 
   // Read stops from the table using data-phase
+  const labelledDepths = new Set();
   document.querySelectorAll('#decoTableBody tr[data-phase]').forEach(tr => {
     const phase = tr.dataset.phase;
     if (phase !== 'deco' && phase !== 'safety' && phase !== 'ascent') return;
     const tds    = tr.querySelectorAll('td');
-    const run    = parseFloat(tds[3]?.textContent) || 0; // Run column
+    const run    = parseFloat(tds[3]?.textContent) || 0;
     const depthTxt = tds[1]?.textContent?.trim() || '';
     const ppo2   = parseFloat(tds[5]?.textContent) || 0;
-    const cns    = tds[6]?.textContent?.trim() || '';
 
     if (phase === 'ascent') {
-      // parse "40m → 21m" — take the TO depth
-      const parts  = depthTxt.split('→');
+      const parts   = depthTxt.split('→');
       const toDepth = parseFloat(parts[1]) || 0;
       wps.push({ t: run, depth: toDepth, type: 'ascent' });
     } else {
       const depth = parseFloat(depthTxt) || 0;
-      wps.push({ t: run, depth, type: phase, dot: true,
-        label: depth + 'm ' + (tds[2]?.textContent?.trim() || ''),
-        ppo2: ppo2 || null
+      // Only label this stop if we haven't labelled this depth yet
+      const showLabel = !labelledDepths.has(depth);
+      if (showLabel) labelledDepths.add(depth);
+      const stopTime = tds[2]?.textContent?.trim() || '';
+      const stopNum = wps.filter(w => w.dot).length + 1;
+      wps.push({ t: run, depth, type: phase,
+        dot: true,
+        num: stopNum,
+        label: showLabel ? depth + 'm ' + stopTime : null,
+        ppo2: (showLabel && ppo2 >= 1.4) ? ppo2 : null
       });
     }
   });
@@ -3345,8 +3438,7 @@ function calcCNS() {
 function drawGFCurve() {
   const canvas = document.getElementById('gfCurveCanvas');
   if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
+  const { ctx, W, H } = setupHiDPI(canvas);
   const PAD = { top: 24, right: 24, bottom: 48, left: 58 };
   const PW = W - PAD.left - PAD.right;
   const PH = H - PAD.top - PAD.bottom;
@@ -3354,6 +3446,11 @@ function drawGFCurve() {
   ctx.clearRect(0, 0, W, H);
 
   const isLight  = document.body.classList.contains('light-theme');
+  const isMobile = W < 480;
+  const monoFont  = isMobile ? '300 8px "JetBrains Mono",monospace' : '300 9px "JetBrains Mono",monospace';
+  const labelFont = isMobile ? '300 8px "JetBrains Mono",monospace' : '500 10px "JetBrains Mono",monospace';
+  const axisFont  = isMobile ? '300 7.5px "Outfit",sans-serif'       : '300 10px "Outfit",sans-serif';
+  const dotRadius = isMobile ? 3 : 5;
   ctx.fillStyle  = isLight ? '#eff3f8' : '#0d2038';
   ctx.fillRect(0, 0, W, H);
 
@@ -3399,19 +3496,19 @@ function drawGFCurve() {
   [0.2, 0.4, 0.6, 0.8, 1.0].forEach(gf => {
     ctx.strokeStyle = gridColor;
     ctx.beginPath(); ctx.moveTo(toX(gf), PAD.top); ctx.lineTo(toX(gf), PAD.top + PH); ctx.stroke();
-    ctx.fillStyle = textColor; ctx.font = '10px JetBrains Mono,monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = textColor; ctx.font = monoFont; ctx.textAlign = 'center';
     ctx.fillText(Math.round(gf * 100) + '%', toX(gf), PAD.top + PH + 18);
   });
   const depthTicks = [0, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60].filter(d => d <= maxDepth);
   depthTicks.forEach(d => {
     ctx.strokeStyle = gridColor;
     ctx.beginPath(); ctx.moveTo(PAD.left, toY(d)); ctx.lineTo(PAD.left + PW, toY(d)); ctx.stroke();
-    ctx.fillStyle = textColor; ctx.font = '10px JetBrains Mono,monospace'; ctx.textAlign = 'right';
+    ctx.fillStyle = textColor; ctx.font = monoFont; ctx.textAlign = 'right';
     ctx.fillText(d + 'm', PAD.left - 6, toY(d) + 4);
   });
 
   // ── Axis labels ──
-  ctx.fillStyle = textColor; ctx.font = '11px Outfit,sans-serif'; ctx.textAlign = 'center';
+  ctx.fillStyle = textColor; ctx.font = axisFont; ctx.textAlign = 'center';
   ctx.fillText('Gradient Factor %', PAD.left + PW / 2, H - 6);
   ctx.save(); ctx.translate(13, PAD.top + PH / 2); ctx.rotate(-Math.PI / 2);
   ctx.fillText('Depth (m)', 0, 0); ctx.restore();
@@ -3419,7 +3516,7 @@ function drawGFCurve() {
   // ── GF Envelope line (dashed): GF Low at firstStop → GF High at surface ──
   ctx.beginPath();
   ctx.strokeStyle = accentColor;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = isMobile ? 1.5 : 2;
   ctx.setLineDash([6, 4]);
   if (firstStop > 0) {
     // From bottom to firstStop: vertical line at GF Low
@@ -3436,7 +3533,7 @@ function drawGFCurve() {
   ctx.setLineDash([]);
 
   // ── GF Low / High labels ──
-  ctx.fillStyle = accentColor; ctx.font = 'bold 10px JetBrains Mono,monospace';
+  ctx.fillStyle = accentColor; ctx.font = labelFont;
   if (firstStop > 0) {
     ctx.textAlign = 'right';
     ctx.fillText('GFL ' + mGF.low + '%', toX(gfLow) - 4, toY(firstStop) + 14);
@@ -3449,7 +3546,7 @@ function drawGFCurve() {
 
   if (stops.length === 0) {
     // ── No deco data — placeholder ──
-    ctx.fillStyle = textColor; ctx.font = '13px Outfit,sans-serif'; ctx.textAlign = 'center';
+    ctx.fillStyle = textColor; ctx.font = axisFont; ctx.textAlign = 'center';
     ctx.globalAlpha = 0.45;
     ctx.fillText('Run a Bühlmann deco plan to see the GF curve', PAD.left + PW / 2, PAD.top + PH / 2 - 8);
     ctx.fillText('Switch to Deco Schedule tab and click CALCULATE', PAD.left + PW / 2, PAD.top + PH / 2 + 12);
@@ -3479,25 +3576,61 @@ function drawGFCurve() {
   // Draw profile line
   ctx.beginPath();
   ctx.strokeStyle = greenColor;
-  ctx.lineWidth = 2.5;
+    ctx.lineWidth = isMobile ? 1.5 : 2;
   waypoints.forEach((wp, i) => {
     i === 0 ? ctx.moveTo(toX(wp.gf), toY(wp.depth)) : ctx.lineTo(toX(wp.gf), toY(wp.depth));
   });
   ctx.stroke();
 
   // Draw dots and labels at stops
-  waypoints.filter(wp => wp.label).forEach(wp => {
+  const gfStops = waypoints.filter(wp => wp.label);
+  gfStops.forEach((wp, i) => {
     const x = toX(wp.gf), y = toY(wp.depth);
     ctx.beginPath();
-    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
     ctx.fillStyle = wp.isDeco ? redColor : wp.isSafety ? '#26d07c' : accentColor;
     ctx.fill();
     ctx.strokeStyle = isLight ? '#fff' : '#0d2038';
     ctx.lineWidth = 1.5; ctx.stroke();
-    ctx.fillStyle = textColor; ctx.font = 'bold 10px JetBrains Mono,monospace';
-    ctx.textAlign = x > PAD.left + PW * 0.7 ? 'right' : 'left';
-    ctx.fillText(wp.label, x + (ctx.textAlign === 'left' ? 8 : -8), y + 4);
+    // Dot number
+    ctx.fillStyle = isLight ? '#fff' : '#0d2038';
+    ctx.font = `600 ${isMobile ? 7 : 8}px "JetBrains Mono",monospace`;
+    ctx.textAlign = 'center';
+    ctx.fillText(i + 1, x, y + 3);
+    // Label desktop only
+    if (!isMobile) {
+      ctx.fillStyle = textColor; ctx.font = labelFont;
+      ctx.textAlign = 'right';
+      const labelFmt = wp.label.replace(/(\d+m)\s+\/\s+(\d+)/, '$1 - $2');
+      ctx.fillText((i+1) + '  ' + labelFmt, x - 7, y - 6);
+    }
   });
+
+  // Mobile legend
+  const gfLegendEl = document.getElementById('gfCurveLegend');
+  if (gfLegendEl) {
+    if (isMobile && gfStops.length) {
+      gfLegendEl.style.display = 'block';
+      gfLegendEl.innerHTML = `<table style="width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:6px;">
+        <thead><tr style="border-bottom:1px solid var(--border);">
+          <th style="padding:5px 6px;text-align:left;color:var(--muted);font-size:9px;letter-spacing:1px;text-transform:uppercase;">#</th>
+          <th style="padding:5px 6px;text-align:left;color:var(--muted);font-size:9px;letter-spacing:1px;text-transform:uppercase;">Stop</th>
+          <th style="padding:5px 6px;text-align:right;color:var(--muted);font-size:9px;letter-spacing:1px;text-transform:uppercase;">GF%</th>
+        </tr></thead>
+        <tbody>${gfStops.map((wp, i) => {
+          const col = wp.isDeco ? '#ff4757' : wp.isSafety ? '#26d07c' : '#00d9ff';
+          const labelFmt = wp.label.replace(/(\d+m)\s+\/\s+(\d+)/, '$1 - $2');
+          return `<tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:5px 6px;color:${col};font-weight:600;">${i+1}</td>
+            <td style="padding:5px 6px;color:${col};">${labelFmt}</td>
+            <td style="padding:5px 6px;text-align:right;color:var(--muted);">${Math.round(wp.gf*100)}%</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`;
+    } else {
+      gfLegendEl.style.display = 'none';
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -3534,7 +3667,7 @@ function exportPDF() {
     // Gas switch rows
     if (tr.dataset.phase === 'switch') {
       const txt = tr.querySelector('td[colspan]')?.textContent?.trim() || '';
-      decoRows += `<tr><td style="padding:6px 8px;color:#006600;">⇄</td><td colspan="6" style="color:#006600;font-weight:700;font-size:11px;padding:6px 10px;background:#f0fff4;">${txt}</td></tr>`;
+      decoRows += `<tr><td style="padding:6px 8px;color:#0055aa;">⇄</td><td colspan="6" style="color:#0055aa;font-weight:700;font-size:11px;padding:6px 10px;background:#f0f4ff;">${txt}</td></tr>`;
       return;
     }
     const phase = tr.dataset.phase;
@@ -3784,11 +3917,13 @@ ${decoRows ? `
 </table>
 ${pdfLegend}` : ''}
 
-${profileImgSrc ? `
-<!-- ── PAGE 2: Dive Profile Graph ── -->
+${(profileImgSrc || gfImgSrc) ? `
+<!-- ── PAGE 2: Dive Profile Graph + GF Curve ── -->
 <div class="page-break"></div><div class="page-spacer"></div>
-<div class="page-title">Dive Profile Graph <span>${depthVal}m · ${btVal}min · ${bottomGasVal} · ${gfVal}</span></div>
-<img src="${profileImgSrc}" style="width:100%;border-radius:8px;border:1px solid #ccd;margin-top:8px;">` : ''}
+${profileImgSrc ? `<div class="page-title">Dive Profile Graph <span>${depthVal}m · ${btVal}min · ${bottomGasVal} · ${gfVal}</span></div>
+<img src="${profileImgSrc}" style="width:100%;border-radius:8px;border:1px solid #ccd;margin-bottom:16px;">` : ''}
+${gfImgSrc ? `<div class="page-title" style="margin-top:14px;">Gradient Factor Curve <span>GF Low ${mGF.low}% → GF High ${mGF.high}%</span></div>
+<img src="${gfImgSrc}" style="width:100%;border-radius:8px;border:1px solid #ccd;margin-top:8px;">` : ''}` : ''}
 
 ${tissueHTML ? `
 <!-- ── PAGE 3: Tissue Saturation ── -->
@@ -3798,12 +3933,6 @@ ${tissueHTML ? `
   ${tissueHeaderHTML}
   <tbody>${tissueHTML}</tbody>
 </table>` : ''}
-
-${gfImgSrc ? `
-<!-- ── PAGE 4: GF Curve ── -->
-<div class="page-break"></div><div class="page-spacer"></div>
-<div class="page-title">Gradient Factor Curve <span>GF Low ${mGF.low}% → GF High ${mGF.high}%</span></div>
-<img src="${gfImgSrc}" style="width:100%;border-radius:8px;border:1px solid #ccd;margin-top:8px;">` : ''}
 
 <script>window.onload = function() { window.print(); }<\/script>
 </body>
