@@ -37,27 +37,61 @@ jobs:
           mkdir -p android-app/app/src/main/assets
           cp index.html android-app/app/src/main/assets/
           
-      - name: Create Gradle files
+      - name: Create root build.gradle
         run: |
-          echo 'plugins { id "com.android.application" version "8.0.0" apply false }' > android-app/build.gradle
-          echo 'include ":app"' > android-app/settings.gradle
+          cat > android-app/build.gradle << 'GRADLE'
+          plugins {
+              id 'com.android.application' version '7.4.2' apply false
+          }
+          GRADLE
+          
+      - name: Create settings.gradle
+        run: |
+          cat > android-app/settings.gradle << 'SETTINGS'
+          pluginManagement {
+              repositories {
+                  gradlePluginPortal()
+                  google()
+                  mavenCentral()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          include ':app'
+          SETTINGS
           
       - name: Create app/build.gradle
         run: |
           cat > android-app/app/build.gradle << 'GRADLE'
-          plugins { id 'com.android.application' }
+          plugins {
+              id 'com.android.application' version '7.4.2'
+          }
+          
           android {
-              compileSdkVersion 34
+              compileSdk 34
+              
               defaultConfig {
                   applicationId 'com.example.lspdplanner'
-                  minSdkVersion 21
-                  targetSdkVersion 34
+                  minSdk 21
+                  targetSdk 34
                   versionCode 1
                   versionName '5.6.3'
               }
-              buildTypes { release { minifyEnabled false } }
+              
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                  }
+              }
+              
               namespace 'com.example.lspdplanner'
           }
+          
           dependencies {
               implementation 'androidx.appcompat:appcompat:1.6.1'
           }
@@ -119,10 +153,14 @@ jobs:
           </resources>
           STRINGS
           
-      - name: Setup and build
+      - name: Setup Gradle wrapper
         run: |
           cd android-app
-          gradle wrapper --gradle-version 8.5
+          gradle wrapper --gradle-version 8.4
+          
+      - name: Build APK
+        run: |
+          cd android-app
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace
         env:
