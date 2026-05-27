@@ -37,6 +37,14 @@ jobs:
           mkdir -p android-app/app/src/main/assets
           cp index.html android-app/app/src/main/assets/
           
+      - name: Create gradle.properties
+        run: |
+          cat > android-app/gradle.properties << 'PROPS'
+          android.useAndroidX=true
+          android.enableJetifier=true
+          org.gradle.jvmargs=-Xmx2048m
+          PROPS
+
       - name: Create root build.gradle
         run: |
           cat > android-app/build.gradle << 'GRADLE'
