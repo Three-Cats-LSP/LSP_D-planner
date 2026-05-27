@@ -11,25 +11,25 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Set up JDK 11
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '11'
           distribution: 'adopt'
           
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v2
+        uses: android-actions/setup-android@v3
         with:
           api-levels: '21'
-          build-tools-version: '33.0.0'
+          build-tools-version: '34.0.0'
           
       - name: Install Gradle
         run: |
-          wget https://services.gradle.org/distributions/gradle-7.6-bin.zip
-          unzip gradle-7.6-bin.zip
-          export PATH=$PWD/gradle-7.6/bin:$PATH
+          wget https://services.gradle.org/distributions/gradle-8.0-bin.zip
+          unzip gradle-8.0-bin.zip
+          export PATH=$PWD/gradle-8.0/bin:$PATH
           gradle --version
           
       - name: Create Gradle Android Project
@@ -42,15 +42,21 @@ jobs:
           # Create build.gradle
           cat > android-app/build.gradle << 'GRADLE'
           plugins {
+              id 'com.android.application' version '8.0.0' apply false
+          }
+          GRADLE
+          
+          cat > android-app/app/build.gradle << 'APPGRADLE'
+          plugins {
               id 'com.android.application'
           }
           
           android {
-              compileSdkVersion 33
+              compileSdkVersion 34
               defaultConfig {
                   applicationId "com.example.lspdplanner"
                   minSdkVersion 21
-                  targetSdkVersion 33
+                  targetSdkVersion 34
                   versionCode 1
                   versionName "5.6.3-beta"
               }
@@ -59,18 +65,30 @@ jobs:
                       minifyEnabled false
                   }
               }
+              namespace "com.example.lspdplanner"
           }
-          GRADLE
+          
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+          }
+          APPGRADLE
           
           # Create settings.gradle
-          echo "include ':app'" > android-app/settings.gradle
-          
-          # Create top-level build.gradle
-          cat > android-app/build.gradle << 'TOPGRADLE'
-          plugins {
-              id 'com.android.application' version '7.4.0' apply false
+          echo "pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
           }
-          TOPGRADLE
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          include ':app'" > android-app/settings.gradle
           
       - name: Create Android Manifest
         run: |
@@ -81,15 +99,16 @@ jobs:
               package="com.example.lspdplanner">
               
               <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
               
               <application
                   android:allowBackup="true"
                   android:label="@string/app_name"
-                  android:icon="@drawable/ic_launcher"
-                  android:theme="@style/Theme.AppCompat">
+                  android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
                   
                   <activity android:name=".MainActivity"
-                      android:exported="true">
+                      android:exported="true"
+                      android:configChanges="orientation|screenSize">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
                           <category android:name="android.intent.category.LAUNCHER" />
@@ -105,6 +124,7 @@ jobs:
           package com.example.lspdplanner;
           
           import android.os.Bundle;
+          import android.webkit.WebSettings;
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
           import androidx.appcompat.app.AppCompatActivity;
@@ -116,8 +136,12 @@ jobs:
                   setContentView(R.layout.activity_main);
                   
                   WebView webView = findViewById(R.id.webview);
-                  webView.getSettings().setJavaScriptEnabled(true);
-                  webView.getSettings().setDomStorageEnabled(true);
+                  WebSettings settings = webView.getSettings();
+                  settings.setJavaScriptEnabled(true);
+                  settings.setDomStorageEnabled(true);
+                  settings.setDatabaseEnabled(true);
+                  settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+                  
                   webView.setWebViewClient(new WebViewClient());
                   webView.loadUrl("file:///android_asset/index.html");
               }
@@ -129,7 +153,7 @@ jobs:
           mkdir -p android-app/app/src/main/res/layout
           cat > android-app/app/src/main/res/layout/activity_main.xml << 'XML'
           <?xml version="1.0" encoding="utf-8"?>
-          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
               
@@ -137,7 +161,7 @@ jobs:
                   android:id="@+id/webview"
                   android:layout_width="match_parent"
                   android:layout_height="match_parent" />
-          </LinearLayout>
+          </FrameLayout>
           XML
           
       - name: Create Resources
@@ -148,41 +172,52 @@ jobs:
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <string name="app_name">LSP D-PLANNER</string>
+              <string name="app_desc">Professional Dive Planning Tool</string>
           </resources>
           STRINGS
           
           cat > android-app/app/src/main/res/values/styles.xml << 'STYLES'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <style name="Theme.AppCompat" parent="android:Theme.Material.Light" />
+              <style name="Theme.AppCompat.Light.DarkActionBar" parent="android:Theme.Material.Light.DarkActionBar" />
           </resources>
           STYLES
+          
+      - name: Setup Gradle wrapper
+        run: |
+          cd android-app
+          wget https://services.gradle.org/distributions/gradle-8.0-bin.zip
+          unzip -o gradle-8.0-bin.zip
           
       - name: Build APK with Gradle
         run: |
           cd android-app
-          chmod +x gradlew 2>/dev/null || true
-          gradle wrapper --gradle-version 7.6
-          ./gradlew assembleDebug
+          chmod +x gradle-8.0/bin/gradle
+          ./gradle-8.0/bin/gradle assembleDebug --stacktrace
           
       - name: Find APK
         run: |
+          echo "Looking for APK files..."
           find android-app -name "*.apk" -type f
-          ls -lah android-app/app/build/outputs/apk/debug/
+          ls -lah android-app/app/build/outputs/apk/debug/ 2>/dev/null || echo "Debug APK not found at expected location"
+          find android-app -name "*.apk" -exec ls -lah {} \;
           
-      - name: Rename APK
+      - name: Rename and prepare APK
         run: |
           mkdir -p build-artifacts
           if [ -f "android-app/app/build/outputs/apk/debug/app-debug.apk" ]; then
             cp android-app/app/build/outputs/apk/debug/app-debug.apk build-artifacts/LSP_D-PLANNER-5.6.3-beta.apk
             echo "✓ APK built successfully"
+            ls -lah build-artifacts/
           else
-            echo "⚠ APK build completed but file not found at expected location"
-            find android-app -name "*.apk" -exec cp {} build-artifacts/ \;
+            echo "Error: APK not found at expected location"
+            find android-app -name "*.apk" -type f -exec cp {} build-artifacts/ \;
+            ls -lah build-artifacts/ || echo "No APK files found"
+            exit 1
           fi
           
-      - name: Upload APK to Artifacts
-        uses: actions/upload-artifact@v3
+      - name: Upload APK to Artifacts (v4)
+        uses: actions/upload-artifact@v4
         with:
           name: lsp-d-planner-apk
           path: build-artifacts/
@@ -190,7 +225,7 @@ jobs:
           
       - name: Create Release and Upload APK
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: build-artifacts/*
           draft: false
@@ -203,19 +238,31 @@ jobs:
             ## Installation
             1. Download the APK file
             2. On your Android device, go to Settings > Security
-            3. Enable "Unknown Sources"
-            4. Install the APK
+            3. Enable "Unknown Sources" or "Install from unknown sources"
+            4. Open file manager and tap the APK file
+            5. Tap "Install"
             
             ## Features
-            - PADI REC calculations
+            - PADI REC dive calculations
             - Bühlmann ZH-L16C algorithm
-            - Emergency planning
+            - Emergency planning tools
             - Export to Text/PDF
             - Offline capable
             - Mobile optimized
+            - Touch-friendly interface
+            
+            ## System Requirements
+            - Android 5.0 (API 21) or higher
+            - Minimum 50 MB free storage
             
             ## Safety
-            Training & Planning Use Only - Never use as primary dive computer
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            ⚠️ **Training & Planning Use Only**
+            - Never use as primary dive computer
+            - Always use actual dive computer while diving
+            - Plan conservatively with safety margins
+            - Follow your certification level
+            - Never exceed 40m depth (PADI recreational limit)
+            - Never dive alone
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
