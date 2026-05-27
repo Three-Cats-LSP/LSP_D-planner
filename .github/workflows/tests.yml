@@ -1,0 +1,29 @@
+name: Quality Checks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Validate HTML
+        run: |
+          # Basic HTML validation
+          if ! grep -q "<!DOCTYPE html>" index.html; then
+            echo "Error: Missing DOCTYPE"
+            exit 1
+          fi
+          
+      - name: Check File Size
+        run: |
+          SIZE=$(wc -c < index.html)
+          echo "File size: $SIZE bytes"
+          if [ $SIZE -gt 300000 ]; then
+            echo "Warning: File exceeds 300KB"
+          fi
