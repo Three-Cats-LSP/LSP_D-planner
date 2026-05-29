@@ -1176,9 +1176,9 @@ body.algo-buh .buh-only { display: flex !important; }
     <!-- GF Presets (hidden by default) -->
     <div id="gfPresetsRow" style="display: none; align-items: center; gap: 8px; flex-shrink:0;">
       <span class="algo-label-text" style="white-space:nowrap;">GF:</span>
-      <button class="gf-btn active" id="gfPreset1" onclick="setGF(30, 70)" title="Conservative - Maximum safety">GF 30/70</button>
-      <button class="gf-btn" id="gfPreset2" onclick="setGF(40, 80)" title="Moderate - Balanced">GF 40/80</button>
-      <button class="gf-btn" id="gfPreset3" onclick="setGF(50, 90)" title="Liberal - Shorter deco">GF 50/90</button>
+      <button class="gf-btn active" id="gfPreset1" onclick="setGF(30, 70)" title="Conservative — deep first stop, maximum deco obligation">GF 30/70</button>
+      <button class="gf-btn" id="gfPreset2" onclick="setGF(40, 80)" title="Moderate — balanced approach">GF 40/80</button>
+      <button class="gf-btn" id="gfPreset3" onclick="setGF(70, 85)" title="Recommended by Dr. Doolette (NEDU) — shallow stops, evidence-based">GF 70/85</button>
     </div>
     
     <!-- Custom GF (hidden by default) -->
@@ -1387,6 +1387,22 @@ body.algo-buh .buh-only { display: flex !important; }
           <option value="12">12 m/min</option>
           <option value="15">15 m/min</option>
           <option value="18">18 m/min</option>
+        </select>
+      </div>
+      <div class="field"><label>Deco Ascent Rate</label>
+        <select id="decoAscentRate">
+          <option value="3">3 m/min</option>
+          <option value="6" selected>6 m/min</option>
+          <option value="9">9 m/min</option>
+          <option value="10">10 m/min</option>
+          <option value="12">12 m/min</option>
+        </select>
+      </div>
+      <div class="field"><label>Surface Ascent Rate</label>
+        <select id="surfaceAscentRate">
+          <option value="3" selected>3 m/min</option>
+          <option value="6">6 m/min</option>
+          <option value="9">9 m/min</option>
         </select>
       </div>
       <div class="field">
@@ -2010,10 +2026,10 @@ body.algo-buh .buh-only { display: flex !important; }
 // ═══════════════════════════════════════════════
 const ZHL16C = [
   [4.0,   1.2599, 0.5050],[8.0,   1.0000, 0.6514],[12.5,  0.8618, 0.7222],
-  [18.5,  0.7562, 0.7825],[27.0,  0.6667, 0.8126],[38.5,  0.5933, 0.8434],
-  [54.3,  0.5282, 0.8693],[77.0,  0.4701, 0.8910],[109.0, 0.4187, 0.9092],
-  [146.0, 0.3798, 0.9222],[187.0, 0.3497, 0.9319],[239.0, 0.3223, 0.9403],
-  [305.0, 0.2971, 0.9477],[390.0, 0.2737, 0.9544],[498.0, 0.2523, 0.9602],
+  [18.5,  0.7562, 0.7825],[27.0,  0.6200, 0.8126],[38.3,  0.5043, 0.8434],
+  [54.3,  0.4410, 0.8693],[77.0,  0.4000, 0.8910],[109.0, 0.3750, 0.9092],
+  [146.0, 0.3500, 0.9222],[187.0, 0.3295, 0.9319],[239.0, 0.3065, 0.9403],
+  [305.0, 0.2835, 0.9477],[390.0, 0.2610, 0.9544],[498.0, 0.2480, 0.9602],
   [635.0, 0.2327, 0.9653],
 ];
 
@@ -2029,14 +2045,15 @@ let contGasLose = 'none'; // contingency: 'none' | '1' | '2' | 'both'
 let contExtraBT = 0;      // contingency extra BT: 0 | 3 | 5 | 10
 
 const SURFACE_P = 1.013;
+const WATER_VAPOR = 0.0627; // alveolar water vapor pressure (bar) — standard at 37°C body temp
 
 // Water density pressure factors (bar per metre)
 const WATER_DENSITY = {
-  fresh:    0.09804,  // 1000 kg/m³ — fresh water
-  en13319:  0.10000,  // 1020 kg/m³ — EN13319 standard (most dive computers)
-  salt:     0.10052,  // 1025 kg/m³ — salt water
+  fresh:    0.09681,  // 1000 kg/m³ × 9.80665 / 100000 — fresh water
+  en13319:  0.09964,  // 1020 kg/m³ — EN13319 standard (most dive computers)
+  salt:     0.10020,  // 1027 kg/m³ — standard salt water (1/10.078 ≈ 0.09923 → ApexDeco uses 10.078m/bar)
 };
-let BAR_PER_METRE = WATER_DENSITY.en13319; // default
+let BAR_PER_METRE = 1/10.078; // ApexDeco salt water default (1027 kg/m³)
 
 // ── Narcosis settings ──
 let narcoticN2 = true;   // N₂ always narcotic by default
@@ -2497,7 +2514,7 @@ function updateGF() {
 // BÜHLMANN PHYSICS
 // ═══════════════════════════════════════════════
 function initTissues() {
-  const pN2 = SURFACE_P * FN2_AIR;
+  const pN2 = (SURFACE_P - WATER_VAPOR) * 0.7902;  // alveolar N2 at surface
   return ZHL16C.map(() => pN2);
 }
 
@@ -2526,8 +2543,8 @@ function schreiner(p0, pGas, ht, t) { return pGas + (p0-pGas) * Math.exp(-Math.L
  */
 function schreinerLinear(p0, fN2, ht, t, p0Amb, R) {
   const k   = Math.LN2 / ht;
-  const piN2 = p0Amb * fN2;          // initial inspired pN2
-  const rN2  = R * fN2;               // rate of change of inspired pN2
+  const piN2 = (p0Amb - WATER_VAPOR) * fN2;  // inspired pN2 minus water vapor
+  const rN2  = R * fN2;                         // rate of change of inspired pN2
   return piN2 + rN2 * (t - 1/k) - (piN2 - p0 - rN2/k) * Math.exp(-k * t);
 }
 
@@ -2558,15 +2575,17 @@ function zFactorN2(pBar) {
 }
 
 function saturate(tissues, depthM, t, fN2) {
-  const pN2 = depthBar(depthM) * fN2;
+  const pN2 = (depthBar(depthM) - WATER_VAPOR) * fN2;
   return tissues.map((p0,i) => schreiner(p0, pN2, ZHL16C[i][0], t));
 }
 
 function ceiling(tissues, gfHigh) {
+  // Baker GF formula: stop required if pN2 > pAmb + GF*(M_value - pAmb)
+  // Equivalent ceiling: pAmb = (pN2 - GF*a) / (1 - GF + GF/b)
   let maxC = 0;
   tissues.forEach((pN2, i) => {
     const [,a,b] = ZHL16C[i];
-    const pAmbMin = (pN2 - a*gfHigh) * b;
+    const pAmbMin = (pN2 - gfHigh * a) / (1 - gfHigh + gfHigh / b);
     const cM = Math.max(0, (pAmbMin - SURFACE_P) / BAR_PER_METRE);
     if (cM > maxC) maxC = cM;
   });
@@ -2867,7 +2886,9 @@ function runDecoSchedule() {
   const rawD   = parseFloat(document.getElementById('decoDepth').value) || 40;
   const depthM = units === 'metric' ? rawD : rawD / 3.28084;
   const bt     = parseInt(document.getElementById('decoBT').value) || 30;
-  const rate        = Math.max(1, parseInt(document.getElementById('ascentRate').value)  || 9);
+  const rate            = Math.max(1, parseInt(document.getElementById('ascentRate').value)        || 9);  // to first stop
+  const decoRate        = Math.max(1, parseInt(document.getElementById('decoAscentRate').value)    || 6);  // between deco stops
+  const surfaceRate     = Math.max(1, parseInt(document.getElementById('surfaceAscentRate').value) || 3);  // last stop to surface
   const descentRate = Math.max(1, parseInt(document.getElementById('descentRate').value) || 22);
   const gfL    = mGF.low  / 100;
   const gfH    = mGF.high / 100;
@@ -2956,12 +2977,14 @@ function runDecoSchedule() {
   const descentTime = depthM / descentRate;
   tissues = saturateLinear(tissues, 0, depthM, descentTime, bottomFN2);
 
-  // Bottom phase
-  tissues = saturate(tissues, depthM, bt, bottomFN2);
+  // Bottom time input = total time from leaving surface (industry standard).
+  // Subtract descent time to get actual time spent at depth.
+  const btAtDepth = Math.max(0, bt - descentTime);
+  tissues = saturate(tissues, depthM, btAtDepth, bottomFN2);
 
   const steps = [];
   let cur = depthM;
-  let rt  = descentTime + bt; // run time includes descent + bottom time
+  let rt  = bt; // run time = full BT input (descent already counted in BT)
 
   // ── Stop-based ascent engine ──
   // 1. Candidate stop depths are every 3 m from bottom to lastStop (inclusive).
@@ -3000,8 +3023,8 @@ function runDecoSchedule() {
     }
   }
 
-  // minStop zone: deepest of GF anchor or first gas switch
-  const minStopZoneDepth = Math.max(firstStopDepth || 0, firstSwitchDepth || 0) || null;
+  // minStop zone: deepest of GF anchor, first gas switch + one step (catches pre-switch stops like 24m)
+  const minStopZoneDepth = Math.max(firstStopDepth || 0, (firstSwitchDepth || 0) + decoStep) || null;
 
   // ── GF interpolation: gfL at firstStopDepth → gfH at surface ──
   function gfAt(depthM) {
@@ -3015,10 +3038,14 @@ function runDecoSchedule() {
     const stopDepth = stopDepths[si];
     const nextStop  = si + 1 < stopDepths.length ? stopDepths[si + 1] : 0;
 
-    // Travel from cur to stopDepth — tissues off-gas with linear Schreiner
+    // Travel from cur to stopDepth — use appropriate ascent rate:
+    // - Before first deco stop: use main ascent rate
+    // - Between deco stops: use decoRate
+    // - Last segment (from lastStop to surface): surfaceRate (not needed here, surface is after loop)
     if (cur > stopDepth) {
       const travelGas = getActiveGas(cur, bottomFN2, decoGases, getPPO2Limit, bottomMixLabel);
-      const travelDur = (cur - stopDepth) / rate;
+      const travelRate = decoZoneEntered ? decoRate : rate;
+      const travelDur = (cur - stopDepth) / travelRate;
       tissues = saturateLinear(tissues, cur, stopDepth, travelDur, travelGas.fN2);
       steps.push({
         type: 'ascent', from: cur, to: stopDepth,
@@ -3097,7 +3124,7 @@ function runDecoSchedule() {
           stopT += extra; rt += extra;
         }
       } else {
-        // Safety stop — 3 min (or minStopT if larger)
+        // Safety stop — 3 min (or minStopT if larger), already whole minutes
         stopT = Math.max(3, minStopT);
         tissues = saturate(tissues, cur, stopT, stopFN2);
         rt += stopT;
@@ -3236,15 +3263,16 @@ function runDecoSchedule() {
   </tr>`;
 
   // ── BOTTOM ROW ──
-  rowRT += bt;
+  const btAtDepthMin = Math.max(0, bt - descentTimeMin);
+  rowRT += btAtDepthMin;
   const btPPO2 = ((rawD * BAR_PER_METRE + SURFACE_P) * (1 - bottomFN2)).toFixed(2);
-  const btCNS  = rowCNS(parseFloat(btPPO2), bt);
-  totalCNSfrac += segCNSfrac(parseFloat(btPPO2), bt);
-  totalOTU     += segOTU(parseFloat(btPPO2), bt);
+  const btCNS  = rowCNS(parseFloat(btPPO2), btAtDepthMin);
+  totalCNSfrac += segCNSfrac(parseFloat(btPPO2), btAtDepthMin);
+  totalOTU     += segOTU(parseFloat(btPPO2), btAtDepthMin);
   tbody.innerHTML += `<tr class="asc-row" data-phase="bottom">
     <td>🔵</td>
     <td data-label="Depth" style="color:var(--accent);">${dU?rawD+' m':mToFt(rawD)+' ft'}</td>
-    <td data-label="Stop" style="color:var(--accent);">${fmtMM(bt)}</td>
+    <td data-label="Stop" style="color:var(--accent);">${fmtMM(btAtDepthMin)}</td>
     <td data-label="Run" style="color:var(--accent);">${fmtMM(rowRT)}</td>
     <td data-label="Mix"><span style="color:var(--accent);">${bottomMixLabel}</span></td>
     <td data-label="PPO2" style="color:var(--muted);">${btPPO2}</td>
@@ -4345,8 +4373,9 @@ function buildExportText(mode) {
     .replace(/\s*→\s*/g, '→')
     .replace(/\s+/g, ' ').trim();
 
-  // ── helper: horizontal rule ──
-  const hr = '─'.repeat(40);
+  // ── helper: horizontal rules ──
+  const hr    = '='.repeat(40);          // planner/generic section divider
+  const decoHr = '='.repeat(22);         // matches "DECOMPRESSION SCHEDULE" width
 
   let lines = [];
 
@@ -4402,7 +4431,9 @@ function buildExportText(mode) {
     const gfHigh      = mGF?.high ?? '—';
     const gasEl       = document.getElementById('decoGas');
     const gas         = gasEl?.options[gasEl?.selectedIndex]?.text || '—';
-    const ascentRate  = document.getElementById('ascentRate')?.value  || '—';
+    const ascentRate     = document.getElementById('ascentRate')?.value      || '—';
+    const decoAscentRate = document.getElementById('decoAscentRate')?.value  || '—';
+    const surfAscentRate = document.getElementById('surfaceAscentRate')?.value || '—';
     const descentRate = document.getElementById('descentRate')?.value || '—';
     const lastStop    = document.getElementById('lastDecoStop')?.value || '—';
     const decoStep    = document.getElementById('decoStep')?.value    || '—';
@@ -4446,10 +4477,10 @@ function buildExportText(mode) {
     });
 
     lines.push('DECOMPRESSION SCHEDULE');
-    lines.push(hr);
+    lines.push(decoHr);
     lines.push(`Depth       : ${depth}${du}    BT: ${bt} min    GF: ${gfLow}/${gfHigh}`);
     lines.push(`Bottom Gas  : ${shortMix(gas)}    Water: ${density}`);
-    lines.push(`Descent     : ${descentRate}${du}/min    Ascent: ${ascentRate}${du}/min`);
+    lines.push(`Descent     : ${descentRate}${du}/min    Ascent: ${ascentRate}${du}/min    Deco: ${decoAscentRate}${du}/min    Surface: ${surfAscentRate}${du}/min`);
     lines.push(`Last Stop   : ${lastStop}${du}    Step: ${decoStep}${du}`);
     gswInfos.forEach((g, i) => lines.push(`Deco Gas ${i+1}  : ${g.gas}  (switch @ ${g.depth})`));
     lines.push(`Deco Time   : ${decoTimeVal}    Run Time: ${runTimeVal}`);
@@ -4458,7 +4489,7 @@ function buildExportText(mode) {
     // Ascent schedule table
     const rows = document.querySelectorAll('#decoTableBody tr[data-phase]');
     if (rows.length) {
-      const shr = '─'.repeat(32);
+      const shr = '-'.repeat(43);  // length of column header line
       lines.push('ASCENT SCHEDULE');
       lines.push(shr);
       lines.push('Phase Depth  Stop   Run    Mix   PPO2  CNS%');
@@ -4543,7 +4574,7 @@ function buildExportText(mode) {
       lines.push('📋 CONTINGENCY ASCENT SCHEDULE');
       lines.push(hr);
       lines.push('Phase  Depth      Stop   Run    Mix              PPO2   CNS%');
-      lines.push('─'.repeat(65));
+      lines.push('-'.repeat(65));
       const phaseLabel = { descent:'Des', bottom:'Lvl', ascent:'Asc', deco:'Stp', safety:'Stp', switch:'GSw' };
       rows.forEach(tr => {
         const ph  = tr.dataset.phase;
@@ -4580,7 +4611,7 @@ function buildExportText(mode) {
     cards.forEach(card => {
       const title = clean(card.querySelector('.card-title, h3, b, [class*="title"]')?.textContent || `DIVE ${diveNum}`);
       lines.push(`🔵 ${title.toUpperCase()}`);
-      lines.push('─'.repeat(30));
+      lines.push('-'.repeat(30));
       card.querySelectorAll('.stat').forEach(s => {
         const val = clean(s.querySelector('.stat-val')?.textContent || '');
         const lbl = clean(s.querySelector('.stat-lbl')?.textContent || '');
@@ -5584,7 +5615,7 @@ var appSettings = {
   // All tracked fields organized by mode
   DECO_FIELDS: [
     'decoDepth', 'decoBT', 'decoGas', 'decoCustomO2',
-    'descentRate', 'ascentRate', 'decoStep', 'lastDecoStop',
+    'descentRate', 'ascentRate', 'decoAscentRate', 'surfaceAscentRate', 'decoStep', 'lastDecoStop',
     'minStopTime', 'ppo2Bottom', 'ppo2Deco'
   ],
   
