@@ -5059,9 +5059,9 @@ function buildExportText(mode) {
   return lines.join('\n');
 }
 
-// ── Copy to clipboard ──
+// ── Copy to clipboard — uses messenger-safe format ──
 function copyDiveProfile(mode) {
-  const text = buildExportText(mode);
+  const text = buildMessengerText(mode);
   if (!text) return;
   if (navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(text)
@@ -5070,6 +5070,86 @@ function copyDiveProfile(mode) {
   } else {
     copyFallback(text);
   }
+}
+
+// ── Messenger-safe format: ascent schedule only, no column padding ──
+// Short enough to share in WhatsApp, Telegram, iMessage, Reddit
+function buildMessengerText(mode) {
+  if (mode !== 'deco') return buildExportText(mode);
+
+  const rows = document.querySelectorAll('#decoTableBody tr[data-phase]');
+  if (!rows.length) return buildExportText(mode);
+
+  // One-line context header
+  const depth = document.getElementById('decoDepth')?.value || '—';
+  const bt    = document.getElementById('decoBT')?.value    || '—';
+  const gfL   = document.getElementById('gfLowInput')?.value  || '—';
+  const gfH   = document.getElementById('gfHighInput')?.value || '—';
+  const du    = units === 'metric' ? 'm' : 'ft';
+  const unitsPref = units;
+
+  const shortMix = m => {
+    const s = (m||'').trim();
+    if (!s || /air/i.test(s) || s.includes('21%')) return 'AIR';
+    if (s.includes('100%') || /^100/i.test(s)) return 'O2';
+    const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/);
+    if (ean) return 'EAN' + ean[1];
+    const pct = s.match(/(\d+)%/);
+    if (pct) return 'EAN' + pct[1];
+    return s;
+  };
+  const clean = t => t
+    .replace(/[🔵🔴🟢🟣⇄↓↑⚠️🤿✓⚡]/g, '')
+    .replace(/ppO₂/g, 'ppO2').replace(/O₂/g, 'O2')
+    .replace(/(\d)\s+(m|ft)\b/g, '$1$2')
+    .replace(/\s*→\s*/g, '>')
+    .replace(/\s+/g, ' ').trim();
+
+  const result = [];
+  result.push(`${depth}${du} / ${bt}min / GF ${gfL}/${gfH}`);
+  result.push('-'.repeat(28));
+
+  rows.forEach(tr => {
+    const ph  = tr.dataset.phase;
+    if (ph === 'totals') return;
+    const tds = tr.querySelectorAll('td');
+    const c   = Array.from(tds).map(td => clean(td.textContent));
+
+    if (ph === 'switch') {
+      // Gas switch: ">> EAN50 @ 21m"
+      const info = clean(Array.from(tds).map(td => td.textContent).join(' '));
+      result.push(`>> ${info}`);
+      return;
+    }
+    if (ph === 'descent' || ph === 'ascent') return; // skip travel rows — clutter
+
+    // bottom level
+    if (ph === 'bottom') {
+      result.push(`Lvl  ${c[1]}  ${c[2]}  ${shortMix(c[4])}`);
+      return;
+    }
+
+    // deco / safety stop
+    const dep  = c[1] || '';
+    const stop = /^\d+:\d+$/.test(c[2]) ? c[2] : '';
+    const run  = c[3] || '';
+    const mix  = shortMix(c[4]);
+    result.push(`Stp  ${dep}  ${stop}  ${run}  ${mix}`);
+  });
+
+  // Totals line
+  const totRow = document.querySelector('#decoTableBody tr[data-phase="totals"] td');
+  if (totRow) {
+    const t    = totRow.textContent.replace(/\s+/g, ' ').trim();
+    const runM = t.match(/Run time:\s*([\d':"]+)/i);
+    const decM = t.match(/Deco time:\s*([\d':"]+)/i);
+    const cnsM = t.match(/CNS:\s*([\d.]+%)/i);
+    result.push('-'.repeat(28));
+    result.push(`Run ${runM?.[1]||'—'}  Deco ${decM?.[1]||'—'}  CNS ${cnsM?.[1]||'—'}`);
+  }
+
+  result.push('LSP D-Planner');
+  return result.join('\n');
 }
 
 // ── Download .txt file ──
