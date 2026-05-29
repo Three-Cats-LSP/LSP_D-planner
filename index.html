@@ -1412,7 +1412,7 @@ body.algo-buh .buh-only { display: flex !important; }
           <option value="12">12 m/min</option>
         </select>
       </div>
-      <div class="field"><label>Surface Ascent Rate</label>
+      <div class="field"><label>Surf Ascent Rate</label>
         <select id="surfaceAscentRate">
           <option value="3" selected>3 m/min</option>
           <option value="6">6 m/min</option>
@@ -2533,6 +2533,13 @@ function setUnits(u) {
     if (u==='metric' && prev==='imperial') { inp.value = parseFloat(ftToM(v)); inp.max=100; }
     if (u==='imperial' && prev==='metric') { inp.value = mToFt(v); inp.max=330; }
   }
+  // Also convert the Bühlmann deco depth field
+  const decoInp = document.getElementById('decoDepth');
+  if (decoInp) {
+    const v = parseFloat(decoInp.value)||0;
+    if (u==='metric' && prev==='imperial') { decoInp.value = Math.round(v / 3.28084); decoInp.max=120; }
+    if (u==='imperial' && prev==='metric') { decoInp.value = Math.round(v * 3.28084); decoInp.max=400; }
+  }
   // Labels
   const du = u==='metric' ? 'm' : 'ft';
   const setTxt = (id, txt) => { const el=document.getElementById(id); if(el) el.textContent=txt; };
@@ -2542,12 +2549,44 @@ function setUnits(u) {
   // Safety stop depth buttons — 3m=10ft, 6m=20ft
   setTxt('sd3', u==='metric' ? '3 m'  : '10 ft');
   setTxt('sd6', u==='metric' ? '6 m'  : '20 ft');
+  // Update rate dropdowns to show ft/min or m/min
+  const rateSelectors = ['descentRate','ascentRate','decoAscentRate','surfaceAscentRate'];
+  rateSelectors.forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    Array.from(sel.options).forEach(opt => {
+      const val = opt.value;
+      if (u === 'imperial') {
+        const fpm = Math.round(parseFloat(val) * 3.28084);
+        opt.text = fpm + ' ft/min';
+      } else {
+        opt.text = val + ' m/min';
+      }
+    });
+  });
+  // Update depth-based dropdowns: Deco Step Size and Last Deco Stop
+  const depthSelectors = ['decoStep', 'lastDecoStop'];
+  depthSelectors.forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    Array.from(sel.options).forEach(opt => {
+      const val = parseFloat(opt.value);
+      if (u === 'imperial') {
+        const ft = Math.round(val * 3.28084);
+        opt.text = ft + ' ft';
+      } else {
+        opt.text = val + ' m';
+      }
+    });
+  });
   // NDL units sync
   ndlUnits = u; renderNDLTable?.();
   // Multi units sync
   multiUnits = u; buildDiveBlocks?.();
   // Re-run planner if a result is showing
   if (document.getElementById('plannerResult')?.innerHTML) calculateDive?.();
+  // Re-run deco if a result is showing — updates depth input, legend, stats, graph
+  if (document.getElementById('decoResult')?.style.display !== 'none') runDecoSchedule?.();
 }
 
 function setNDLUnits(u)   { setUnits(u); }
@@ -3269,21 +3308,22 @@ function runDecoSchedule() {
   // Update live END display in the settings card
   const endLive = document.getElementById('endDisplayLive');
   if (endLive) {
-    endLive.textContent = `${endDisp} m  (${narcoStr})`;
+    const endDispU = dU ? endDisp + ' m' : Math.round(endM * 3.28084) + ' ft';
+    endLive.textContent = `${endDispU}  (${narcoStr})`;
     endLive.style.color = endColor;
   }
 
   document.getElementById('decoSummary').innerHTML = `
     <div class="stats" style="margin-top:0;">
-      <div class="stat"><div class="stat-val">${rawD} m</div><div class="stat-lbl">Depth</div></div>
+      <div class="stat"><div class="stat-val">${rawD} ${dU?'m':'ft'}</div><div class="stat-lbl">Depth</div></div>
       <div class="stat"><div class="stat-val">${bt} min</div><div class="stat-lbl">Bottom Time</div></div>
       <div class="stat"><div class="stat-val" style="font-size:13px;">${bottomMixLabel}</div><div class="stat-lbl">Bottom Gas</div></div>
       <div class="stat"><div class="stat-val ${hasDeco?'o':'g'}">${Math.round(decoTime)} min</div><div class="stat-lbl">Deco Time</div></div>
       <div class="stat"><div class="stat-val">${Math.round(rt)} min</div><div class="stat-lbl">Total Run Time</div></div>
       <div class="stat"><div class="stat-val">${mGF.low}/${mGF.high}</div><div class="stat-lbl">GF Low/High</div></div>
-      <div class="stat"><div class="stat-val">${lastStop} m</div><div class="stat-lbl">Last Stop</div></div>
-      <div class="stat"><div class="stat-val">${decoStep} m</div><div class="stat-lbl">Step Size</div></div>
-      <div class="stat"><div class="stat-val" style="color:${endColor};font-size:15px;">${endDisp} m</div><div class="stat-lbl">END <span style="font-size:9px;color:var(--muted);">${narcoStr}</span></div></div>
+      <div class="stat"><div class="stat-val">${dU?lastStop:Math.round(lastStop*3.28084)} ${dU?'m':'ft'}</div><div class="stat-lbl">Last Stop</div></div>
+      <div class="stat"><div class="stat-val">${dU?decoStep:Math.round(decoStep*3.28084)} ${dU?'m':'ft'}</div><div class="stat-lbl">Step Size</div></div>
+      <div class="stat"><div class="stat-val" style="color:${endColor};font-size:15px;">${dU?endDisp:Math.round(endM*3.28084)} ${dU?'m':'ft'}</div><div class="stat-lbl">END <span style="font-size:9px;color:var(--muted);">${narcoStr}</span></div></div>
     </div>
     ${decoGases.length > 0 || true ? `<div style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
       ${bottomGasTag} ${decoGasTags}
@@ -3354,7 +3394,7 @@ function runDecoSchedule() {
   totalOTU     += segOTU(parseFloat(descentPPO2), descentTimeMin);
   tbody.innerHTML += `<tr class="asc-row" data-phase="descent">
     <td><span style="font-size:18px;color:#ff8080;">↓</span></td>
-    <td data-label="Depth" style="color:#ff8080;">0 → ${dU?rawD+' m':mToFt(rawD)+' ft'}</td>
+    <td data-label="Depth" style="color:#ff8080;">0 → ${rawD} ${dU?'m':'ft'}</td>
     <td data-label="Stop" style="color:#ff8080;"></td>
     <td data-label="Run" style="color:#ff8080;">${fmtMM(rowRT)}</td>
     <td data-label="Mix"><span style="color:var(--accent);">${bottomMixLabel}</span></td>
@@ -3371,7 +3411,7 @@ function runDecoSchedule() {
   totalOTU     += segOTU(parseFloat(btPPO2), btAtDepthMin);
   tbody.innerHTML += `<tr class="asc-row" data-phase="bottom">
     <td>🔵</td>
-    <td data-label="Depth" style="color:var(--accent);">${dU?rawD+' m':mToFt(rawD)+' ft'}</td>
+    <td data-label="Depth" style="color:var(--accent);">${rawD} ${dU?'m':'ft'}</td>
     <td data-label="Stop" style="color:var(--accent);">${fmtMM(btAtDepthMin)}</td>
     <td data-label="Run" style="color:var(--accent);">${fmtMM(rowRT)}</td>
     <td data-label="Mix"><span style="color:var(--accent);">${bottomMixLabel}</span></td>
@@ -3473,7 +3513,7 @@ function runDecoSchedule() {
   const otuFootColor = totalOTUval >= 300 ? 'var(--red)' : totalOTUval >= 200 ? 'var(--orange)' : totalOTUval >= 100 ? 'var(--yellow)' : 'var(--green)';
   tbody.innerHTML += `<tr style="background:rgba(0,200,255,0.04);border-top:2px solid var(--border-hi);" data-phase="totals">
     <td colspan="7" style="padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;white-space:nowrap;">
-      <span style="color:var(--muted);">Run time:</span> <span style="color:var(--text);font-weight:700;margin-right:16px;">${totalRunMMSS}</span><span style="color:var(--muted);">Deco time:</span> <span style="color:${hasDeco ? 'var(--orange)' : 'var(--green)'};font-weight:700;margin-right:16px;">${decoTimeMMSS}</span><span style="color:var(--muted);">CNS:</span> <span style="color:${cnsFootColor};font-weight:700;margin-right:16px;">${totalCNSpct}%</span><span style="color:var(--muted);">OTU:</span> <span style="color:${otuFootColor};font-weight:700;">${totalOTUval}</span>
+      <span style="color:var(--muted);">Run time:</span> <span style="color:var(--text);font-weight:700;margin-right:16px;">${totalRunMMSS}</span><span style="color:var(--muted);margin-left:8px;">Deco time:</span> <span style="color:${hasDeco ? 'var(--orange)' : 'var(--green)'};font-weight:700;margin-right:16px;">${decoTimeMMSS}</span><span style="color:var(--muted);margin-left:8px;">CNS:</span> <span style="color:${cnsFootColor};font-weight:700;margin-right:16px;">${totalCNSpct}%</span><span style="color:var(--muted);margin-left:8px;">OTU:</span> <span style="color:${otuFootColor};font-weight:700;">${totalOTUval}</span>
     </td>
   </tr>`;
 
@@ -4236,7 +4276,7 @@ function drawDiveProfile(canvasId, waypoints, opts) {
     ctx.strokeStyle = grid; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + PW, y); ctx.stroke();
     ctx.fillStyle = muted; ctx.font = monoFont; ctx.textAlign = 'right';
-    if (d > 0) ctx.fillText(d + 'm', PAD.left - 5, y + 4);
+    if (d > 0) ctx.fillText(d + (units==='imperial'?'ft':'m'), PAD.left - 5, y + 4);
   }
   const rawTimeStep = totalTime > 120 ? 20 : totalTime > 60 ? 10 : 5;
   const minPxBetween = 50;
@@ -4333,7 +4373,8 @@ function drawDiveProfile(canvasId, waypoints, opts) {
 
     if (!wp.label) return;
 
-    if (isMobile) return; // labels shown in legend below on mobile
+    // On very small mobile skip canvas labels — legend below handles them
+    if (W < 400) return;
 
     const labelFmt = wp.label.replace(/(\d+m)\s+(\d+)/, '$1 - $2');
     ctx.textAlign = 'right';
@@ -4356,7 +4397,7 @@ function drawDiveProfile(canvasId, waypoints, opts) {
   const legendEl = document.getElementById(canvasId === 'decoProfileCanvas' ? 'decoProfileLegend' : 'plannerProfileLegend');
   if (legendEl) {
     const stops = waypoints.filter(wp => wp.dot && wp.label);
-    if (isMobile && stops.length) {
+    if (stops.length) {
       legendEl.style.display = 'block';
       legendEl.innerHTML = `<table style="width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:11px;">
         <thead><tr style="border-bottom:1px solid var(--border);">
@@ -4403,7 +4444,7 @@ function drawPlannerProfile() {
     { t: t, depth: 0, type: 'surface' },
   ];
   t += descentT;
-  wps.push({ t, depth: depthVal, type: 'bottom', dot: true, label: depthVal + 'm' });
+  wps.push({ t, depth: depthVal, type: 'bottom', dot: true, label: depthVal + (units==='imperial'?'ft':'m') });
   t += btVal;
   wps.push({ t, depth: depthVal, type: 'bottom' });
   t += ascentT * (depthVal - 5) / depthVal;
@@ -4433,11 +4474,27 @@ function drawDecoProfile() {
   const aRate = parseFloat(document.getElementById('ascentRate')?.value)  || 9;
   const descentT = depthVal / dRate;
 
+  // Parse "mm:ss" or plain number to decimal minutes
+  function parseRunMin(txt) {
+    if (!txt) return 0;
+    const s = txt.trim();
+    const colon = s.indexOf(':');
+    if (colon !== -1) {
+      const m = parseFloat(s.slice(0, colon)) || 0;
+      const sec = parseFloat(s.slice(colon + 1)) || 0;
+      return m + sec / 60;
+    }
+    return parseFloat(s) || 0;
+  }
+
+  // BT input = total bottom time including descent per LSP convention
+  // Bottom row run time from table gives us the exact departure time
+  const bottomRow = document.querySelector('#decoTableBody tr[data-phase="bottom"]');
+  const bottomRunT = bottomRow ? parseRunMin(bottomRow.querySelectorAll('td')[3]?.textContent) : descentT + btVal;
+
   const wps = [{ t: 0, depth: 0, type: 'surface' }];
-  let t = descentT;
-  wps.push({ t, depth: depthVal, type: 'bottom', dot: true, label: depthVal + 'm' });
-  t += btVal;
-  wps.push({ t, depth: depthVal, type: 'bottom' });
+  wps.push({ t: descentT, depth: depthVal, type: 'bottom', dot: true, label: depthVal + (units==='imperial'?'ft':'m') });
+  wps.push({ t: bottomRunT, depth: depthVal, type: 'bottom' });
 
   // Read stops from the table using data-phase
   const labelledDepths = new Set();
@@ -4445,7 +4502,7 @@ function drawDecoProfile() {
     const phase = tr.dataset.phase;
     if (phase !== 'deco' && phase !== 'safety' && phase !== 'ascent') return;
     const tds    = tr.querySelectorAll('td');
-    const run    = parseFloat(tds[3]?.textContent) || 0;
+    const run    = parseRunMin(tds[3]?.textContent);
     const depthTxt = tds[1]?.textContent?.trim() || '';
     const ppo2   = parseFloat(tds[5]?.textContent) || 0;
 
@@ -4455,7 +4512,6 @@ function drawDecoProfile() {
       wps.push({ t: run, depth: toDepth, type: 'ascent' });
     } else {
       const depth = parseFloat(depthTxt) || 0;
-      // Only label this stop if we haven't labelled this depth yet
       const showLabel = !labelledDepths.has(depth);
       if (showLabel) labelledDepths.add(depth);
       const stopTime = tds[2]?.textContent?.trim() || '';
@@ -4463,16 +4519,16 @@ function drawDecoProfile() {
       wps.push({ t: run, depth, type: phase,
         dot: true,
         num: stopNum,
-        label: showLabel ? depth + 'm ' + stopTime : null,
+        label: showLabel ? depth + (units==='imperial'?'ft':'m') + ' ' + stopTime : null,
         ppo2: (showLabel && ppo2 >= 1.4) ? ppo2 : null
       });
     }
   });
 
-  // Close to surface
-  const lastT = parseFloat(document.querySelectorAll('#decoTableBody tr[data-phase]')?.[
-    document.querySelectorAll('#decoTableBody tr[data-phase]').length - 1
-  ]?.querySelectorAll('td')[3]?.textContent) || btVal + descentT;
+  // Close to surface — use last non-totals row's run time
+  const allPhaseRows = Array.from(document.querySelectorAll('#decoTableBody tr[data-phase]'))
+    .filter(tr => tr.dataset.phase !== 'totals');
+  const lastT = parseRunMin(allPhaseRows[allPhaseRows.length - 1]?.querySelectorAll('td')[3]?.textContent) || btVal + descentT;
   wps.push({ t: lastT, depth: 0, type: 'surface' });
 
   drawDiveProfile('decoProfileCanvas', wps, {
@@ -4731,7 +4787,7 @@ function initTools() {
 // ═══════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════════
-//  UNIFIED EXPORT SYSTEM — v5.7.0
+//  UNIFIED EXPORT SYSTEM — v5.7.1
 //  buildExportText(mode) → clean plain text, messenger-friendly
 //  copyDiveProfile(mode) → clipboard
 //  exportTXT(mode)       → .txt file download
@@ -4743,8 +4799,7 @@ function buildExportText(mode) {
   const timeStr = now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
   const densityMap = { fresh:'Fresh', en13319:'EN13319', salt:'Salt' };
   const density = densityMap[localStorage.getItem('waterDensity') || 'en13319'];
-  const unitsPref = localStorage.getItem('units') || 'metric';
-  const depthUnit = unitsPref === 'imperial' ? 'ft' : 'm';
+  const depthUnit = units === 'imperial' ? 'ft' : 'm';  // use live global, not stale localStorage
   const du = depthUnit; // shorthand — used without space: `${val}${du}`
 
   // ── helper: clean DOM text (strip emoji, fix subscripts) ──
@@ -4844,16 +4899,32 @@ function buildExportText(mode) {
     const decoTimeVal   = clean(decoTimeStat?.querySelector('.stat-val')?.textContent || '—');
     const runTimeVal    = clean(runTimeStat?.querySelector('.stat-val')?.textContent  || '—');
 
-    // Gas switch depths from rendered GSw rows
+    const isImp = units === 'imperial';
+
+    // Rates are stored in m/min — convert to ft/min for imperial display
+    const fmtRate = v => isImp ? Math.round(parseFloat(v) * 3.28084) : parseFloat(v);
+    const rateU   = isImp ? 'ft/min' : 'm/min';
+
+    // Depth stops stored in metres — convert for display
+    const fmtDepth = v => isImp ? Math.round(parseFloat(v) * 3.28084) : parseFloat(v);
+
+    const ascentRateDisp     = fmtRate(ascentRate);
+    const decoAscentRateDisp = fmtRate(decoAscentRate);
+    const surfAscentRateDisp = fmtRate(surfAscentRate);
+    const descentRateDisp    = fmtRate(descentRate);
+    const lastStopDisp       = fmtDepth(lastStop);
+    const decoStepDisp       = fmtDepth(decoStep);
+
+    // Gas switch depths from rendered >> rows — handle both m and ft suffixes
     const gswRows = Array.from(document.querySelectorAll('#decoTableBody tr[data-phase="switch"]'));
     const gswInfos = gswRows.map(tr => {
       const txt = clean(tr.querySelector('td[colspan]')?.textContent || '');
       // e.g. "EAN 50 @ 21m · ppO2 1.5"  or  "100% O2 @ 6m · ppO2 1.6"
-      const depM = txt.match(/@\s*([\d.]+)m/i);
+      const depM = txt.match(/@\s*([\d.]+)\s*(m|ft)/i);
       const gasM = txt.match(/^([^@]+)@/);
       return {
         gas:   shortMix((gasM?.[1] || '').trim()),
-        depth: depM ? depM[1] + du : '—',
+        depth: depM ? depM[1] + depM[2] : '—',
         raw:   txt
       };
     });
@@ -4862,8 +4933,8 @@ function buildExportText(mode) {
     lines.push(decoHr);
     lines.push(`Depth       : ${depth}${du}    BT: ${bt} min    GF: ${gfLow}/${gfHigh}`);
     lines.push(`Bottom Gas  : ${shortMix(gas)}    Water: ${density}`);
-    lines.push(`Descent     : ${descentRate}${du}/min    Ascent: ${ascentRate}${du}/min    Deco: ${decoAscentRate}${du}/min    Surface: ${surfAscentRate}${du}/min`);
-    lines.push(`Last Stop   : ${lastStop}${du}    Step: ${decoStep}${du}`);
+    lines.push(`Rates       : Descent: ${descentRateDisp} ${rateU}  Ascent: ${ascentRateDisp} ${rateU}  Deco: ${decoAscentRateDisp} ${rateU}  Surface: ${surfAscentRateDisp} ${rateU}`);
+    lines.push(`Last Stop   : ${lastStopDisp}${du}    Step: ${decoStepDisp}${du}`);
     gswInfos.forEach((g, i) => lines.push(`Deco Gas ${i+1}  : ${g.gas}  (switch @ ${g.depth})`));
     lines.push(`Deco Time   : ${decoTimeVal}    Run Time: ${runTimeVal}`);
     lines.push('');
@@ -4876,14 +4947,14 @@ function buildExportText(mode) {
       lines.push(shr);
       lines.push('Phase Depth  Stop   Run    Mix   PPO2  CNS%');
       lines.push(shr);
-      const phaseLabel = { descent:'Des', bottom:'Lvl', ascent:'Asc', deco:'Stp', safety:'Stp', switch:'GSw', totals:'TOT' };
+      const phaseLabel = { descent:'Des', bottom:'Lvl', ascent:'Asc', deco:'Stp', safety:'Stp', switch:'>>', totals:'TOT' };
       rows.forEach(tr => {
         const ph  = tr.dataset.phase;
         if (ph === 'totals') return; // handled below
         const tds = tr.querySelectorAll('td');
         if (ph === 'switch') {
           const info = clean(Array.from(tds).map(c=>c.textContent).join(' '));
-          lines.push(`GSw  ${info}`);
+          lines.push(`>> ${info}`);
           return;
         }
         const c   = Array.from(tds).map(td => clean(td.textContent));
@@ -4940,7 +5011,7 @@ function buildExportText(mode) {
     const depth = document.getElementById('decoDepth')?.value || '—';
     const bt    = document.getElementById('decoBT')?.value    || '—';
 
-    lines.push('⚠ LSP D-PLANNER — CONTINGENCY PLAN');
+    lines.push('EMERGENCY PLAN');
     lines.push(hr);
     lines.push(`Scenario    : ${c.label}`);
     lines.push(`Depth       : ${depth}${du}`);
@@ -4953,30 +5024,53 @@ function buildExportText(mode) {
 
     const rows = document.querySelectorAll('#contingencyResult .deco-table tbody tr');
     if (rows.length) {
-      lines.push('📋 CONTINGENCY ASCENT SCHEDULE');
-      lines.push(hr);
-      lines.push('Phase  Depth      Stop   Run    Mix              PPO2   CNS%');
-      lines.push('-'.repeat(65));
-      const phaseLabel = { descent:'Des', bottom:'Lvl', ascent:'Asc', deco:'Stp', safety:'Stp', switch:'GSw' };
+      lines.push('EMERGENCY ASCENT SCHEDULE');
+      lines.push('-'.repeat(43));
+      lines.push('Phase Depth  Stop   Run    Mix   PPO2  CNS%');
+      lines.push('-'.repeat(43));
+      const phaseLabel = { descent:'Des', bottom:'Lvl', ascent:'Asc', deco:'Stp', safety:'Stp', switch:'>>' };
       rows.forEach(tr => {
         const ph  = tr.dataset.phase;
+        if (ph === 'totals') return;
         const tds = tr.querySelectorAll('td');
         if (ph === 'switch') {
           const info = clean(Array.from(tds).map(c=>c.textContent).join(' '));
-          lines.push(`GSw   ${info}`);
+          lines.push(`>> ${info}`);
           return;
         }
         const c2   = Array.from(tds).map(td => clean(td.textContent));
-        const lbl  = (phaseLabel[ph]||ph).padEnd(6);
-        const dep  = (c2[1]||'').padEnd(10);
-        const stpRaw = c2[2]||'';
+        const lbl  = (phaseLabel[ph]||ph).padEnd(5);
+
+        // Ascent/descent: show only destination depth, not "50m→24m"
+        let depRaw = c2[1] || '';
+        if (ph === 'ascent' || ph === 'descent') {
+          const arrowMatch = depRaw.match(/[→>](.+)$/);
+          if (arrowMatch) depRaw = arrowMatch[1].trim();
+        }
+        const dep  = depRaw.padEnd(6);
+        const stpRaw = c2[2] || '';
         const stp  = (/^\d+:\d+$/.test(stpRaw) ? stpRaw : '').padEnd(7);
         const run  = (c2[3]||'').padEnd(7);
-        const mix  = (c2[4]||'').padEnd(16);
-        const ppo2 = (c2[5]||'').padEnd(7);
+        const mix  = (c2[4]||'').padEnd(5);
+        const ppo2 = (c2[5]||'').padEnd(6);
         const cns  = c2[6]||'';
-        lines.push(`${lbl}${dep}${stp}${run}${mix}${ppo2}${cns}`);
+        lines.push(`${lbl} ${dep}${stp}${run}${mix} ${ppo2}${cns}`);
       });
+
+      // Totals line — parse from totals row
+      const totRow = document.querySelector('#contingencyResult .deco-table tbody tr[data-phase="totals"] td');
+      if (totRow) {
+        const t    = totRow.textContent.replace(/\s+/g, ' ').trim();
+        const runM = t.match(/Run time:\s*([\d':"]+)/i);
+        const decM = t.match(/Deco time:\s*([\d':"]+)/i);
+        const cnsM = t.match(/CNS:\s*([\d.]+%)/i);
+        const otuM = t.match(/OTU:\s*(\d+)/i);
+        lines.push('-'.repeat(43));
+        lines.push(`Run Time:${runM?.[1]||c.lastRun+'min'}  Deco:${decM?.[1]||c.decoTime+'min'}  CNS%:${cnsM?.[1]||'—'}  OTU:${otuM?.[1]||'—'}`);
+      } else {
+        lines.push('-'.repeat(43));
+        lines.push(`Run Time:${c.lastRun} min  Deco:${c.decoTime} min`);
+      }
       lines.push('');
     }
 
@@ -5030,7 +5124,7 @@ function buildExportText(mode) {
 
     lines.push('⚡ LSP D-PLANNER — CNS O2 TRACKER');
     lines.push(hr);
-    lines.push(`Depth         : ${depth}m`);
+    lines.push(`Depth         : ${depth}${du}`);
     lines.push(`Bottom Time   : ${bt} min`);
     lines.push(`Gas O2%       : ${o2}%`);
     lines.push(`Dives today   : ${dives}`);
@@ -5075,7 +5169,54 @@ function copyDiveProfile(mode) {
 // ── Messenger-safe format: ascent schedule only, no column padding ──
 // Short enough to share in WhatsApp, Telegram, iMessage, Reddit
 function buildMessengerText(mode) {
-  if (mode !== 'deco') return buildExportText(mode);
+  if (mode === 'contingency') {
+    const c = window._lastContingency;
+    if (!c) return null;
+    const depth = document.getElementById('decoDepth')?.value || '—';
+    const bt    = document.getElementById('decoBT')?.value    || '—';
+    const du    = units === 'metric' ? 'm' : 'ft';
+    const shortMix = m => {
+      const s = (m||'').trim().replace(/[📋⚠️🤿]/g,'').trim();
+      if (!s || /air/i.test(s)) return 'AIR';
+      if (/100/.test(s)) return 'O2';
+      const ean = s.match(/(\d+)%/); if (ean) return 'EAN'+ean[1];
+      return s;
+    };
+    const clean = t => t.replace(/[📋⚠️🤿✓⚡🔵🔴🟢⇄↓↑]/g,'').replace(/O₂/g,'O2').replace(/\s+/g,' ').trim();
+    const result = [];
+    result.push('-- EMERGENCY PLAN --');
+    result.push(`${c.label}`);
+    result.push(`${depth}${du} / ${bt}min BT / Run ${c.lastRun}min`);
+    result.push('-'.repeat(28));
+    const rows = document.querySelectorAll('#contingencyResult .deco-table tbody tr');
+    rows.forEach(tr => {
+      const ph = tr.dataset.phase;
+      if (!ph || ph === 'totals') return;
+      const tds = tr.querySelectorAll('td');
+      const cv  = Array.from(tds).map(td => clean(td.textContent));
+      if (ph === 'switch') { result.push(`>> ${clean(Array.from(tds).map(t=>t.textContent).join(' '))}`); return; }
+      if (ph === 'descent' || ph === 'ascent') return;
+      if (ph === 'bottom') { result.push(`Lvl  ${cv[1]}  ${cv[2]}  ${shortMix(cv[4])}`); return; }
+      const stop = /^\d+:\d+$/.test(cv[2]) ? cv[2] : '';
+      result.push(`Stp  ${cv[1]}  ${stop}  ${cv[3]}  ${shortMix(cv[4])}`);
+    });
+    const totRowC = document.querySelector('#contingencyResult .deco-table tbody tr[data-phase="totals"] td');
+    if (totRowC) {
+      const t    = totRowC.textContent.replace(/\s+/g, ' ').trim();
+      const runM = t.match(/Run time:\s*([\d':"]+)/i);
+      const decM = t.match(/Deco time:\s*([\d':"]+)/i);
+      const cnsM = t.match(/CNS:\s*([\d.]+%)/i);
+      const otuM = t.match(/OTU:\s*(\d+)/i);
+      result.push('-'.repeat(28));
+      result.push(`Run Time:${runM?.[1]||c.lastRun+'min'}  Deco:${decM?.[1]||c.decoTime+'min'}`);
+      result.push(`CNS%:${cnsM?.[1]||'—'}  OTU:${otuM?.[1]||'—'}`);
+    } else {
+      result.push('-'.repeat(28));
+      result.push(`Run Time:${c.lastRun}min  Deco:${c.decoTime}min`);
+    }
+    result.push('LSP D-Planner');
+    return result.join('\n');
+  }
 
   const rows = document.querySelectorAll('#decoTableBody tr[data-phase]');
   if (!rows.length) return buildExportText(mode);
@@ -5083,8 +5224,8 @@ function buildMessengerText(mode) {
   // One-line context header
   const depth = document.getElementById('decoDepth')?.value || '—';
   const bt    = document.getElementById('decoBT')?.value    || '—';
-  const gfL   = document.getElementById('gfLowInput')?.value  || '—';
-  const gfH   = document.getElementById('gfHighInput')?.value || '—';
+  const gfL   = mGF.low;
+  const gfH   = mGF.high;
   const du    = units === 'metric' ? 'm' : 'ft';
   const unitsPref = units;
 
@@ -5106,7 +5247,8 @@ function buildMessengerText(mode) {
     .replace(/\s+/g, ' ').trim();
 
   const result = [];
-  result.push(`${depth}${du} / ${bt}min / GF ${gfL}/${gfH}`);
+  result.push('-- DECO PLAN --');
+  result.push(`${depth}${du} / ${bt}min BT / GF ${gfL}/${gfH}`);
   result.push('-'.repeat(28));
 
   rows.forEach(tr => {
@@ -5144,8 +5286,10 @@ function buildMessengerText(mode) {
     const runM = t.match(/Run time:\s*([\d':"]+)/i);
     const decM = t.match(/Deco time:\s*([\d':"]+)/i);
     const cnsM = t.match(/CNS:\s*([\d.]+%)/i);
+    const otuM = t.match(/OTU:\s*(\d+)/i);
     result.push('-'.repeat(28));
-    result.push(`Run ${runM?.[1]||'—'}  Deco ${decM?.[1]||'—'}  CNS ${cnsM?.[1]||'—'}`);
+    result.push(`Run Time:${runM?.[1]||'—'}  Deco:${decM?.[1]||'—'}`);
+  result.push(`CNS%:${cnsM?.[1]||'—'}  OTU:${otuM?.[1]||'—'}`);
   }
 
   result.push('LSP D-Planner');
@@ -5156,13 +5300,35 @@ function buildMessengerText(mode) {
 function exportTXT(mode) {
   const text = buildExportText(mode);
   if (!text) return;
-  const now      = new Date();
-  const dateStr  = now.toISOString().split('T')[0];
-  const modeTag  = { planner:'Dive_Plan', deco:'Deco_Schedule', contingency:'Contingency', multi:'Multi_Dive', cns:'CNS_O2' }[mode] || mode;
-  const blob     = new Blob([text], { type: 'text/plain' });
-  const a        = document.createElement('a');
-  a.href         = URL.createObjectURL(blob);
-  a.download     = `LSP-DPlan_${dateStr}_${modeTag}.txt`;
+  const now     = new Date();
+  const dateStr = now.toISOString().split('T')[0];
+  const du      = units === 'metric' ? 'm' : 'ft';
+  let tag = '';
+  if (mode === 'deco') {
+    const d  = document.getElementById('decoDepth')?.value || '0';
+    const bt = document.getElementById('decoBT')?.value    || '0';
+    tag = `Deco_${d}${du}_${bt}min_GF${mGF.low}-${mGF.high}`;
+  } else if (mode === 'planner') {
+    const d  = document.getElementById('depth')?.value || '0';
+    const bt = document.getElementById('bt')?.value    || '0';
+    tag = `Plan_${d}${du}_${bt}min`;
+  } else if (mode === 'contingency') {
+    const d  = document.getElementById('decoDepth')?.value || '0';
+    const bt = document.getElementById('decoBT')?.value    || '0';
+    const sc = (window._lastContingency?.label || 'Contingency')
+               .replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
+    tag = `Contingency_${d}${du}_${bt}min_${sc}`;
+  } else if (mode === 'multi') {
+    tag = 'Multi_Dive';
+  } else if (mode === 'cns') {
+    tag = 'CNS_O2_Tracker';
+  } else {
+    tag = mode;
+  }
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `LSP_${dateStr}_${tag}.txt`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -5401,6 +5567,7 @@ function exportContingencyPDF() {
   const timeStr = now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
   const depthVal = document.getElementById('decoDepth')?.value || '—';
   const btVal    = document.getElementById('decoBT')?.value    || '—';
+  const cDu      = units === 'imperial' ? 'ft' : 'm';
 
   // Build filename based on scenario type
   let scenarioName = '';
@@ -5421,7 +5588,7 @@ function exportContingencyPDF() {
   }
 
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-<title>dive-plan-${isoDate}_${scenarioName}</title>
+<title>LSP_${isoDate}_Contingency_${depthVal}${cDu}_${btVal}min_${scenarioName}</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
   @page { size:A4; margin:10mm 14mm; }
@@ -5438,7 +5605,7 @@ function exportContingencyPDF() {
 </style></head><body>
 <div class="page-header">
   <div>🚨 LSP D-PLANNER · CONTINGENCY PLAN</div>
-  <div>${depthVal}m · ${btVal}min BT · ${dateStr} ${timeStr}</div>
+  <div>${depthVal}${cDu} · ${btVal}min BT · ${dateStr} ${timeStr}</div>
 </div>
 <div class="page-footer">
   <span>⚠️ Planning Aid Only — Not a substitute for training or a dive computer · @threecats_lsp</span>
@@ -5588,7 +5755,7 @@ function drawGFCurve() {
     ctx.strokeStyle = gridColor;
     ctx.beginPath(); ctx.moveTo(PAD.left, toY(d)); ctx.lineTo(PAD.left + PW, toY(d)); ctx.stroke();
     ctx.fillStyle = textColor; ctx.font = monoFont; ctx.textAlign = 'right';
-    ctx.fillText(d + 'm', PAD.left - 6, toY(d) + 4);
+    ctx.fillText(d + (units==='imperial'?'ft':'m'), PAD.left - 6, toY(d) + 4);
   });
 
   // ── Axis labels ──
@@ -5642,7 +5809,7 @@ function drawGFCurve() {
   // Build waypoints: surface(0) → bottom → ascent through stops → surface
   const waypoints = [
     { depth: 0,           gf: gfHigh, label: null },
-    { depth: bottomDepth, gf: gfLow,  label: '🔵 ' + bottomDepth + 'm' },
+    { depth: bottomDepth, gf: gfLow,  label: '🔵 ' + bottomDepth + (units==='imperial'?'ft':'m') },
   ];
   // Add deco stops (deepest first)
   const decoStops = stops.filter(s => s.type === 'deco').sort((a, b) => b.depth - a.depth);
@@ -5650,11 +5817,11 @@ function drawGFCurve() {
     const gfAtStop = firstStop > 0
       ? gfLow + (gfHigh - gfLow) * (1 - s.depth / firstStop)
       : gfHigh;
-    waypoints.push({ depth: s.depth, gf: gfAtStop, label: '🔴 ' + s.depth + 'm / ' + s.dur + 'min', isDeco: true });
+    waypoints.push({ depth: s.depth, gf: gfAtStop, label: '🔴 ' + s.depth + (units==='imperial'?'ft':'m') + ' / ' + s.dur + 'min', isDeco: true });
   });
   // Safety stop
   const safetySt = stops.find(s => s.type === 'safety');
-  if (safetySt) waypoints.push({ depth: safetySt.depth, gf: gfHigh * 0.95, label: '🟢 ' + safetySt.depth + 'm', isSafety: true });
+  if (safetySt) waypoints.push({ depth: safetySt.depth, gf: gfHigh * 0.95, label: '🟢 ' + safetySt.depth + (units==='imperial'?'ft':'m'), isSafety: true });
   waypoints.push({ depth: 0, gf: gfHigh, label: null });
 
   // Draw profile line
@@ -5823,15 +5990,19 @@ function exportPDF() {
     .map(t => `<div style="display:inline-block;margin:3px 4px 3px 0;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:bold;background:#e8f0ff;border:1px solid #99aadd;color:#003399;">${t}</div>`)
     .join('');
 
+  const du            = units === 'imperial' ? 'ft' : 'm';
+  const lastStopDisp  = units === 'imperial' ? Math.round(parseFloat(lastStopVal) * 3.28084) : lastStopVal;
+  const stepDisp      = units === 'imperial' ? Math.round(parseFloat(stepVal) * 3.28084) : stepVal;
+
   const statsHTML = `
-    <div class="param"><div class="param-val">${depthVal} m</div><div class="param-lbl">Depth</div></div>
+    <div class="param"><div class="param-val">${depthVal} ${du}</div><div class="param-lbl">Depth</div></div>
     <div class="param"><div class="param-val">${btVal} min</div><div class="param-lbl">Bottom Time</div></div>
     <div class="param"><div class="param-val">${bottomGasVal}</div><div class="param-lbl">Bottom Gas</div></div>
     <div class="param"><div class="param-val">${decoTimeVal} min</div><div class="param-lbl">Deco Time</div></div>
     <div class="param"><div class="param-val">${totalRTVal} min</div><div class="param-lbl">Total Run Time</div></div>
     <div class="param"><div class="param-val">${gfVal}</div><div class="param-lbl">GF Low/High</div></div>
-    <div class="param"><div class="param-val">${lastStopVal} m</div><div class="param-lbl">Last Stop</div></div>
-    <div class="param"><div class="param-val">${stepVal} m</div><div class="param-lbl">Step Size</div></div>
+    <div class="param"><div class="param-val">${lastStopDisp} ${du}</div><div class="param-lbl">Last Stop</div></div>
+    <div class="param"><div class="param-val">${stepDisp} ${du}</div><div class="param-lbl">Step Size</div></div>
   `;
 
   // ── Capture dive profile graph ──
@@ -5873,7 +6044,7 @@ function exportPDF() {
 <html>
 <head>
 <meta charset="UTF-8">
-<title>dive-plan-${isoDate}_Standard_Plan</title>
+<title>LSP_${isoDate}_Deco_${depthVal}${du}_${btVal}min_GF${mGF.low}-${mGF.high}</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -5989,7 +6160,7 @@ function exportPDF() {
 <!-- ── Fixed header on every page ── -->
 <div class="page-header">
   <div class="left">🤿 LSP D-PLANNER</div>
-  <div class="mid">${depthVal}m · ${btVal}min · ${bottomGasVal} · ${gfVal} · ${algo} · ${densityLabel} water</div>
+  <div class="mid">${depthVal}${du} · ${btVal}min · ${bottomGasVal} · ${gfVal} · ${algo} · ${densityLabel} water</div>
   <div class="right">${dateStr} ${timeStr}</div>
 </div>
 
@@ -6005,7 +6176,7 @@ function exportPDF() {
 ${pdfGasRows ? `<div style="margin:6px 0 12px;font-family:Arial,sans-serif;">${pdfGasRows}</div>` : ''}
 
 ${decoRows ? `
-<div class="page-title" style="margin-top:18px;">Dive Profile <span>${depthVal}m · ${btVal}min · ${bottomGasVal} · ${gfVal}</span></div>
+<div class="page-title" style="margin-top:18px;">Dive Profile <span>${depthVal}${du} · ${btVal}min · ${bottomGasVal} · ${gfVal}</span></div>
 <table style="font-size:10px;">
   <thead><tr><th>Phase</th><th>Depth</th><th>Stop</th><th>Run</th><th>Mix</th><th>PPO2</th><th>CNS%</th></tr></thead>
   <tbody>${decoRows}</tbody>
@@ -6015,7 +6186,7 @@ ${pdfLegend}` : ''}
 ${(profileImgSrc || gfImgSrc) ? `
 <!-- ── PAGE 2: Dive Profile Graph + GF Curve ── -->
 <div class="page-break"></div><div class="page-spacer"></div>
-${profileImgSrc ? `<div class="page-title">Dive Profile Graph <span>${depthVal}m · ${btVal}min · ${bottomGasVal} · ${gfVal}</span></div>
+${profileImgSrc ? `<div class="page-title">Dive Profile Graph <span>${depthVal}${du} · ${btVal}min · ${bottomGasVal} · ${gfVal}</span></div>
 <img src="${profileImgSrc}" style="width:100%;border-radius:8px;border:1px solid #ccd;margin-bottom:16px;">` : ''}
 ${gfImgSrc ? `<div class="page-title" style="margin-top:14px;">Gradient Factor Curve <span>GF Low ${mGF.low}% → GF High ${mGF.high}%</span></div>
 <img src="${gfImgSrc}" style="width:100%;border-radius:8px;border:1px solid #ccd;margin-top:8px;">` : ''}` : ''}
