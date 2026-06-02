@@ -1185,8 +1185,8 @@ body.light-theme .ok   { background:#f0fff4; border-color:#116622; color:#116622
       <span class="algo-label-text" style="white-space:nowrap;">Water:</span>
       <div class="algo-toggle" style="display:flex;align-items:center;gap:2px;">
         <button class="algo-btn density-btn" data-density="fresh"    onclick="setWaterDensity('fresh')"    title="Fresh water · 1000 kg/m³">Fresh</button>
-        <button class="algo-btn density-btn active" data-density="en13319" onclick="setWaterDensity('en13319')" title="EN13319 standard · 1020 kg/m³">EN13319</button>
-        <button class="algo-btn density-btn" data-density="salt"     onclick="setWaterDensity('salt')"     title="Salt water · 1025 kg/m³">Salt</button>
+        <button class="algo-btn density-btn" data-density="en13319" onclick="setWaterDensity('en13319')" title="EN13319 standard · 1020 kg/m³">EN13319</button>
+        <button class="algo-btn density-btn active" data-density="salt"     onclick="setWaterDensity('salt')"     title="Salt water · 1025 kg/m³">Salt</button>
       </div>
     </div>
     
@@ -1259,7 +1259,7 @@ body.light-theme .ok   { background:#f0fff4; border-color:#116622; color:#116622
         <input type="number" id="depth" value="" min="1" max="100" step="1">
       </div>
       <div class="field">
-        <label>Bottom Time (min)</label>
+        <label>BT (min)</label>
         <input type="number" id="bt" value="" min="1" max="300" step="1">
       </div>
       <div class="field" id="gasMixField" style="display:none;">
@@ -1311,8 +1311,10 @@ body.light-theme .ok   { background:#f0fff4; border-color:#116622; color:#116622
       <table class="ndl-table">
         <thead><tr>
           <th id="ndlDepthHdr">Depth (m)</th>
-          <th id="ndlNDLHdr">NDL (min)</th>
-          <th>Pressure Group / Notes</th>
+          <th id="ndlNDLHdr">Air NDL</th>
+          <th id="ndlEAN32Hdr" style="color:#26d07c;">EAN 32</th>
+          <th id="ndlEAN36Hdr" style="color:#00d9ff;">EAN 36</th>
+          <th>Pressure Group</th>
           <th>Min Surface Interval</th>
         </tr></thead>
         <tbody id="ndlBody"></tbody>
@@ -1322,6 +1324,10 @@ body.light-theme .ok   { background:#f0fff4; border-color:#116622; color:#116622
       <div style="display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);"><div style="width:10px;height:10px;border-radius:2px;background:rgba(38,208,124,0.5);"></div>Safe</div>
       <div style="display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);"><div style="width:10px;height:10px;border-radius:2px;background:rgba(255,183,3,0.4);"></div>Caution</div>
       <div style="display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);"><div style="width:10px;height:10px;border-radius:2px;background:rgba(255,71,87,0.4);"></div>Deep / Tech</div>
+      <div style="display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);"><span style="color:var(--red);font-weight:700;">—</span> Beyond MOD at 1.4 bar ppO₂</div>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;line-height:1.6;">
+      EAN 32 MOD: 33 m (110 ft) · EAN 36 MOD: 28 m (92 ft) · at ppO₂ 1.4 bar
     </div>
   </div>
 </div>
@@ -1353,11 +1359,14 @@ body.light-theme .ok   { background:#f0fff4; border-color:#116622; color:#116622
 ══════════════════════════════════════ -->
 <div class="panel active" id="deco">
   <div class="card">
-    <div class="card-title">Decompression Schedule</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div class="card-title" style="margin-bottom:0;">Decompression Schedule</div>
+      <button onclick="document.getElementById('settingsHelpModal').style.display='block'" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;" title="Settings help">?</button>
+    </div>
     <div class="info-box">Generates a full ascent profile with deco stops using Bühlmann ZH-L16C + Gradient Factors. Configure up to two decompression gases below — they switch automatically at the specified depths during ascent and are factored into tissue off-gassing.</div>
     <div class="form-grid">
       <div class="field"><label id="decoDepthLbl">Depth (m)</label><input type="number" id="decoDepth" value="40" min="1" max="120" step="1" oninput="if(window._lastContingency) calcContingency()"></div>
-      <div class="field"><label>Bottom Time (min)</label><input type="number" id="decoBT" value="30" min="1" max="300" step="1" oninput="if(window._lastContingency) calcContingency()"></div>
+      <div class="field"><label>BT Time (min)</label><input type="number" id="decoBT" value="30" min="1" max="300" step="1" oninput="if(window._lastContingency) calcContingency()"></div>
       <div class="field"><label>Bottom Gas</label>
         <select id="decoGas" onchange="toggleDecoCustomO2('decoGas','decoCustomO2Field');if(window._lastContingency) calcContingency()">
           <option value="air">Air (21%)</option>
@@ -1376,9 +1385,9 @@ body.light-theme .ok   { background:#f0fff4; border-color:#116622; color:#116622
         <select id="descentRate">
           <option value="10">10 m/min</option>
           <option value="15">15 m/min</option>
-          <option value="18" selected>18 m/min</option>
+          <option value="18">18 m/min</option>
           <option value="20">20 m/min</option>
-          <option value="22">22 m/min</option>
+          <option value="22" selected>22 m/min</option>
           <option value="25">25 m/min</option>
           <option value="30">30 m/min</option>
         </select>
@@ -1397,17 +1406,17 @@ body.light-theme .ok   { background:#f0fff4; border-color:#116622; color:#116622
       <div class="field"><label>Deco Ascent Rate</label>
         <select id="decoAscentRate">
           <option value="3">3 m/min</option>
-          <option value="6" selected>6 m/min</option>
-          <option value="9">9 m/min</option>
+          <option value="6">6 m/min</option>
+          <option value="9" selected>9 m/min</option>
           <option value="10">10 m/min</option>
           <option value="12">12 m/min</option>
         </select>
       </div>
       <div class="field"><label>Surf Ascent Rate</label>
         <select id="surfaceAscentRate">
-          <option value="3" selected>3 m/min</option>
+          <option value="3">3 m/min</option>
           <option value="6">6 m/min</option>
-          <option value="9">9 m/min</option>
+          <option value="9" selected>9 m/min</option>
         </select>
       </div>
       <div class="field">
@@ -1436,12 +1445,26 @@ body.light-theme .ok   { background:#f0fff4; border-color:#116622; color:#116622
         </select>
       </div>
       <div class="field">
-        <label>Btm SAC (L/min)</label>
-        <input type="number" id="sacBottom" value="20" min="5" max="60" step="1">
+        <label>Stop Rounding</label>
+        <select id="stopRounding">
+          <option value="fractional" selected>No</option>
+          <option value="wholeminute">Yes</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Water Vapor</label>
+        <select id="waterVapor" onchange="updateWaterVapor()">
+          <option value="0.0627" selected>0.0627 bar (Bühlmann)</option>
+          <option value="0.0577">0.0577 bar (MultiDeco)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>BT SAC (L/min)</label>
+        <input type="number" id="sacBottom" value="22" min="5" max="60" step="1">
       </div>
       <div class="field">
         <label>Deco SAC (L/min)</label>
-        <input type="number" id="sacDeco" value="15" min="5" max="40" step="1">
+        <input type="number" id="sacDeco" value="20" min="5" max="40" step="1">
       </div>
     </div>
 
@@ -1475,6 +1498,9 @@ body.light-theme .ok   { background:#f0fff4; border-color:#116622; color:#116622
           <option value="1.5">1.5 bar</option>
           <option value="1.4">1.4 bar</option>
         </select>
+      </div>
+      <div class="field" style="display:flex;align-items:flex-end;">
+        <button class="btn-export" onclick="resetToDefaults()" title="Reset all settings to defaults" style="border-color:var(--red);color:var(--red);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
       </div>
     </div>
 
@@ -2054,6 +2080,80 @@ body.light-theme .ok   { background:#f0fff4; border-color:#116622; color:#116622
 
 
 <!-- ══════════════════════════════════════
+     SETTINGS HELP MODAL
+══════════════════════════════════════ -->
+<div id="settingsHelpModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9000;background:rgba(0,0,0,0.75);overflow-y:auto;padding:20px;" onclick="if(event.target===this)this.style.display='none'">
+  <div style="max-width:680px;margin:0 auto;position:relative;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--accent);">⚙ Settings Guide</div>
+      <button onclick="document.getElementById('settingsHelpModal').style.display='none'" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 14px;cursor:pointer;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;">✕ Close</button>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">Dive Parameters</div>
+      <div class="info-box"><strong>Depth:</strong> Maximum depth in metres. All 16 tissue compartments are loaded based on bottom time at this depth.</div>
+      <div class="info-box"><strong>BT Time:</strong> Total bottom time in minutes, measured from the surface. Includes descent — descent duration is subtracted automatically for tissue loading.</div>
+      <div class="info-box"><strong>Bottom Gas:</strong> Breathing mix for descent and bottom phase. Determines N₂ fraction for tissue loading and ppO₂ throughout the dive.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">Ascent Rates</div>
+      <div class="info-box"><strong>Descent Rate:</strong> Speed of descent in m/min. Affects how quickly tissues load N₂. Standard technical rate is 10–22 m/min.</div>
+      <div class="info-box"><strong>Ascent Rate:</strong> Speed from the bottom to the first deco stop. Faster = less off-gassing during transit = more conservative stops. Standard: 9–10 m/min.</div>
+      <div class="info-box"><strong>Deco Ascent Rate:</strong> Speed of travel between deco stops. Slower means more off-gassing between stops, which can shorten stop times. Standard: 3–9 m/min.</div>
+      <div class="info-box"><strong>Surf Ascent Rate:</strong> Speed from the last deco stop to the surface. Usually the same as deco ascent rate.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">Deco Stop Settings</div>
+      <div class="info-box"><strong>Deco Step Size:</strong> Depth interval between stops in metres. Standard is 3 m. Most dive computers use 3 m.</div>
+      <div class="info-box"><strong>Last Deco Stop:</strong> Shallowest mandatory stop depth. Common: 3 m (standard) or 6 m (conservative). The diver holds here until tissues are safe to surface at GF High.</div>
+      <div class="info-box"><strong>Stop Time:</strong> Minimum time at any deco stop regardless of ceiling clearance. Standard is 1 min. Smaller values give more precise plans but are harder to execute.</div>
+      <div class="info-box"><strong>Stop Rounding:</strong> Whether deco stop times are rounded to whole minutes.<br>
+        &nbsp;• <strong>No</strong> (Fractional) — transit time between stops is absorbed, giving precise values like 0:33 or 1:40. Matches ApexDeco output.<br>
+        &nbsp;• <strong>Yes</strong> (Whole min) — every stop rounds up to the nearest whole minute. Simpler to execute underwater. Closer to MultiDeco output.</div>
+      <div class="info-box"><strong>Water Vapor:</strong> Alveolar water vapor pressure used in tissue loading calculations.<br>
+        &nbsp;• <strong>0.0627 bar (B — Bühlmann)</strong> — Bühlmann's original standard at 37°C body temperature.<br>
+        &nbsp;• <strong>0.0577 bar (M — MultiDeco)</strong> — value used by MultiDeco and some other implementations. Produces slightly more tissue loading, shifting stop times by a few seconds at boundaries.<br>
+        Pair <em>Stop Rounding: Yes</em> + <em>0.0577 bar (M)</em> to most closely match MultiDeco output. Pair <em>No</em> + <em>0.0627 bar (B)</em> for the Bühlmann standard.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">Gas & SAC</div>
+      <div class="info-box"><strong>BT SAC:</strong> Surface Air Consumption during the bottom phase (L/min). Used to calculate cylinder gas consumption. Typical technical diver: 18–22 L/min. Stress and exertion increase SAC significantly.</div>
+      <div class="info-box"><strong>Deco SAC:</strong> SAC rate during deco stops. Lower than bottom SAC since the diver is stationary. Typical: 12–18 L/min.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">Narcosis</div>
+      <div class="info-box"><strong>N₂ / O₂ Narcotic:</strong> Which gases count toward the Equivalent Narcotic Depth (END).<br>
+        &nbsp;• <strong>Both Yes</strong> — conservative, used by GUE/DIR. END equals actual depth on air.<br>
+        &nbsp;• <strong>N₂ only</strong> — more optimistic END for high-O₂ mixes.<br>
+        END above 30 m warrants caution. Above 40 m is a serious narcosis risk shown in red.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">ppO₂ Limits</div>
+      <div class="info-box"><strong>Max Bottom ppO₂:</strong> Maximum O₂ partial pressure for the bottom gas. Standard: 1.4 bar. Sets the maximum operating depth (MOD) for the bottom mix.</div>
+      <div class="info-box"><strong>Max Deco ppO₂:</strong> Maximum ppO₂ for deco gases (EAN50, O₂). Standard: 1.6 bar. The planner calculates each gas switch depth as the deepest depth where ppO₂ stays within this limit.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Gradient Factors (GF Low / GF High)</div>
+      <div class="info-box"><strong>GF Low</strong> controls the depth of the first deco stop. Lower = deeper first stop = more conservative. Typical range: 30–50.</div>
+      <div class="info-box"><strong>GF High</strong> controls allowable supersaturation at the surface. Lower = more conservative. GF 80 means tissues reach 80% of their M-value at the surface. Typical range: 70–90.</div>
+      <div class="info-box"><strong>Common presets:</strong><br>
+        &nbsp;• <strong>30/70</strong> — conservative, deep stops, deeper dives<br>
+        &nbsp;• <strong>40/80</strong> — standard technical<br>
+        &nbsp;• <strong>45/85</strong> — moderate-liberal<br>
+        &nbsp;• <strong>50/85</strong> — liberal, faster ascent<br>
+        GF interpolates linearly from first stop depth (GF Low) to surface (GF High).</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
      REFERENCE MODAL OVERLAY
 ══════════════════════════════════════ -->
 <div id="referenceModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9000;background:rgba(0,0,0,0.7);overflow-y:auto;padding:20px;">
@@ -2147,7 +2247,7 @@ body.light-theme .ok   { background:#f0fff4; border-color:#116622; color:#116622
 // ═══════════════════════════════════════════════
 // BÜHLMANN ZH-L16C DATA
 // ═══════════════════════════════════════════════
-const APP_VERSION = '1.0';
+const APP_VERSION = '1.2';
 
 const ZHL16C = [
   [4.0,   1.2599, 0.5050],[8.0,   1.0000, 0.6514],[12.5,  0.8618, 0.7222],
@@ -2165,12 +2265,38 @@ const PADI_NDL_M  = [310,230,100,60,35,25,20,15,13,10,8];
 const PADI_NDL_FT = [310,230,100,60,35,25,20,15,13,10,8];
 const PADI_GROUPS = ['A','B','C','D','E','F','G','H','I','J','K'];
 
+// PADI Nitrox NDL tables (IANTD/PADI Enriched Air Diver standard tables)
+// EAN32 (32% O2) — indexed to match PADI_DEPTHS_M
+const NITROX_NDL_EAN32 = [310,230,145,75,55,30,25,20,16,13,9];
+// EAN36 (36% O2) — indexed to match PADI_DEPTHS_M
+const NITROX_NDL_EAN36 = [310,230,170,100,60,40,30,25,20,15,10];
+// MOD for nitrox mixes at ppO2 1.4 bar (recreational limit)
+// MOD (m) = (1.4 / fO2 - 1) * 10  for salt water
+function nitroxMOD(fO2, ppO2limit) {
+  return Math.floor(((ppO2limit / fO2) - 1) * 10);
+}
+function getNitroxNDL(depthM, mix) {
+  // Return the correct PADI NDL for a given mix at a given depth
+  // Finds closest depth in table (same logic as padiNDL)
+  const depths = PADI_DEPTHS_M;
+  let closest = 0, minDiff = Infinity;
+  depths.forEach((d,i) => { const diff = Math.abs(d-depthM); if(diff<minDiff){minDiff=diff;closest=i;} });
+  if (mix === 'ean32') return NITROX_NDL_EAN32[closest];
+  if (mix === 'ean36') return NITROX_NDL_EAN36[closest];
+  if (mix === 'custom') {
+    // Interpolate between air, EAN32, EAN36 using Bühlmann for custom mixes in rec mode
+    const fN2 = getN2Frac(mix);
+    return buhNDL(depthM, fN2, 50, 100); // conservative GF for rec nitrox
+  }
+  return PADI_NDL_M[closest]; // air fallback
+}
+
 let _contingencyRunning = false; // flag to suppress contingency side effects
 let contGasLose = 'none'; // contingency: 'none' | '1' | '2' | 'both'
 let contExtraBT = 0;      // contingency extra BT: 0 | 3 | 5 | 10
 
 const SURFACE_P = 1.013;
-const WATER_VAPOR = 0.0627; // alveolar water vapor pressure (bar) — standard at 37°C body temp
+let WATER_VAPOR = 0.0627; // alveolar water vapor pressure (bar) — updated by waterVapor setting
 
 // Water density pressure factors (bar per metre)
 const WATER_DENSITY = {
@@ -2236,11 +2362,14 @@ function calcEND(depthM, fN2) {
 
 function setWaterDensity(type) {
   BAR_PER_METRE = WATER_DENSITY[type] || WATER_DENSITY.en13319;
-  // Update button states
   document.querySelectorAll('.density-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.density === type);
   });
   localStorage.setItem('waterDensity', type);
+}
+function updateWaterVapor() {
+  const val = parseFloat(document.getElementById('waterVapor')?.value) || 0.0627;
+  WATER_VAPOR = val;
 }
 const FN2_AIR   = 0.79;
 const FN2_EAN32 = 0.68;
@@ -2299,7 +2428,16 @@ function setAlgo(a) {
   document.getElementById('algoSubtitle').textContent = isBuh ? 'Bühlmann ZH-L16C · Gradient Factors' : 'Recreational Dive Planner';
   document.getElementById('brandIcon').textContent    = isBuh ? '🫧' : '🤿';
   document.getElementById('plannerTitle').textContent = isBuh ? 'Bühlmann Dive Plan' : 'Single Dive Plan';
-  document.getElementById('gasMixField').style.display  = isBuh ? 'block' : 'none';
+  document.getElementById('gasMixField').style.display  = (isBuh || isRec) ? 'block' : 'none';
+  // In Rec mode, limit gas selector to rec-appropriate mixes (hide ean50 deco gas)
+  const gasMixSel = document.getElementById('gasMix');
+  if (gasMixSel) {
+    Array.from(gasMixSel.options).forEach(opt => {
+      if (opt.value === 'ean50') opt.style.display = isBuh ? '' : 'none';
+    });
+    if (isRec && gasMixSel.value === 'ean50') gasMixSel.value = 'air';
+    toggleCustomO2();
+  }
   document.getElementById('gfPresetsRow').style.display = isBuh ? 'flex' : 'flex';
   document.getElementById('gfCustomRow').style.display  = isBuh ? 'flex' : 'flex';
 
@@ -2795,19 +2933,11 @@ function maxSatPct(tissues, gfHigh) {
 // ═══════════════════════════════════════════════
 // PADI LOOKUP
 // ═══════════════════════════════════════════════
-function padiNDL(depthM) {
-  const depths = PADI_DEPTHS_M;
-  const ndls   = PADI_NDL_M;
-  let closest = 0, minDiff = Infinity;
-  depths.forEach((d,i) => { const diff = Math.abs(d-depthM); if(diff<minDiff){minDiff=diff;closest=i;} });
-  return ndls[closest];
+function padiNDL(depthM, mix) {
+  return getNitroxNDL(depthM, mix || 'air');
 }
-function padiGroup(depthM, time) {
-  const depths = PADI_DEPTHS_M;
-  const ndls   = PADI_NDL_M;
-  let idx = 0, minDiff = Infinity;
-  depths.forEach((d,i) => { const diff=Math.abs(d-depthM); if(diff<minDiff){minDiff=diff;idx=i;} });
-  const ndl = ndls[idx];
+function padiGroup(depthM, time, mix) {
+  const ndl = getNitroxNDL(depthM, mix || 'air');
   const pct = time/ndl;
   const gi  = Math.min(PADI_GROUPS.length-1, Math.floor(pct * PADI_GROUPS.length * 0.7));
   return PADI_GROUPS[gi];
@@ -2831,34 +2961,53 @@ function runPlanner() {
   let html = '';
 
   if (algo === 'padi') {
-    const ndl = padiNDL(depthM);
+    const fO2 = 1 - fN2;
+    const isNitrox = mix !== 'air';
+    const gasLabel = mix === 'ean32' ? 'EAN 32' : mix === 'ean36' ? 'EAN 36' : mix === 'custom' ? `EAN ${Math.round(fO2*100)}` : 'Air';
+    const ndl = padiNDL(depthM, mix);
     const rem = Math.max(0, ndl-bt);
-    const group = padiGroup(depthM, bt);
+    const group = padiGroup(depthM, bt, mix);
     const pct = Math.min(100, Math.round((bt/ndl)*100));
     const bc  = pct>=100?'var(--red)':pct>=80?'var(--orange)':pct>=65?'var(--yellow)':'var(--green)';
     const btOk = bt <= ndl;
+    const pO2  = parseFloat((depthBar(depthM) * fO2).toFixed(2));
+    const ppO2Ok = pO2 <= 1.4;
+    const modM = isNitrox ? nitroxMOD(fO2, 1.4) : null;
+    const modFt = modM !== null ? Math.floor(modM * 3.28084) : null;
+    const beyondMOD = isNitrox && depthM > modM;
+
+    const gasStatHtml = isNitrox
+      ? `<div class="stat"><div class="stat-val ${ppO2Ok?'g':'r'}">${pO2.toFixed(2)}</div><div class="stat-lbl">ppO₂ (bar)</div></div>`
+      : '';
+    const modInfoHtml = isNitrox
+      ? `<div class="alert info" style="margin-top:12px;"><span>💡</span><div>MOD for ${gasLabel} @ 1.4 bar ppO₂: <strong>${isMetric ? modM+' m' : modFt+' ft'}</strong></div></div>`
+      : '';
+    const tableRef = isNitrox ? `PADI Nitrox ${gasLabel}` : 'PADI Air';
 
     html = `<div class="card">
       <div style="margin-bottom:12px;">
         <div style="margin-bottom:6px;">
-          <div class="card-title" style="margin:0 0 8px 0;">Rec Results · ${dDisp} / ${bt} min</div>
+          <div class="card-title" style="margin:0 0 8px 0;">Rec Results · ${dDisp} / ${bt} min · ${gasLabel}</div>
           <div class="export-row">
             <button class="btn-export" onclick="copyDiveProfile('planner')" title="Copy to clipboard"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
           <button class="btn-export" onclick="exportTXT('planner')" title="Download .txt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg></button>
         </div>
       </div>
-      <div class="stats" style="grid-template-columns:repeat(3,1fr);margin-top:4px;margin-bottom:4px;">
-        <div class="stat"><div class="stat-val ${btOk?'g':'r'}">${bt}</div><div class="stat-lbl">Your BT</div></div>
+      <div class="stats" style="grid-template-columns:repeat(${isNitrox?4:3},1fr);margin-top:4px;margin-bottom:4px;">
+        <div class="stat"><div class="stat-val ${btOk&&!beyondMOD?'g':'r'}">${bt}</div><div class="stat-lbl">Your BT</div></div>
         <div class="stat"><div class="stat-val ${rem===0?'r':rem<10?'o':'g'}">${rem}</div><div class="stat-lbl">Remaining</div></div>
         <div class="stat"><div class="stat-val" style="font-size:22px;"><span class="group-badge">${group}</span></div><div class="stat-lbl">Press. Group</div></div>
+        ${gasStatHtml}
       </div>
       <div style="margin-top:14px;">
-        <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:5px;letter-spacing:1px;"><span>NDL USAGE</span><span>${pct}%</span></div>
+        <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:5px;letter-spacing:1px;"><span>NDL USAGE · ${tableRef}</span><span>${pct}%</span></div>
         <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${bc};"></div></div>
       </div>
-      ${!btOk ? '<div class="alert dang" style="margin-top:12px;"><span>⚠</span><div><strong>NDL EXCEEDED.</strong> Not permitted for recreational diving. Reduce bottom time.</div></div>' : ''}
-      ${btOk && pct>=80 ? '<div class="alert warn" style="margin-top:12px;"><span>⚡</span><div><strong>APPROACHING LIMIT.</strong> 80%+ NDL used. Monitor closely and ascend conservatively.</div></div>' : ''}
-      ${btOk && pct<80 ? '<div class="alert ok" style="margin-top:12px;"><span>✓</span><div><strong>WITHIN LIMITS.</strong> '+rem+' minutes remaining. Good safety margin.</div></div>' : ''}
+      ${beyondMOD ? `<div class="alert dang" style="margin-top:12px;"><span>⚠</span><div><strong>BEYOND MOD.</strong> ${dDisp} exceeds ${gasLabel} MOD of ${isMetric ? modM+' m' : modFt+' ft'} at 1.4 bar ppO₂. CNS oxygen toxicity risk — use a lower O₂ mix or reduce depth.</div></div>` : ''}
+      ${!beyondMOD && !btOk ? '<div class="alert dang" style="margin-top:12px;"><span>⚠</span><div><strong>NDL EXCEEDED.</strong> Not permitted for recreational diving. Reduce bottom time.</div></div>' : ''}
+      ${!beyondMOD && btOk && pct>=80 ? '<div class="alert warn" style="margin-top:12px;"><span>⚡</span><div><strong>APPROACHING LIMIT.</strong> 80%+ NDL used. Monitor closely and ascend conservatively.</div></div>' : ''}
+      ${!beyondMOD && btOk && pct<80 ? '<div class="alert ok" style="margin-top:12px;"><span>✓</span><div><strong>WITHIN LIMITS.</strong> '+rem+' minutes remaining. Good safety margin.</div></div>' : ''}
+      ${modInfoHtml}
       ${safetyStopHTML(stopDepthM, stopFt, stopDurMin)}
     </div>`;
 
@@ -2875,7 +3024,7 @@ function runPlanner() {
     const pct  = Math.min(100, Math.round((bt/ndl)*100));
     const bc   = pct>=100?'var(--red)':pct>=85?'var(--orange)':pct>=70?'var(--yellow)':'var(--green)';
     const btOk = bt <= ndl && ceil <= 0;
-    const pO2  = floorPPO2(depthBar(depthM)*(1-fN2));
+    const pO2  = parseFloat((depthBar(depthM)*(1-fN2)).toFixed(2));
 
     updateTissueViz(tissues, gfH);
 
@@ -2922,8 +3071,8 @@ function safetyStopHTML(depthM, depthFt, dur) {
   return `<div style="background:rgba(38,208,124,0.06);border:1px solid rgba(38,208,124,0.2);border-radius:10px;padding:14px;margin-top:14px;">
     <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:3px;color:var(--green);margin-bottom:10px;">SAFETY STOP</div>
     <div class="stats" style="margin-top:0;">
-      <div class="stat" style="padding:10px;"><div class="stat-val g" style="font-size:22px;">${depthM} m</div><div class="stat-lbl">${depthFt} ft</div></div>
-      <div class="stat" style="padding:10px;"><div class="stat-val g" style="font-size:22px;">${dur} min</div><div class="stat-lbl">Duration</div></div>
+      <div class="stat" style="padding:10px;"><div class="stat-val g" style="font-size:22px;">${depthM} m</div><div class="stat-lbl">Depth (${depthFt} ft)</div></div>
+      <div class="stat" style="padding:10px;"><div class="stat-val g" style="font-size:22px;">${dur}</div><div class="stat-lbl">Duration (min)</div></div>
       <div class="stat" style="padding:10px;"><div class="stat-val g" style="font-size:22px;">9 m/min</div><div class="stat-lbl">Max ascent</div></div>
     </div>
     <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;">${desc}</div>
@@ -2960,13 +3109,26 @@ function renderNDLTable() {
     const groupIdx = Math.min(PADI_GROUPS.length-1, Math.floor(i * PADI_GROUPS.length / depths.length));
     const group = PADI_GROUPS[groupIdx];
 
+    // MOD checks for nitrox at 1.4 bar ppO2
+    const mod32 = nitroxMOD(0.32, 1.4); // ~33.75m → 33m
+    const mod36 = nitroxMOD(0.36, 1.4); // ~28.9m → 28m
+    const beyondMOD32 = depthM > mod32;
+    const beyondMOD36 = depthM > mod36;
+
+    // EAN32 NDL cell
+    const idx2 = PADI_DEPTHS_M.indexOf(PADI_DEPTHS_M.reduce((a,v)=>Math.abs(v-depthM)<Math.abs(a-depthM)?v:a));
+    const ndl32 = beyondMOD32 ? `<span style="color:var(--red);font-weight:700;" title="Beyond MOD (${isM?mod32+' m':Math.floor(mod32*3.28084)+' ft'})">—</span>` : `<span style="color:#26d07c;">${NITROX_NDL_EAN32[idx2]} min</span>`;
+    const ndl36 = beyondMOD36 ? `<span style="color:var(--red);font-weight:700;" title="Beyond MOD (${isM?mod36+' m':Math.floor(mod36*3.28084)+' ft'})">—</span>` : `<span style="color:#00d9ff;">${NITROX_NDL_EAN36[idx2]} min</span>`;
+
     const ndlDisplay = isBuh
-      ? `${buhNDLVal>=500?'500+':buhNDLVal} min <span style="color:var(--muted);font-size:10px;">(Rec: ${ndl}) GF ${mGF.low}/${mGF.high}</span>`
+      ? `${buhNDLVal>=500?'500+':buhNDLVal} min <span style="color:var(--muted);font-size:10px;">(Air: ${ndl}) GF ${mGF.low}/${mGF.high}</span>`
       : `${ndl} min`;
 
     tbody.innerHTML += `<tr class="${rowClass}">
       <td><strong>${d}${dUnit}</strong></td>
       <td class="${ndlClass}">${ndlDisplay}</td>
+      <td>${isBuh ? '—' : ndl32}</td>
+      <td>${isBuh ? '—' : ndl36}</td>
       <td>${isBuh ? '—' : `<span class="group-badge">${group}</span>`}</td>
       <td style="color:var(--muted);">60+ min recommended</td>
     </tr>`;
@@ -3048,13 +3210,103 @@ function getDecoGasLabel(selectId, customId) {
 // "Best" = lowest fN2 (highest O₂) whose floored ppO₂ at curDepthM is within
 // that gas's own ppO2 limit (determined by O2 fraction band via getPPO2Limit).
 // Switch depths are exact meters so gas switches happen precisely at the right ppO₂.
+function resetToDefaults() {
+  if (!confirm('Reset all settings to defaults?')) return;
+
+  // ApexDeco-matched defaults
+  const defaults = {
+    // Rates
+    descentRate:      '22',
+    ascentRate:       '9',
+    decoAscentRate:   '9',
+    surfaceAscentRate:'9',
+    // Stop settings
+    decoStep:         '3',
+    lastDecoStop:     '6',
+    minStopTime:      '1',
+    stopRounding:     'fractional',
+    waterVapor:       '0.0627',
+    // ppO2 limits
+    ppo2Bottom:       '1.4',
+    ppo2Deco:         '1.6',
+    // SAC rates
+    sacBottom:        '22',
+    sacDeco:          '20',
+    // Narcosis
+    n2NarcSel:        'yes',
+    o2NarcSel:        'yes',
+    // Deco plan inputs
+    decoDepth:        '40',
+    decoBT:           '25',
+    decoGas:          'air',
+    // Deco gases
+    dg1Mix:           'ean50',
+    dg2Mix:           'o2',
+    // Cylinder defaults
+    cylBot_size:      '12',
+    cylBot_pres:      '200',
+    cylDg1_size:      '11',
+    cylDg1_pres:      '200',
+    cylDg2_size:      '11',
+    cylDg2_pres:      '200',
+  };
+
+  // Apply to all DOM fields
+  Object.entries(defaults).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  });
+
+  // Reset GF to default preset 30/70
+  setGF(30, 70);
+
+  // Reset water density to salt default
+  setWaterDensity('salt');
+
+  // Apply water vapor constant
+  updateWaterVapor();
+
+  // Clear custom O2 fields visibility
+  toggleDecoCustomO2?.('dg1Mix', 'dg1CustomField');
+  toggleDecoCustomO2?.('dg2Mix', 'dg2CustomField');
+
+  // Clear localStorage v4
+  try { localStorage.removeItem('lspDiveSettings_v5'); } catch(e) {}
+
+  // Save fresh defaults
+  if (typeof appSettings !== 'undefined' && appSettings.save) {
+    appSettings.save(false);
+  }
+
+  // Clear any existing results
+  const dr = document.getElementById('decoResult');
+  if (dr) dr.style.display = 'none';
+
+  // Update switch depth displays without running full schedule
+  if (typeof runDecoSchedule === 'function') {
+    // Only update the switch depth display fields, not generate a full plan
+    const el1 = document.getElementById('dg1SwitchDepthDisplay');
+    const el2 = document.getElementById('dg2SwitchDepthDisplay');
+    if (el1) el1.value = 'Calculate to see';
+    if (el2) el2.value = 'Calculate to see';
+  }
+
+  console.log('[LSP] ↺ Settings reset to defaults (ApexDeco-matched)');
+}
+
 function getActiveGas(curDepthM, bottomFN2, decoGases, getPPO2LimitFn, bottomLabel) {
   let best = null;
   for (const dg of decoGases) {
     if (curDepthM > dg.depth) continue;
-    const limit = getPPO2LimitFn ? getPPO2LimitFn(dg.fN2) : 1.6;
-    const ppO2AtCur = floorPPO2((SURFACE_P + curDepthM * BAR_PER_METRE) * (1 - dg.fN2));
-    if (ppO2AtCur > limit) continue;
+    const fO2 = 1 - dg.fN2;
+    // Pure O2 (≥99.5%): allowed at its switch depth regardless of ppO2
+    // ApexDeco uses o2MaxDepth special-case — we mirror that here
+    const isPureO2 = fO2 >= 0.995;
+    if (!isPureO2) {
+      const limit = getPPO2LimitFn ? getPPO2LimitFn(dg.fN2) : 1.6;
+      const ppO2AtCur = (SURFACE_P + curDepthM * BAR_PER_METRE) * fO2;
+      if (ppO2AtCur > limit + 0.001) continue;
+    }
     if (best === null || dg.fN2 < best.fN2) {
       best = dg;
     }
@@ -3069,7 +3321,7 @@ function floorPPO2(val) {
 
 function ppO2Check(depthM, fN2) {
   const o2frac = 1 - fN2;
-  return floorPPO2((SURFACE_P + depthM * BAR_PER_METRE) * o2frac).toFixed(1);
+  return ((SURFACE_P + depthM * BAR_PER_METRE) * o2frac).toFixed(2);
 }
 
 function runDecoSchedule() {
@@ -3078,15 +3330,18 @@ function runDecoSchedule() {
   const depthM = units === 'metric' ? rawD : rawD / 3.28084;
   const bt     = parseInt(document.getElementById('decoBT').value) || 30;
   const rate            = Math.max(1, parseInt(document.getElementById('ascentRate').value)        || 9);  // to first stop
-  const decoRate        = Math.max(1, parseInt(document.getElementById('decoAscentRate').value)    || 6);  // between deco stops
-  const surfaceRate     = Math.max(1, parseInt(document.getElementById('surfaceAscentRate').value) || 3);  // last stop to surface
+  const decoRate        = Math.max(1, parseInt(document.getElementById('decoAscentRate').value)    || 9);  // between deco stops
+  const surfaceRate     = Math.max(1, parseInt(document.getElementById('surfaceAscentRate').value) || 9);  // last stop to surface
   const descentRate = Math.max(1, parseInt(document.getElementById('descentRate').value) || 22);
   const gfL    = mGF.low  / 100;
   const gfH    = mGF.high / 100;
   const ppo2Bottom = parseFloat(document.getElementById('ppo2Bottom').value) || 1.4; // bottom / lean gas
   const ppo2Deco   = parseFloat(document.getElementById('ppo2Deco').value)   || 1.6; // rich deco gas (≥45% O2)
   const minStopT   = parseFloat(document.getElementById('minStopTime').value) || 1;   // minimum stop duration (minutes)
-  const switchPauseT = 1; // gas switch pause fixed at 1 min
+  const switchPauseT = 0; // Gas switch is instantaneous — ApexDeco behaviour
+  const wholeMinStops = (document.getElementById('stopRounding')?.value || 'fractional') === 'wholeminute';
+  // Apply water vapor setting before any tissue calculations
+  updateWaterVapor();
   // Keep backward-compat aliases so getPPO2Limit bands still work
   const ppo2High = ppo2Deco;    // ≥45% O2 — deco gas
   const ppo2Mid  = ppo2Bottom;  // 28–44% O2 — nitrox bottom
@@ -3123,13 +3378,15 @@ function runDecoSchedule() {
   function optimalSwitchDepth(fN2) {
     const fO2 = 1 - fN2;
     if (fO2 <= 0) return 0;
+    // Pure O2 (≥99.5%): switch at lastStop (ApexDeco o2MaxDepth logic)
+    if (fO2 >= 0.995) return lastStop;
     const limit = getPPO2Limit(fN2);
-    // Find deepest depth (1m resolution) where floor(ppO2*10)/10 <= limit
-    for (let d = 100; d >= 0; d--) {
-      const ppO2 = floorPPO2((SURFACE_P + d * BAR_PER_METRE) * fO2);
-      if (ppO2 <= limit) return d;
-    }
-    return 0;
+    // Exact MOD: deepest depth where raw ppO2 strictly <= limit (no floor truncation)
+    const exactMOD = (limit / fO2 - SURFACE_P) / BAR_PER_METRE;
+    // Snap DOWN to nearest deco stop (multiple of decoStep) that is <= exactMOD
+    const snapped = Math.floor(exactMOD / decoStep) * decoStep;
+    // Never go shallower than lastStop
+    return Math.max(lastStop, Math.max(0, snapped));
   }
 
   // Deco gas 1
@@ -3147,12 +3404,12 @@ function runDecoSchedule() {
   document.getElementById('dg1SwitchDepthDisplay').value =
     dg1Depth !== null
       ? (dU ? dg1Depth + ' m' : mToFt(dg1Depth) + ' ft') +
-        '  (ppO₂ ' + floorPPO2((SURFACE_P + dg1Depth * BAR_PER_METRE) * (1 - dg1FN2)).toFixed(1) + ')'
+        '  (ppO₂ ' + ((SURFACE_P + dg1Depth * BAR_PER_METRE) * (1 - dg1FN2)).toFixed(2) + ')'
       : '—';
   document.getElementById('dg2SwitchDepthDisplay').value =
     dg2Depth !== null
       ? (dU ? dg2Depth + ' m' : mToFt(dg2Depth) + ' ft') +
-        '  (ppO₂ ' + floorPPO2((SURFACE_P + dg2Depth * BAR_PER_METRE) * (1 - dg2FN2)).toFixed(1) + ')'
+        '  (ppO₂ ' + ((SURFACE_P + dg2Depth * BAR_PER_METRE) * (1 - dg2FN2)).toFixed(2) + ')'
       : '—';
 
   // Build sorted deco gases array (deepest first — getActiveGas takes last match = shallowest applicable)
@@ -3179,15 +3436,17 @@ function runDecoSchedule() {
   let rt  = bt; // run time = full BT input (descent already counted in BT)
 
 
-  // ── Stop-based ascent engine ──
-  // 1. Candidate stop depths are every 3 m from bottom to lastStop (inclusive).
-  // 2. Travel between stops: tissues off-gas at average depth during ascent.
-  // 3. Deco is only held at stop depths until ceiling clears.
-  // 4. Gas is evaluated at each stop depth — best available gas wins.
+  // ── GF anchor = ceiling(bottom_tissues, gfL) rounded up to nearest stop depth ──
+  const bottomCeil = ceiling(tissues, gfL);
+  const firstStopDepth = bottomCeil > 0
+    ? Math.max(lastStop, Math.ceil(bottomCeil / decoStep) * decoStep)
+    : 0;
 
-  // Build list of stop depths from current depth down to lastStop, step decoStep
-  // Use floor so startStop never exceeds actual bottom depth
-  const startStop = Math.floor(cur / decoStep) * decoStep;
+  // ── Stop-based ascent engine ──
+  // Start stop iteration from firstStopDepth — ascent from bottom to first stop
+  // is a single linear segment. Gas switch happens at the first stop where it's available.
+  // This matches ApexDeco: ascend to first stop, then iterate stops down to lastStop.
+  const startStop = firstStopDepth > 0 ? firstStopDepth : lastStop;
   const stopDepths = [];
   for (let d = startStop; d >= lastStop; d -= decoStep) {
     stopDepths.push(d);
@@ -3196,11 +3455,6 @@ function runDecoSchedule() {
 
   let prevEngineGas = bottomMixLabel; // track gas for switch pause
   let decoZoneEntered = false; // true once first ceiling-forced stop fires
-  // ── GF anchor = ceiling(bottom_tissues, gfL) rounded up to nearest stop depth ──
-  const bottomCeil = ceiling(tissues, gfL);
-  const firstStopDepth = bottomCeil > 0
-    ? Math.max(lastStop, Math.ceil(bottomCeil / decoStep) * decoStep)
-    : 0;
 
   // firstSwitchDepth — find first deco gas switch depth
   let firstDecoDepth   = null;
@@ -3216,8 +3470,10 @@ function runDecoSchedule() {
     }
   }
 
-  // minStop zone: deepest of GF anchor, first gas switch + one step (catches pre-switch stops like 24m)
-  const minStopZoneDepth = Math.max(firstStopDepth || 0, (firstSwitchDepth || 0) + decoStep) || null;
+  // minStop zone: only enforce minimum stops within the GF-anchored deco zone
+  // Do NOT force a pre-switch stop above the gas switch depth — ApexDeco switches
+  // gas at the first stop where ppO2 is within limits, no forced stop above.
+  const minStopZoneDepth = firstStopDepth || null;
 
   // ── GF interpolation: gfL at firstStopDepth → gfH at surface ──
   function gfAt(depthM) {
@@ -3234,7 +3490,6 @@ function runDecoSchedule() {
     // Travel from cur to stopDepth — use appropriate ascent rate:
     // - Before first deco stop: use main ascent rate
     // - Between deco stops: use decoRate
-    // - Last segment (from lastStop to surface): surfaceRate (not needed here, surface is after loop)
     if (cur > stopDepth) {
       const travelGas = getActiveGas(cur, bottomFN2, decoGases, getPPO2Limit, bottomMixLabel);
       const travelRate = decoZoneEntered ? decoRate : rate;
@@ -3243,11 +3498,16 @@ function runDecoSchedule() {
       steps.push({
         type: 'ascent', from: cur, to: stopDepth,
         dur: travelDur, gas: travelGas.label,
-        pO2: ppO2Check(stopDepth, travelGas.fN2), fN2: travelGas.fN2
+        pO2: ppO2Check(cur, travelGas.fN2), fN2: travelGas.fN2
       });
       rt  += travelDur;
       cur  = stopDepth;
     }
+
+    // Transit time for minimum stop rounding (ApexDeco style):
+    // si=0: arrived via fast ascent (rate m/min), transitDur=0 for min-stop purposes
+    // si>0: travelled at decoRate between stops
+    const transitDur = (si === 0) ? 0 : (stopDepths[si - 1] - stopDepth) / decoRate;
 
     // Select best gas available at this stop depth
     const stopGas  = getActiveGas(cur, bottomFN2, decoGases, getPPO2Limit, bottomMixLabel);
@@ -3261,55 +3521,111 @@ function runDecoSchedule() {
     }
     prevEngineGas = gasLabel;
 
-    // Ceiling target: must clear below nextStop before ascending.
-    // For the stop just above lastStop (e.g. 6m when lastStop=3m),
-    // require ceiling to reach surface (0) so the diver can safely ascend past lastStop.
-    const ceilTarget = (nextStop < lastStop) ? 0 : nextStop + 0.1;
+    // Ceiling clearance: evaluate GF at the TARGET (next stop or surface),
+    // not the current stop. Baker/ApexDeco: "can I ascend TO the next stop?"
+    // At last stop: target=0 → uses gfH (surface GF). This is correct.
+    // Use nextStop exactly — ceiling must be strictly below the next stop.
+    const ceilTarget = (nextStop < lastStop) ? 0 : nextStop;
+    const gfForClear = gfAt(nextStop < lastStop ? 0 : nextStop);
 
-    const ceil     = ceiling(tissues, gfAt(cur));
+    const isFirstDecoStop = (firstDecoDepth === null);
+    // Step resolution: first deco stop uses fine (10-sec) resolution like ApexDeco.
+    // Subsequent stops use minStopT increments — ApexDeco line 658: increment = isFirstStop ? 1/60 : minStopTime
+    const holdStep = isFirstDecoStop ? 1/6 : minStopT;
+
+    const ceil     = ceiling(tissues, gfForClear);
     const mustStop = ceil > ceilTarget;
 
     if (mustStop) {
       // Record the first depth where ceiling forces a stop
       if (firstDecoDepth === null) firstDecoDepth = cur;
       decoZoneEntered = true;
-      // Deco stop: hold until ceiling clears to target (10-second resolution)
-      const step = 1/6; // 10 seconds in minutes
+      // Capture RT before ceiling loop — ApexDeco snaps the arrival RT to next minute
+      const rtOnArrival = rt;
       let stopT = 0;
-      while (ceiling(tissues, gfAt(cur)) > ceilTarget && stopT < 360) {
-        tissues = saturate(tissues, cur, step, stopFN2);
-        stopT += step; rt += step;
+      while (ceiling(tissues, gfForClear) > ceilTarget && stopT < 360) {
+        tissues = saturate(tissues, cur, holdStep, stopFN2);
+        stopT += holdStep; rt += holdStep;
       }
-      // Apply minimum stop time
-      if (stopT < minStopT) {
-        const extra = minStopT - stopT;
-        tissues = saturate(tissues, cur, extra, stopFN2);
-        stopT += extra; rt += extra;
+      if (isFirstDecoStop) {
+        // First stop: always use RT-snap (fractional) — both ApexDeco and MultiDeco
+        // keep the exact first-stop time (e.g. 0:33, 0:27) regardless of rounding mode.
+        const rawRounded = Math.round(stopT * 60) / 60;
+        const minFirstStop = Math.round((Math.ceil(rtOnArrival / minStopT) * minStopT - rtOnArrival) * 60) / 60;
+        const actualStop = Math.max(rawRounded, minFirstStop);
+        if (actualStop > stopT) {
+          const extra = actualStop - stopT;
+          tissues = saturate(tissues, cur, extra, stopFN2);
+          rt += extra; stopT = actualStop;
+        }
+        if (stopT < 1/60) { tissues = saturate(tissues, cur, 1/60 - stopT, stopFN2); rt += 1/60 - stopT; stopT = 1/60; }
+      } else {
+        // Non-first stops rounding
+        let roundedStop;
+        if (wholeMinStops) {
+          // Whole-minute: round raw hold up to nearest whole minute (transit loaded separately)
+          roundedStop = Math.max(minStopT, Math.ceil(stopT / minStopT) * minStopT);
+        } else {
+          // Fractional: round (transit + raw) up, subtract transit
+          const totalAtLevel = Math.max(minStopT, Math.ceil((transitDur + stopT) / minStopT) * minStopT);
+          roundedStop = totalAtLevel - transitDur;
+        }
+        if (roundedStop > stopT) {
+          const extra = roundedStop - stopT;
+          tissues = saturate(tissues, cur, extra, stopFN2);
+          rt += extra; stopT = roundedStop;
+        }
       }
       steps.push({ type: 'deco', depth: cur, dur: stopT, gas: gasLabel, pO2: ppO2Check(cur, stopFN2), fN2: stopFN2 });
     } else if (minStopT > 0 && minStopZoneDepth !== null && cur <= minStopZoneDepth && cur !== lastStop) {
       decoZoneEntered = true;
-      // In deco zone but ceiling already clear: enforce minimum stop, then re-check ceiling
-      const step = 1/6;
-      let stopT = minStopT;
-      tissues = saturate(tissues, cur, stopT, stopFN2);
-      rt += stopT;
-      while (ceiling(tissues, gfAt(cur)) > ceilTarget && stopT < 360) {
-        tissues = saturate(tissues, cur, step, stopFN2);
-        stopT += step; rt += step;
+      let stopT = 0;
+      if (isFirstDecoStop) {
+        if (firstDecoDepth === null) firstDecoDepth = cur;
+        const minFirstStop = Math.ceil(rt / minStopT) * minStopT - rt;
+        const snapped = Math.max(0, Math.round(minFirstStop * 60) / 60);
+        // Whole-min mode: enforce minStopT only when snapped is near-zero (edge case).
+        // Meaningful fractional first stops (e.g. 0:40) are kept as-is — MultiDeco behaviour.
+        const minVal = (wholeMinStops && snapped < 1/6) ? minStopT : 1/60;
+        stopT = Math.max(snapped, minVal);
+      } else {
+        const needed = wholeMinStops
+          ? Math.max(0, minStopT)
+          : Math.max(0, minStopT - transitDur);
+        stopT = needed;
       }
-      steps.push({ type: 'deco', depth: cur, dur: stopT, gas: gasLabel, pO2: ppO2Check(cur, stopFN2), fN2: stopFN2 });
+      if (stopT > 0) {
+        tissues = saturate(tissues, cur, stopT, stopFN2);
+        rt += stopT;
+      }
+      while (ceiling(tissues, gfForClear) > ceilTarget && stopT < 360) {
+        tissues = saturate(tissues, cur, minStopT, stopFN2);
+        stopT += minStopT; rt += minStopT;
+      }
+      if (stopT > 0) {
+        steps.push({ type: 'deco', depth: cur, dur: stopT, gas: gasLabel, pO2: ppO2Check(cur, stopFN2), fN2: stopFN2 });
+      }
     } else if (cur === lastStop) {
-      // Last stop — always hold (safety or mandatory minimum)
       const isDecoNeeded = steps.some(s => s.type === 'deco');
       const stopType = isDecoNeeded ? 'deco' : 'safety';
       let stopT = 0;
       if (isDecoNeeded) {
-        // Clear any remaining ceiling, enforce minimum stop time
-        const step = 1/6;
-        while (ceiling(tissues, gfAt(cur)) > 0.1 && stopT < 180) {
-          tissues = saturate(tissues, cur, step, stopFN2);
-          stopT += step; rt += step;
+        const transitToLastStop = (stopDepths.length > 1) ? (stopDepths[stopDepths.length - 2] - lastStop) / decoRate : 0;
+        while (ceiling(tissues, gfAt(0)) > 0.01 && stopT < 180) {
+          tissues = saturate(tissues, cur, minStopT, stopFN2);
+          stopT += minStopT; rt += minStopT;
+        }
+        let roundedLastStop;
+        if (wholeMinStops) {
+          roundedLastStop = Math.max(minStopT, Math.ceil(stopT / minStopT) * minStopT);
+        } else {
+          const totalAtLevel = Math.max(minStopT, Math.ceil((transitToLastStop + stopT) / minStopT) * minStopT);
+          roundedLastStop = totalAtLevel - transitToLastStop;
+        }
+        if (roundedLastStop > stopT) {
+          const extra = roundedLastStop - stopT;
+          tissues = saturate(tissues, cur, extra, stopFN2);
+          stopT += extra; rt += extra;
         }
         if (stopT < minStopT) {
           const extra = minStopT - stopT;
@@ -3317,7 +3633,6 @@ function runDecoSchedule() {
           stopT += extra; rt += extra;
         }
       } else {
-        // Safety stop — 3 min (or minStopT if larger), already whole minutes
         stopT = Math.max(3, minStopT);
         tissues = saturate(tissues, cur, stopT, stopFN2);
         rt += stopT;
@@ -3456,7 +3771,7 @@ function runDecoSchedule() {
   document.getElementById('decoSummary').innerHTML = `
     <div class="stats" style="margin-top:0;">
       <div class="stat"><div class="stat-val">${rawD} m</div><div class="stat-lbl">Depth</div></div>
-      <div class="stat"><div class="stat-val">${bt} min</div><div class="stat-lbl">Bottom Time</div></div>
+      <div class="stat"><div class="stat-val">${bt} min</div><div class="stat-lbl">BT Time</div></div>
       <div class="stat"><div class="stat-val" style="font-size:13px;">${bottomMixLabel}</div><div class="stat-lbl">Bottom Gas</div></div>
       <div class="stat"><div class="stat-val ${hasDeco?'o':'g'}">${Math.round(decoTime)} min</div><div class="stat-lbl">Deco Time</div></div>
       <div class="stat"><div class="stat-val">${Math.round(rt)} min</div><div class="stat-lbl">Total Run Time</div></div>
@@ -3797,7 +4112,8 @@ function buildDiveBlocks() {
   const defs = isM ? DEFAULT_DEPTHS_M : DEFAULT_DEPTHS_FT;
   const dBTs = ['','','',''];
   const dSIs = ['60','60','60','60'];
-  const showGas = algo === 'buh';
+  const showGas = algo === 'buh' || algo === 'padi';
+  const isRec = algo === 'padi';
 
   let html = '';
   for (let i = 0; i < diveCount; i++) {
@@ -3810,7 +4126,7 @@ function buildDiveBlocks() {
         <div class="field"><label class="mDLbl">Depth (${dU})</label>
           <input type="number" class="mDepth" id="mD${i}" value="${defs[i]}" min="${isM?1:3}" max="${isM?100:330}" step="1">
         </div>
-        <div class="field"><label>Bottom Time (min)</label>
+        <div class="field"><label>BT Time (min)</label>
           <input type="number" class="mBT" id="mBT${i}" value="${dBTs[i]}" min="1" max="300" step="1">
         </div>
         ${showGas ? `
@@ -3819,7 +4135,7 @@ function buildDiveBlocks() {
             <option value="air">Air (21%)</option>
             <option value="ean32">EAN 32 (32%)</option>
             <option value="ean36">EAN 36 (36%)</option>
-            <option value="ean50">EAN 50 (50%)</option>
+            ${!isRec ? `<option value="ean50">EAN 50 (50%)</option>` : ''}
             <option value="custom">Custom O₂ %</option>
           </select>
         </div>
@@ -3903,7 +4219,7 @@ function buildUnifiedPlan() {
       <!-- Bottom time slider -->
       <div style="margin-bottom:10px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;">
-          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">Bottom Time</label>
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">BT Time</label>
           <span id="udp-bt${i}-disp" style="font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;color:var(--text);">${bv} min</span>
         </div>
         <div class="slider-wrap">
@@ -4059,7 +4375,7 @@ function runUnifiedPlan() {
       ${i === 0 ? `
       <div style="margin-bottom:8px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
-          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">Bottom Time</label>
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">BT Time</label>
           <span id="slv-bt${i}-disp" style="font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;color:var(--text);">${btVal} min</span>
         </div>
         <div class="slider-wrap">
@@ -4069,7 +4385,7 @@ function runUnifiedPlan() {
         </div>
       </div>` : `
       <div style="padding:10px;background:var(--bg-alt);border-radius:6px;display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">Max Bottom Time</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">Max BT Time</span>
         <span id="slv-maxbt${i}" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--text);">—</span>
       </div>
       <div id="slv-bar${i}" style="margin-top:8px;display:none;">
@@ -4322,8 +4638,8 @@ function runMulti() {
     const rawD  = parseFloat(document.getElementById('mD'+i).value)||20;
     const depthM = isM ? rawD : rawD/3.28084;
     const bt    = parseInt(document.getElementById('mBT'+i).value)||20;
-    const fN2   = isBuh ? getMultiGasFN2(i) : FN2_AIR;
-    const mix   = isBuh ? (document.getElementById('mGas'+i)?.value || 'air') : 'air';
+    const fN2   = getMultiGasFN2(i);
+    const mix   = document.getElementById('mGas'+i)?.value || 'air';
     const fO2   = 1 - fN2;
     const o2pct = Math.round(fO2 * 100);
     const gasName = o2pct === 21 ? 'Air' : `EAN ${o2pct}`;
@@ -4338,14 +4654,14 @@ function runMulti() {
       sat  = maxSatPct(tissues, mGF.high);
       safe = bt <= ndl && ceil <= 0;
     } else {
-      // Rec mode: use Bühlmann tissue model internally for RNT, but report NDL from tables
-      const rawNDL = padiNDL(depthM);
-      tissues = saturate(tissues, depthM, bt, FN2_AIR);
-      // Residual nitrogen time: how many extra minutes of tissue loading we carry
-      const rnt = Math.max(0, Math.round(buhNDL(depthM, FN2_AIR, 50, 100) - rawNDL) * 0);
-      ndl   = rawNDL;
-      group = padiGroup(depthM, bt);
-      safe  = bt <= ndl;
+      // Rec mode: use correct PADI nitrox NDL table for selected mix
+      const fO2Multi = 1 - fN2;
+      const modM = mix !== 'air' ? nitroxMOD(fO2Multi, 1.4) : Infinity;
+      const beyondMOD = depthM > modM;
+      ndl   = padiNDL(depthM, mix);
+      tissues = saturate(tissues, depthM, bt, fN2);
+      group = padiGroup(depthM, bt, mix);
+      safe  = bt <= ndl && !beyondMOD;
     }
 
     if (!safe) allSafe = false;
@@ -4356,10 +4672,18 @@ function runMulti() {
     const cc  = ceil>0?'c-deco':!safe?'c-dang':pct>=85?'c-warn':'c-ok';
     const icon = ceil>0?'🟣':!safe?'⚠':pct>=85?'⚡':'✓';
 
+    // Nitrox info for rec mode
+    const recIsNitrox = !isBuh && mix !== 'air';
+    const recFO2 = 1 - fN2;
+    const recPpO2 = parseFloat((depthBar(depthM) * recFO2).toFixed(2));
+    const recModM = recIsNitrox ? nitroxMOD(recFO2, 1.4) : null;
+    const recBeyondMOD = recIsNitrox && depthM > recModM;
+
     const extraStats = isBuh
       ? `<div class="stat" style="padding:10px;"><div class="stat-val" style="font-size:18px; color:${sat>=100?'var(--red)':sat>=85?'var(--orange)':'var(--green)'};">${sat}%</div><div class="stat-lbl">Max Sat</div></div>
          <div class="stat" style="padding:10px;"><div class="stat-val" style="font-size:18px; color:${ceil>0?'var(--red)':'var(--green)'};">${ceil>0?Math.ceil(ceil)+' m':'0 m'}</div><div class="stat-lbl">Ceiling</div></div>`
-      : `<div class="stat" style="padding:10px;"><div class="stat-val" style="font-size:22px;"><span class="group-badge">${group}</span></div><div class="stat-lbl">Group After</div></div>`;
+      : `<div class="stat" style="padding:10px;"><div class="stat-val" style="font-size:22px;"><span class="group-badge">${group}</span></div><div class="stat-lbl">Group After</div></div>
+         ${recIsNitrox ? `<div class="stat" style="padding:10px;"><div class="stat-val" style="font-size:18px;color:${recPpO2>1.4?'var(--red)':'var(--green)'};">${recPpO2.toFixed(2)}</div><div class="stat-lbl">ppO₂</div></div>` : ''}`;
 
     cardsHTML += `<div class="result-card ${cc}">
       <div class="rc-hdr">
@@ -4370,15 +4694,16 @@ function runMulti() {
         <div class="stat" style="padding:10px;"><div class="stat-val" style="font-size:18px;">${dDisp}</div><div class="stat-lbl">Depth</div></div>
         <div class="stat" style="padding:10px;"><div class="stat-val" style="font-size:18px;">${bt}</div><div class="stat-lbl">BT (min)</div></div>
         <div class="stat" style="padding:10px;"><div class="stat-val" style="font-size:18px;color:${ndl>=400?'var(--green)':'var(--accent)'};">${ndl>=400?'400+':ndl}</div><div class="stat-lbl">NDL (min)</div></div>
-        ${isBuh ? `<div class="stat" style="padding:10px;"><div class="stat-val" style="font-size:15px;color:var(--muted);">${gasName}</div><div class="stat-lbl">Gas</div></div>` : ''}
+        ${(isBuh || recIsNitrox) ? `<div class="stat" style="padding:10px;"><div class="stat-val" style="font-size:15px;color:var(--muted);">${gasName}</div><div class="stat-lbl">Gas</div></div>` : ''}
         ${extraStats}
       </div>
       <div style="margin-top:10px;">
-        <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:4px;letter-spacing:1px;"><span>NDL USAGE</span><span>${pct}%</span></div>
+        <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:4px;letter-spacing:1px;"><span>NDL USAGE${recIsNitrox?' · '+gasName:''}</span><span>${pct}%</span></div>
         <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${bc};"></div></div>
       </div>
+      ${recBeyondMOD ? `<div class="alert dang" style="margin-top:8px;padding:8px 12px;font-size:11px;"><span>⚠</span><div><strong>BEYOND MOD.</strong> Depth exceeds ${gasName} MOD of ${isM?recModM+' m':Math.floor(recModM*3.28084)+' ft'}.</div></div>` : ''}
       ${ceil>0?`<div class="alert deco" style="margin-top:8px;padding:8px 12px;font-size:11px;"><span>🟣</span><div>Deco ceiling ${Math.ceil(ceil)} m after this dive.</div></div>`:''}
-      ${!safe&&ceil<=0?`<div class="alert dang" style="margin-top:8px;padding:8px 12px;font-size:11px;"><span>⚠</span><div>NDL exceeded by ${bt-ndl} min.</div></div>`:''}
+      ${!safe&&ceil<=0&&!recBeyondMOD?`<div class="alert dang" style="margin-top:8px;padding:8px 12px;font-size:11px;"><span>⚠</span><div>NDL exceeded by ${bt-ndl} min.</div></div>`:''}
     </div>`;
 
     // Surface interval strip
@@ -4399,15 +4724,16 @@ function runMulti() {
           : `<span style="color:var(--green);">✓ Cleared</span>`;
       } else {
         // Rec mode — calculate recommended SI based on PADI RDP pressure groups
-        tissues = saturate(tissues, 0, siMins, FN2_AIR);
+        tissues = saturate(tissues, 0, siMins, fN2);
         
         // Get current dive pressure group after this dive
         const currentGroup = group;
         
-        // Get next dive depth if available
+        // Get next dive depth and mix if available
         const nextDepthVal = i < diveCount-1 ? parseFloat(document.getElementById('mD'+(i+1)).value)||20 : 20;
         const nextDepthM = isM ? nextDepthVal : nextDepthVal/3.28084;
-        const nextNDL = padiNDL(nextDepthM);
+        const nextMix = document.getElementById('mGas'+(i+1))?.value || 'air';
+        const nextNDL = padiNDL(nextDepthM, nextMix);
         
         // PADI RDP: given a pressure group and desired next dive depth,
         // find minimum SI so that Adjusted No-Decompression Limit for next dive is safe
@@ -5713,6 +6039,10 @@ function buildExportText(mode) {
     lines.push(`Bottom Gas  : ${shortMix(gas)}    Water: ${density}`);
     lines.push(`Descent     : ${descentRate}${du}/min  Ascent: ${ascentRate}${du}/min  Deco: ${decoAscentRate}${du}/min  Surface: ${surfAscentRate}${du}/min`);
     lines.push(`Last Stop   : ${lastStop}${du}  Step: ${decoStep}${du}`);
+    const rndTxt = (document.getElementById('stopRounding')?.value||'fractional')==='wholeminute'?'Yes':'No';
+    const wvTxt  = parseFloat(document.getElementById('waterVapor')?.value||'0.0627');
+    const wvLblTxt = wvTxt<=0.058?'M':'B';
+    lines.push(`Stop Rounding: ${rndTxt}  WV: ${wvTxt}(${wvLblTxt})`);
     gswInfos.forEach((g, i) => lines.push(`Deco Gas ${i+1}  : ${g.gas} (switch @ ${g.depth})`));
     lines.push(`Deco Time   : ${decoTimeVal}  Run Time: ${runTimeVal}`);
     lines.push('');
@@ -5808,10 +6138,14 @@ function buildExportText(mode) {
     lines.push(hr);
     lines.push(`Scenario    : ${c.label}`);
     lines.push(`Depth       : ${depth}${du}`);
-    lines.push(`Bottom Time : ${bt} min`);
+    lines.push(`BT Time    : ${bt} min`);
     lines.push(`Run Time    : ${c.lastRunFmt || c.lastRun + ' min'}`);
     lines.push(`Deco Time   : ${c.decoTimeFmt || c.decoTime + ' min'}`);
     lines.push(`Water       : ${density}`);
+    const eRnd = (document.getElementById('stopRounding')?.value||'fractional')==='wholeminute'?'Yes':'No';
+    const eWV  = parseFloat(document.getElementById('waterVapor')?.value||'0.0627');
+    const eWVL = eWV<=0.058?'M':'B';
+    lines.push(`Stop Rounding: ${eRnd}  WV: ${eWV}(${eWVL})`);
     if (c.msg) lines.push(`Note        : ${clean(c.msg)}`);
     lines.push('');
 
@@ -5920,7 +6254,7 @@ function buildExportText(mode) {
     lines.push('LSP D-PLANNER - CNS O2 TRACKER');
     lines.push(hr);
     lines.push(`Depth         : ${depth}${du}`);
-    lines.push(`Bottom Time   : ${bt} min`);
+    lines.push(`BT Time      : ${bt} min`);
     lines.push(`Gas O2%       : ${o2}%`);
     lines.push(`Dives today   : ${dives}`);
     lines.push('');
@@ -5980,6 +6314,10 @@ function buildMessengerText(mode) {
     const clean = t => t.replace(/[📋⚠️🤿✓⚡🔵🔴🟢🚨⏱ℹ⇄↓↑]/g,'').replace(/\s*·\s*/g,' - ').replace(/ppO₂/g,'ppO2').replace(/O₂/g,'O2').replace(/[—–]/g,'-').replace(/Bühlmann/g,'Buhlmann').replace(/(\d)\s+(m|ft)\b/g,'$1$2').replace(/\s*→\s*/g,'>').replace(/\s+/g,' ').trim();
     const result = [];
     result.push(`${depth}${du} / ${bt}min / ${c.label}`);
+    const cRnd = (document.getElementById('stopRounding')?.value||'fractional')==='wholeminute'?'Yes':'No';
+    const cWV  = parseFloat(document.getElementById('waterVapor')?.value||'0.0627');
+    const cWVL = cWV<=0.058?'M':'B';
+    result.push(`Stp Rounding: ${cRnd}  WV: ${cWV}(${cWVL})`);
     result.push('-'.repeat(28));
     const rows = document.querySelectorAll('#contingencyResult .deco-table tbody tr');
     rows.forEach(tr => {
@@ -6037,6 +6375,10 @@ function buildMessengerText(mode) {
 
   const result = [];
   result.push(`${depth}${du} / ${bt}min / GF ${gfL}/${gfH}`);
+  const rndVal = (document.getElementById('stopRounding')?.value||'fractional')==='wholeminute'?'Yes':'No';
+  const wvVal  = parseFloat(document.getElementById('waterVapor')?.value||'0.0627');
+  const wvLbl  = wvVal<=0.058?'M':'B';
+  result.push(`Stp Rounding: ${rndVal}  WV: ${wvVal}(${wvLbl})`);
   result.push('-'.repeat(28));
 
   rows.forEach(tr => {
@@ -6432,7 +6774,7 @@ function exportContingencyPDF() {
   <span>${dateStr} ${timeStr}</span>
 </div>
 <div class="page-title">Emergency Plan <span style="font-size:10px;font-weight:normal;letter-spacing:1px;color:#aa3333;">${c.label}</span></div>
-<div class="alert"><strong>${c.icon} ${c.label}</strong> — Total Run Time: <strong>${c.lastRunFmt || c.lastRun + ' min'}</strong> · Deco Time: <strong>${c.decoTimeFmt || c.decoTime + ' min'}</strong><br><span style="font-size:11px;color:#aa3333;">${c.msg}</span></div>
+<div class="alert"><strong>${c.icon} ${c.label}</strong> — Total Run Time: <strong>${c.lastRunFmt || c.lastRun + ' min'}</strong> · Deco Time: <strong>${c.decoTimeFmt || c.decoTime + ' min'}</strong> · Stop Rounding: <strong>${(document.getElementById('stopRounding')?.value||'fractional')==='wholeminute'?'Yes':'No'}</strong> · WV: <strong>${parseFloat(document.getElementById('waterVapor')?.value||'0.0627')}(${parseFloat(document.getElementById('waterVapor')?.value||'0.0627')<=0.058?'M':'B'})</strong><br><span style="font-size:11px;color:#aa3333;">${c.msg}</span></div>
 ${tableHTML.replace(/class="deco-table table-view"/,'style="width:100%;border-collapse:collapse;font-size:11px;"').replace(/style="font-size:10px;"/,'')}
 
 <div class="page-break"></div><div class="page-spacer"></div>${buildPdfGasCards(document.getElementById('emergencyGasConsumption'), '#bb2233')}
@@ -7267,7 +7609,7 @@ function exportPDF() {
 
   const statsHTML = `
     <div class="param"><div class="param-val">${depthVal} ${du}</div><div class="param-lbl">Depth</div></div>
-    <div class="param"><div class="param-val">${btVal} min</div><div class="param-lbl">Bottom Time</div></div>
+    <div class="param"><div class="param-val">${btVal} min</div><div class="param-lbl">BT Time</div></div>
     <div class="param"><div class="param-val">${bottomGasVal}</div><div class="param-lbl">Bottom Gas</div></div>
     <div class="param"><div class="param-val">${decoTimeVal} min</div><div class="param-lbl">Deco Time</div></div>
     <div class="param"><div class="param-val">${totalRTVal} min</div><div class="param-lbl">Total Run Time</div></div>
@@ -7450,7 +7792,7 @@ function exportPDF() {
 ${pdfGasRows ? `<div style="margin:6px 0 12px;font-family:Arial,sans-serif;">${pdfGasRows}</div>` : ''}
 
 ${decoRows ? `
-<div class="page-title" style="margin-top:18px;">Dive Profile <span>${depthVal}${du} · ${btVal}min · ${bottomGasVal} · ${gfVal}</span></div>
+<div class="page-title" style="margin-top:18px;">Dive Profile <span>${depthVal}${du} · ${btVal}min · ${bottomGasVal} · ${gfVal} · Stop Rounding:${(document.getElementById('stopRounding')?.value||'fractional')==='wholeminute'?'Yes':'No'} · WV:${parseFloat(document.getElementById('waterVapor')?.value||'0.0627')}(${parseFloat(document.getElementById('waterVapor')?.value||'0.0627')<=0.058?'M':'B'})</span></div>
 <table style="font-size:10px;">
   <thead><tr><th>Phase</th><th style="text-align:right;">Depth</th><th style="text-align:right;">Stop</th><th style="text-align:right;">Run</th><th>Mix</th><th style="text-align:right;">EAD</th><th style="text-align:right;">PPO2</th><th style="text-align:right;">CNS%</th></tr></thead>
   <tbody>${decoRows}</tbody>
@@ -7510,6 +7852,7 @@ ${document.getElementById('contingencyResult')?.style.display !== 'none' ? `
 <div style="background: #fff0f0; border: 1px solid #ffaaaa; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; font-size: 12px;">
   <strong>Scenario:</strong> ${window._lastContingency?.label || '—'}<br>
   <strong>Run Time:</strong> ${window._lastContingency?.lastRunFmt || (window._lastContingency?.lastRun + ' min') || '—'} &nbsp; | &nbsp; <strong>Deco:</strong> ${window._lastContingency?.decoTimeFmt || (window._lastContingency?.decoTime + ' min') || '—'}<br>
+  <strong>Stop Rounding:</strong> ${(document.getElementById('stopRounding')?.value||'fractional')==='wholeminute'?'Yes':'No'} &nbsp; | &nbsp; <strong>WV:</strong> ${parseFloat(document.getElementById('waterVapor')?.value||'0.0627')}(${parseFloat(document.getElementById('waterVapor')?.value||'0.0627')<=0.058?'M':'B'})<br>
   <span style="color: #bb0000; font-weight: bold;">${window._lastContingency?.msg || ''}</span>
 </div>
 <table>
@@ -7564,7 +7907,7 @@ var appSettings = {
   DECO_FIELDS: [
     'decoDepth', 'decoBT', 'decoGas', 'decoCustomO2',
     'descentRate', 'ascentRate', 'decoAscentRate', 'surfaceAscentRate', 'decoStep', 'lastDecoStop',
-    'minStopTime', 'ppo2Bottom', 'ppo2Deco'
+    'minStopTime', 'stopRounding', 'waterVapor', 'ppo2Bottom', 'ppo2Deco'
   ],
   
   REC_FIELDS: ['ndlRange', 'ndlUImp', 'ndlUMet'],
@@ -7623,7 +7966,7 @@ var appSettings = {
     });
     
     try {
-      localStorage.setItem('lspDiveSettings_v3', JSON.stringify(values));
+      localStorage.setItem('lspDiveSettings_v5', JSON.stringify(values));
       if (verbose) {
         console.log('[LSP] ✅ Settings saved (' + Object.keys(values).length + ' fields) - Algo: ' + values['__algo__']);
       }
@@ -7638,6 +7981,7 @@ var appSettings = {
     try {
       localStorage.removeItem('lspDiveSettings');     // v1
       localStorage.removeItem('lspDiveSettings_v2');  // v2
+      localStorage.removeItem('lspDiveSettings_v3');  // v3
       localStorage.removeItem('lspDiveDefaults_v2');  // old defaults
       console.log('[LSP] Cleaned up old storage keys');
     } catch(e) {
@@ -7645,7 +7989,7 @@ var appSettings = {
     }
     
     try {
-      const json = localStorage.getItem('lspDiveSettings_v3');
+      const json = localStorage.getItem('lspDiveSettings_v5');
       if (!json) {
         console.log('[LSP] ℹ️ No saved settings found (v3)');
         return false;
@@ -7757,7 +8101,7 @@ document.addEventListener('DOMContentLoaded', function() {
   loadThemePreference();
   loadTableViewPreference();
   // Load water density
-  const savedDensity = localStorage.getItem('waterDensity') || 'en13319';
+  const savedDensity = localStorage.getItem('waterDensity') || 'salt';
   setWaterDensity(savedDensity);
 
   // Init new Beta 3 features
@@ -7768,21 +8112,23 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Try to load immediately
   appSettings.load();
+  updateWaterVapor(); // apply after settings loaded
   
   // Try again after elements render
   setTimeout(() => {
     console.log('[LSP] Retry load after render');
     appSettings.load();
+    updateWaterVapor();
   }, 1000);
 });
 
 // Also try loading on window load as fallback
 window.addEventListener('load', function() {
   console.log('[LSP] Window load fired');
-  // Try again on window load to catch late-loading elements
   setTimeout(() => {
     console.log('[LSP] Final retry load');
     appSettings.load();
+    updateWaterVapor();
   }, 500);
 });
 </script>
