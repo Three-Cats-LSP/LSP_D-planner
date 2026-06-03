@@ -225,7 +225,7 @@ check('PDF: emergency page-title has page-break-after:avoid',
 
 # ── COLOURS ────────────────────────────────────────────────────────────
 check('Light theme yellow: Amber #FFBF00', '--yellow: #FFBF00' in html)
-check('Light theme green: Emerald #50C878', '--green:  #50C878' in html)
+check('Light theme green: dark #1a9e55 for outdoor readability', '--green:  #1a9e55' in html)
 check('Dark theme yellow: #ffb703', '--yellow: #ffb703' in html)
 check('Dark theme green: #26d07c', '--green:  #26d07c' in html)
 
@@ -408,7 +408,87 @@ check('No invisible chars in template strings',
       not any(any(ord(c) in range(0x200B,0x200F) for c in s)
               for s in re.findall(r'`[^`]{0,500}`', html)))
 
-# ── RESULTS ────────────────────────────────────────────────────────────
+# ── ALGORITHM: WV + STOP ROUNDING SETTINGS ───────────────────────────
+deco_fn = html[html.find('function runDecoSchedule'):html.find('\nfunction calcCNS')]
+check('WATER_VAPOR is let (not const)', 'let WATER_VAPOR' in html)
+check('updateWaterVapor function defined', 'function updateWaterVapor()' in html)
+check('updateWaterVapor called in runDecoSchedule', 'updateWaterVapor()' in deco_fn)
+check('updateWaterVapor called after appSettings.load()', html.index('appSettings.load()') < html.rindex('updateWaterVapor()'))
+check('stopRounding select exists', 'id="stopRounding"' in html)
+check('waterVapor select exists', 'id="waterVapor"' in html)
+check('stopRounding has Yes/No options', 'value="wholeminute">Yes' in html and 'value="fractional"' in html)
+check('waterVapor has 0.0627 and 0.0577 options', '0.0627' in html and '0.0577' in html)
+check('wholeMinStops read in runDecoSchedule', "wholeMinStops = " in deco_fn)
+deco_fields_block = html[html.find('DECO_FIELDS'):html.find('DECO_FIELDS')+400]
+check('waterVapor in saved fields', "'waterVapor'" in deco_fields_block)
+check('stopRounding in saved fields', "'stopRounding'" in deco_fields_block)
+reset_fn = html[html.find('function resetToDefaults'):html.find('function resetToDefaults')+2000]
+check('resetToDefaults calls setGF', 'setGF(20, 85)' in reset_fn)
+check('resetToDefaults calls updateWaterVapor', 'updateWaterVapor()' in reset_fn)
+check('Salt is default water density', 'value="salt">Salt' in html or 'active" data-density="salt"' in html)
+
+# ── ALGORITHM: FIRST-STOP RT-SNAPPING ────────────────────────────────
+check('First-stop RT-snap: rtOnArrival captured before ceiling loop', 'rtOnArrival' in deco_fn)
+check('First-stop RT-snap: minFirstStop uses ceil(rtOnArrival)', 'rtOnArrival / minStopT' in deco_fn)
+check('First-stop RT-snap: actualStop = max(rawRounded, minFirstStop)', 'Math.max(rawRounded, minFirstStop)' in deco_fn)
+check('Non-first stop rounding: transit-absorbed', 'transitDur + stopT' in deco_fn)
+check('Gas switch pause is 0 (instantaneous)', 'switchPauseT = 0' in deco_fn)
+check('stopDepths starts at firstStopDepth', 'startStop = firstStopDepth' in deco_fn)
+check('ceilTarget uses nextStop exactly', 'ceilTarget = (nextStop < lastStop) ? 0 : nextStop' in deco_fn)
+check('gfForClear uses gfAt(nextStop)', 'gfForClear = gfAt(' in deco_fn)
+check('Last stop uses gfAt(0) for surface clearance', 'gfAt(0)' in deco_fn)
+check('Pure O2 bypasses ppO2 check in getActiveGas', 'isPureO2' in html)
+check('optimalSwitchDepth clamps to lastStop', 'Math.max(lastStop' in deco_fn or 'return lastStop' in deco_fn)
+
+# ── SETTINGS UI ───────────────────────────────────────────────────────
+check('Settings ? help button present', 'settingsHelpModal' in html)
+check('Settings help modal defined', 'id="settingsHelpModal"' in html)
+check('Help modal explains Stop Rounding Yes/No', 'Yes</strong> (Whole min)' in html or '• <strong>Yes</strong>' in html)
+check('Help modal explains Water Vapor B/M', '0.0627 bar (B' in html and '0.0577 bar (M' in html)
+reset_btn_ctx = html[html.find('onclick="resetToDefaults()"')-30:html.find('onclick="resetToDefaults()"')+200]
+check('Reset button uses btn-export class', 'btn-export' in reset_btn_ctx)
+check('Reset button is red', 'var(--red)' in reset_btn_ctx)
+
+# ── TXT/COPY/PDF: Stop Rounding + WV in exports ───────────────────────
+check('TXT deco export: Stop Rounding line', '`Stop Rounding:' in html[html.find('function buildExportText'):html.find('function buildMessengerText')])
+cont_txt = html[html.find("} else if (mode === 'contingency')"):html.find("} else if (mode === 'contingency')")+3000]
+check('TXT emergency export: Stop Rounding line', '`Stop Rounding:' in cont_txt)
+mes_deco = html[html.find('function buildMessengerText'):html.find('function exportTXT')]
+check('Copy deco export: Stp Rounding line', '`Stp Rounding:' in mes_deco)
+check('Copy emergency export: Stp Rounding line', mes_deco.count('`Stp Rounding:') >= 2)
+pdf_profile_ctx = html[html.find('Dive Profile <span>'):html.find('Dive Profile <span>')+400]
+check('PDF deco: Stop Rounding in Dive Profile header', 'Stop Rounding:' in pdf_profile_ctx)
+emerg_pg4 = html[html.find('🚨 Emergency Plan'):html.find('🚨 Emergency Plan')+1000]
+check('PDF emergency page4: Stop Rounding in info block', 'Stop Rounding' in emerg_pg4)
+check('PDF emergency standalone: Stop Rounding in alert', 'Stop Rounding' in html[html.find('function exportContingencyPDF'):html.find('function calcCNS')])
+check('WV label uses B/M notation', "?'M':'B'" in html or "? 'M' : 'B'" in html or "'M':'B'" in html)
+
+# ── BT TIME LABEL ─────────────────────────────────────────────────────
+# Allowed exceptions: variable names like btAtDepth, btCNS, etc.
+bt_labels = [l for l in re.findall(r'[">][^<"]*Bottom Time[^<"]*[<"]', html)
+             if not any(x in l for x in ['btAtDepth','btCNS','btPPO2','sacBottom','Reduce','extended','Extended','No bottom','set depth'])]
+check('Bottom Time renamed to BT Time everywhere', len(bt_labels) == 0,
+      str(bt_labels[:2]) if bt_labels else '')
+
+# ── SETTINGS STORAGE KEY ─────────────────────────────────────────────
+check('Storage key is v5', 'lspDiveSettings_v5' in html)
+check('Old keys cleaned up on load', 'lspDiveSettings_v4' in html or 'lspDiveSettings_v3' in html)
+
+# ── TABLE ROW STYLING ────────────────────────────────────────────────
+check('Gas switch row: dark mode yellow background', "rgba(255,183,3,0.18)" in html)
+check('Gas switch row: dark mode yellow border', "border-left: 4px solid #ffb703" in html)
+check('Gas switch row: dark mode box-shadow frame', "inset 0 1px 0 rgba(255,183,3,0.5)" in html)
+check('Gas switch row: dark mode yellow text color', "color: #ffb703 !important" in html)
+check('Gas switch row: light mode amber background', "rgba(255,195,0,0.35)" in html)
+check('Gas switch row: light mode amber border', "border-left: 4px solid #e6a800" in html)
+check('Gas switch row: light mode amber text', "color: #7a4f00 !important" in html)
+check('Gas switch row: no inline style override', 'data-phase="switch">' in html or "data-phase='switch'>" in html)
+main_pdf = html[html.find('function exportPDF'):]
+check('Gas switch row: PDF decoRows yellow background', 'rgba(255,195,0,0.30)' in main_pdf)
+check('Gas switch row: PDF decoRows amber border', '#e6a800' in main_pdf)
+check('Gas switch row: PDF both switch rows styled yellow', main_pdf.count('rgba(255,195,0,0.30)') >= 2)
+check('Ascent row uses asc-color class not hardcoded', '#80e0a0' not in html[html.find('data-phase="ascent"'):html.find('data-phase="ascent"')+300])
+check('Light theme green darkened for outdoor readability', '--green:  #1a9e55' in html)
 passed = sum(1 for _,r,_ in checks if r)
 total  = len(checks)
 width  = 54

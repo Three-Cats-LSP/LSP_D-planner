@@ -1,3 +1,95 @@
+## [1.3] - 2026-06-03
+
+### Added — Settings Dropdowns & Visual Polish
+
+**Settings header — dropdowns replace buttons**
+- **Water density** → compact dropdown: Salt (default) / EN13319 / Fresh
+- **Units** → compact dropdown: m (metric) / ft (imperial)
+- **GF** → dropdown with 8 presets: 20/85 (default) · 30/70 · 30/85 · 40/80 · 45/85 · 45/95 · 50/75 · Custom…
+  - Selecting Custom reveals two inline input fields (same pattern as custom gas mix)
+  - Last entered custom GF values saved to localStorage and restored on next Custom selection
+  - GF row hidden completely in Rec mode — only visible in Bühlmann ZH-L16C mode
+  - Default changed from 30/70 → **20/85**
+
+**Gas switch row — action-required styling**
+- **Dark theme:** amber-yellow background `rgba(255,183,3,0.18)` + `#ffb703` left border + box-shadow top/bottom frame + `#ffb703` text
+- **Light theme:** bright yellow background `rgba(255,195,0,0.35)` + amber border + dark amber text
+- Both PDF exports (main and emergency) match: yellow background + amber top/bottom/right borders
+- No inline style override — pure CSS class, works on all table instances including contingency
+
+**Deco table readability improvements**
+- Ascent rows: depth/run/arrow now use `.asc-color` CSS class → `var(--green)` dark / `#1a9e55` light (was hardcoded pale `#80e0a0`)
+- Light theme green darkened from `#50C878` → `#1a9e55` for outdoor readability
+- Deco stop depth/run columns restored to red (`.deco-row td` via CSS)
+
+### Changed
+
+- **GF default:** 20/85 (was 30/70 in v1.2, then 40/80 briefly)
+- **Reset button:** now defaults GF to 20/85
+- **Water Vapor & Stop Rounding** dropdowns from v1.2 kept; Water Vapor dropdown now correctly applied on load (load-order bug fixed in v1.2 carried forward)
+- Storage key remains **v5** (no breaking changes to saved settings)
+
+### Added — Headless Test Infrastructure
+
+- **`lsp_engine.js`** — Node.js port of the deco engine extracted verbatim from index.html. Runs without a browser for automated testing.
+- **`test_regression.js`** — 14-profile regression suite vs ApexDeco (fractional) and MultiDeco (whole-min). Run: `node test_regression.js`
+- **`test_settings.js`** — 42-check settings integration suite verifying all dropdown values (GF, Water, WV, Rounding) are correctly applied to tissue calculations. Run: `node test_settings.js`
+
+### Verification
+
+**Algorithm unchanged** — all 21 test profiles across GF 20/85, 30/70, 40/80 confirm:
+- Zero structural differences vs MultiDeco (same stop sequence, gas switches, first stops)
+- All remaining deltas exactly ±1 min — confirmed WV boundary effect, not algorithm error
+- 42/42 settings integration tests pass
+- 236 audit checks pass
+
+
+---
+
+## [1.2] - 2026-06-03
+
+### Added — Algorithm Settings & Export Consistency
+
+**Stop Rounding setting (Yes / No)**
+- New dropdown in settings: **No** (Fractional, ApexDeco-style — transit time absorbed, gives precise values like 0:33 or 1:40) and **Yes** (Whole minute — every stop rounded up to nearest whole minute, closer to MultiDeco output)
+- Setting saved, restored on load, reset to No on Reset
+- First stops always use RT-snap (fractional) regardless of mode — matches both ApexDeco and MultiDeco behaviour
+
+**Water Vapor setting (0.0627 B / 0.0577 M)**
+- New dropdown: **0.0627 bar (Bühlmann)** — original ZH-L16 standard; **0.0577 bar (MultiDeco)** — used by MultiDeco and some other implementations
+- `WATER_VAPOR` is now a `let` updated at runtime via `updateWaterVapor()`
+- `updateWaterVapor()` called after every `appSettings.load()` and inside `runDecoSchedule()` — ensures correct constant is always active including contingency plans
+- Pair **Yes + 0.0577 (M)** for closest MultiDeco match; **No + 0.0627 (B)** for Bühlmann standard
+- Both settings explained in settings `?` help modal with B/M labels
+
+**Stop Rounding + WV shown in all exports**
+- **Copy (messenger):** `Stp Rounding: Yes  WV: 0.0577(M)` line between header and dashes — deco and emergency
+- **TXT export:** `Stop Rounding: Yes  WV: 0.0577(M)` line after Last Stop — deco and emergency
+- **PDF Dive Profile header:** `· Stop Rounding:Yes · WV:0.0577(M)` in span
+- **PDF Emergency page 4 info block:** Stop Rounding + WV fields
+- **PDF Emergency standalone:** Stop Rounding + WV in alert line
+
+**Settings `?` help modal**
+- New `?` button in Decompression Schedule card header opens a scrollable modal
+- Covers every setting with plain language descriptions grouped by section
+- Stop Rounding explains Yes=Whole min (MultiDeco) / No=Fractional (ApexDeco)
+- Water Vapor explains 0.0627(B)=Bühlmann standard / 0.0577(M)=MultiDeco
+
+### Changed
+
+- **Stop Rounding dropdown labels**: **No** (was Fractional) / **Yes** (was Whole min)
+- **Reset button**: now uses `btn-export` class with red colour (`var(--red)`) and SVG refresh icon — same size and style as Copy/TXT/PDF export buttons; word "RESET" removed
+- **Salt water** is now the default water density (was EN13319)
+- **BT SAC** label (was Btm SAC) applied consistently everywhere
+- **Ascent row ppO₂** now shows ppO₂ at the starting depth (peak during that segment), not the destination depth
+
+### Fixed
+
+- `WATER_VAPOR` was always `0.0627` even when `0.0577` was saved — `updateWaterVapor()` was called before `appSettings.load()`, so the saved value never applied. Fixed load order: `updateWaterVapor()` now called after every `appSettings.load()` including retry timeouts
+- First stop near-zero (0:01) edge case in Whole min mode: stops now enforce `minStopT` (1:00) minimum when the raw hold is sub-10-second, matching MultiDeco behaviour
+- Storage key bumped to **v5** to clear stale settings after load-order fix
+
+
 ## [1.0] - 2026-06-02
 
 ### 🎉 First Public Release
