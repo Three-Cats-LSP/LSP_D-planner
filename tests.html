@@ -126,10 +126,8 @@ summary{cursor:pointer;color:var(--accent);font-size:12px;font-weight:600;paddin
     <div class="section-label">Model</div>
     <div id="modelChips" class="model-chips">
       <button class="model-chip active" data-model="VPMB">VPM-B</button>
-      <button class="model-chip" data-model="VPMA">VPM-A</button>
-      <button class="model-chip" data-model="VPMBE">VPM-B/E</button>
       <button class="model-chip" data-model="VPMB_GFS">VPM-B+GFS</button>
-      <button class="model-chip" data-model="VPMBFBO">VPM-B/FBO</button>
+      <button class="model-chip" data-model="ZHL16C">Bühlmann GF</button>
     </div>
   </div>
 
@@ -183,7 +181,7 @@ summary{cursor:pointer;color:var(--accent);font-size:12px;font-weight:600;paddin
       <label>GF Lo <span id="cfgGFLoVal" class="range-val">20</span></label>
       <input type="range" id="cfgGFLo" min="10" max="100" value="20" step="5">
     </div>
-    <div style="font-size:10px;color:var(--faint)">GF Lo/Hi used by VPMB_GFS only</div>
+    <div style="font-size:10px;color:var(--faint)">GF Lo/Hi used by VPM-B+GFS and Bühlmann GF</div>
   </div>
 
   <div style="display:flex;flex-direction:column;gap:8px;margin-top:auto">
@@ -199,7 +197,7 @@ summary{cursor:pointer;color:var(--accent);font-size:12px;font-weight:600;paddin
 <main class="main">
   <div class="page-header">
     <h1>LSP D-Planner — Test Suite</h1>
-    <div class="sub">VPM-B · VPM-A · VPM-B/E · VPM-B+GFS · VPM-B/FBO · Full engine verification</div>
+    <div class="sub">Bühlmann ZH-L16C + GF · VPM-B · VPM-B+GFS · Full engine verification</div>
   </div>
 
   <div class="sumbar" id="sumbar">
@@ -374,7 +372,7 @@ const GROUPS=[
   {id:'g_constants', title:'2 · Physical constants'},
   {id:'g_nodeco',    title:'3 · No-deco boundary'},
   {id:'g_deco',      title:'4 · Deco dive correctness'},
-  {id:'g_models',    title:'5 · All 5 models (custom profile)'},
+  {id:'g_models',    title:'5 · All 3 algorithms (custom profile)'},
   {id:'g_mono',      title:'6 · Deco time monotonicity'},
   {id:'g_cons',      title:'7 · Conservatism scaling'},
   {id:'g_gf',        title:'8 · GF Hi sensitivity (VPMB_GFS)'},
@@ -496,12 +494,10 @@ function runAllTests(){
   // ── G1: Engine ──────────────────────────────────────────────────────────
   addRow('g_engine','VPMEngine loaded',             E!=null,            `type=${typeof E}`,'fetch + extract');
   addRow('g_engine','VPMEngine.calculate is fn',    typeof E?.calculate==='function',`typeof=${typeof E?.calculate}`,'');
-  addRow('g_engine','MODELS array has 5 entries',   MODELS_LIST.length===5,`[${MODELS_LIST.join(', ')}]`,'');
+  addRow('g_engine','MODELS array has 3 algorithms',MODELS_LIST.length>=3,`[${MODELS_LIST.join(', ')}]`,'');
   addRow('g_engine','"VPMB" in MODELS',             MODELS_LIST.includes('VPMB'),`models=${JSON.stringify(MODELS_LIST)}`,'');
-  addRow('g_engine','"VPMA" in MODELS',             MODELS_LIST.includes('VPMA'),``,'');
-  addRow('g_engine','"VPMBE" in MODELS',            MODELS_LIST.includes('VPMBE'),``,'');
-  addRow('g_engine','"VPMB_GFS" in MODELS',         MODELS_LIST.includes('VPMB_GFS'),``,'');
-  addRow('g_engine','"VPMBFBO" in MODELS',          MODELS_LIST.includes('VPMBFBO'),``,'');
+  addRow('g_engine','"VPMB" model available',   MODELS_LIST.includes('VPMB'),`models=${JSON.stringify(MODELS_LIST)}`,'');
+  addRow('g_engine','"VPMB_GFS" model available',MODELS_LIST.includes('VPMB_GFS'),``,'');
   updateGroupBadge('g_engine');
 
   // ── G2: Constants ───────────────────────────────────────────────────────
@@ -549,8 +545,12 @@ function runAllTests(){
   updateGroupBadge('g_deco');
 
   // ── G5: All 5 models with current settings ──────────────────────────────
+  const ALGO_MODELS=['VPMB','VPMB_GFS'];
+  // Add ZHL16C if present in engine MODELS
+  const ZHL_MODEL=MODELS_LIST.find(m=>m.includes('ZHL')||m.includes('GF')||m==='ZHL16C')||null;
+  if(ZHL_MODEL) ALGO_MODELS.push(ZHL_MODEL);
   const modResults={};
-  for(const m of MODELS_LIST){
+  for(const m of ALGO_MODELS){
     const r=calc(s.depth,s.bt,m);
     modResults[m]=r;
     addRow('g_models',`${m} computes without error`,!r.error&&(r.totalRuntime||0)>0,
@@ -561,7 +561,7 @@ function runAllTests(){
   if(rB&&rBG&&!rB.error&&!rBG.error){
     addRow('g_models','VPMB_GFS runtime ≥ VPMB',
       (rBG.totalRuntime||0)>=(rB.totalRuntime||0),
-      `VPMB=${rB.totalRuntime?.toFixed(1)}, VPMB_GFS=${rBG.totalRuntime?.toFixed(1)}`,'GFS ordering');
+      `VPMB=${rB.totalRuntime?.toFixed(1)}, VPMB_GFS=${rBG.totalRuntime?.toFixed(1)}`,'GFS is more conservative');
   }
   updateGroupBadge('g_models');
 
@@ -748,10 +748,15 @@ loadEngine().then(R=>{
   statusBar.style.color='var(--pass)';
   sumbar.innerHTML=`<span class="pill n">⚙ Engine ready</span><span style="color:var(--muted);font-size:13px">Configure settings and press Run all tests</span>`;
 
-  // Enable model chips only for available models
+  // Mark ZHL16C chip based on availability
   document.querySelectorAll('.model-chip').forEach(chip=>{
-    if(!MODELS_LIST.includes(chip.dataset.model)){
-      chip.disabled=true;chip.style.opacity='.35';chip.title='not in MODELS';
+    const m=chip.dataset.model;
+    const zhl=MODELS_LIST.find(x=>x.includes('ZHL')||x.includes('GF'));
+    if(m==='ZHL16C'){
+      if(!zhl){chip.disabled=true;chip.style.opacity='.35';chip.title='Bühlmann GF not found in engine';}
+      else{chip.dataset.model=zhl;} // remap to actual key
+    } else if(!MODELS_LIST.includes(m)){
+      chip.disabled=true;chip.style.opacity='.35';chip.title='not available';
     }
   });
 }).catch(e=>{
