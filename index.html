@@ -579,8 +579,8 @@ body.light-theme .btn-reset-red:hover {
 body.algo-buh .buh-only { display: flex !important; }
 
 /* ── PANELS ── */
-.panel { display: none; animation: fadeUp 0.3s ease; }
-.panel.active { display: block; }
+.panel { display: none !important; animation: fadeUp 0.3s ease; }
+.panel.active { display: block !important; }
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -791,13 +791,13 @@ body.algo-buh .buh-only { display: flex !important; }
 .alert span { flex-shrink: 0; }
 .ok    { background:rgba(38,208,124,0.07);  border-color:rgba(38,208,124,0.22); color:#70f0aa; }
 .warn  { background:rgba(255,183,3,0.07);   border-color:rgba(255,183,3,0.22);  color:#ffcc40; }
-.dang  { background:#ffffff; border:2px solid #cc0000 !important; color:#111111; font-weight:600; }
+.dang  { background:#ffffff; border:1px solid #cc0000; color:#111111; font-weight:600; }
 .info  { background:rgba(0,200,255,0.06);   border-color:rgba(0,200,255,0.2);   color:#60d8ff; }
-.deco  { background:#ffffff; border:2px solid #cc0000 !important; color:#111111; }
+.deco  { background:#ffffff; border:1px solid #cc0000; color:#111111; }
 
 /* Light theme: solid strong colors for readability on white */
-body.light-theme .dang { background:#ffffff; border:2px solid #cc0000 !important; color:#111111; font-weight:600; }
-body.light-theme .deco { background:#ffffff; border:2px solid #cc0000 !important; color:#111111; }
+body.light-theme .dang { background:#ffffff; border:1px solid #cc0000; color:#111111; font-weight:600; }
+body.light-theme .deco { background:#ffffff; border:1px solid #cc0000; color:#111111; }
 body.light-theme .warn { background:#fff8e6; border-color:#cc7700; color:#884400; }
 body.light-theme .ok   { background:#f0fff4; border-color:#116622; color:#116622; }
 
@@ -1490,8 +1490,8 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
           <option value="10">10 m/min</option>
           <option value="15">15 m/min</option>
           <option value="18">18 m/min</option>
-          <option value="20">20 m/min</option>
-          <option value="22" selected>22 m/min</option>
+          <option value="20" selected>20 m/min</option>
+          <option value="22">22 m/min</option>
           <option value="25">25 m/min</option>
           <option value="30">30 m/min</option>
         </select>
@@ -1500,8 +1500,8 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
         <select id="ascentRate">
           <option value="3">3 m/min</option>
           <option value="6">6 m/min</option>
-          <option value="9" selected>9 m/min</option>
-          <option value="10">10 m/min</option>
+          <option value="9">9 m/min</option>
+          <option value="10" selected>10 m/min</option>
           <option value="12">12 m/min</option>
           <option value="15">15 m/min</option>
           <option value="18">18 m/min</option>
@@ -1509,18 +1509,18 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
       </div>
       <div class="field"><label>Deco Ascent Rate</label>
         <select id="decoAscentRate">
-          <option value="3">3 m/min</option>
+          <option value="3" selected>3 m/min</option>
           <option value="6">6 m/min</option>
-          <option value="9" selected>9 m/min</option>
+          <option value="9">9 m/min</option>
           <option value="10">10 m/min</option>
           <option value="12">12 m/min</option>
         </select>
       </div>
       <div class="field"><label>Surf Ascent Rate</label>
         <select id="surfaceAscentRate">
-          <option value="3">3 m/min</option>
+          <option value="3" selected>3 m/min</option>
           <option value="6">6 m/min</option>
-          <option value="9" selected>9 m/min</option>
+          <option value="9">9 m/min</option>
         </select>
       </div>
       <div class="field">
@@ -1542,7 +1542,8 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
       <div class="field">
         <label>Minimum Stop <span title="Minimum time spent at any deco stop,&#10;regardless of ceiling clearance.&#10;1:00 = standard. Smaller values give&#10;precise plans but are harder to execute." style="display:inline-block;line-height:0;vertical-align:middle;margin-left:2px;" onmouseenter="const t=this.getAttribute('title');this.removeAttribute('title');void this.offsetWidth;this.setAttribute('title',t)"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><rect x="5" y="4.8" width="1" height="3.2" rx="0.5" fill="currentColor"/><rect x="5" y="2.8" width="1" height="1" rx="0.5" fill="currentColor"/></svg></span></label>
         <select id="minStopTime">
-          <option value="1" selected>1:00</option>
+          <option value="2" selected>2:00</option>
+          <option value="1">1:00</option>
           <option value="0.5">0:30</option>
           <option value="0.1667">0:10</option>
           <option value="0.0167">0:01</option>
@@ -1551,15 +1552,22 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
       <div class="field">
         <label>Stop Rounding <span title="Whether stop times are rounded to whole minutes.&#10;No = fractional (Bühlmann default).&#10;Yes (MultiDeco) = whole-minute rounding,&#10;matching MultiDeco output." style="display:inline-block;line-height:0;vertical-align:middle;margin-left:2px;" onmouseenter="const t=this.getAttribute('title');this.removeAttribute('title');void this.offsetWidth;this.setAttribute('title',t)"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><rect x="5" y="4.8" width="1" height="3.2" rx="0.5" fill="currentColor"/><rect x="5" y="2.8" width="1" height="1" rx="0.5" fill="currentColor"/></svg></span></label>
         <select id="stopRounding">
-          <option value="fractional" selected>No</option>
-          <option value="wholeminute">Yes (MultiDeco)</option>
+          <option value="fractional">No</option>
+          <option value="wholeminute" selected>Yes (MultiDeco)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Transit Mode <span title="How deco-zone ascent transits between stops are modelled.&#10;&#10;Schreiner (accurate): tissues off-gas via Schreiner equation during each ascent segment. Most physically correct. Stop durations reflect actual hold time at depth only.&#10;&#10;MultiDeco compatible: ascent between stops is treated as instantaneous for tissue loading (matches MultiDeco 4.x behaviour). Transit time is added to the displayed stop duration, so stop times and run times match MultiDeco output exactly. Slightly more conservative." style="display:inline-block;line-height:0;vertical-align:middle;margin-left:2px;" onmouseenter="const t=this.getAttribute('title');this.removeAttribute('title');void this.offsetWidth;this.setAttribute('title',t)"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><rect x="5" y="4.8" width="1" height="3.2" rx="0.5" fill="currentColor"/><rect x="5" y="2.8" width="1" height="1" rx="0.5" fill="currentColor"/></svg></span></label>
+        <select id="decoTransitMode">
+          <option value="schreiner" selected>Schreiner (accurate)</option>
+          <option value="multideco">MultiDeco compatible</option>
         </select>
       </div>
       <div class="field">
         <label>Water Vapor <span title="Alveolar water vapor pressure used in&#10;tissue loading calculations.&#10;0.0627 bar = Bühlmann standard.&#10;0.0577 bar = MultiDeco standard.&#10;Pair with Stop Rounding to match target tool." style="display:inline-block;line-height:0;vertical-align:middle;margin-left:2px;" onmouseenter="const t=this.getAttribute('title');this.removeAttribute('title');void this.offsetWidth;this.setAttribute('title',t)"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><rect x="5" y="4.8" width="1" height="3.2" rx="0.5" fill="currentColor"/><rect x="5" y="2.8" width="1" height="1" rx="0.5" fill="currentColor"/></svg></span></label>
         <select id="waterVapor" onchange="updateWaterVapor()">
-          <option value="0.0627" selected>0.0627 bar (Bühlmann)</option>
-          <option value="0.0577">0.0577 bar (MultiDeco)</option>
+          <option value="0.0627">0.0627 bar (Bühlmann)</option>
+          <option value="0.0577" selected>0.0577 bar (MultiDeco)</option>
         </select>
       </div>
       <div class="field">
@@ -1720,9 +1728,8 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
 
     </div>
 
-    <button class="btn-calc" onclick="runDecoSchedule()" style="margin-top:14px;">▶ GENERATE SCHEDULE</button>
-  </div>
-  <div id="decoResult" style="display:none;">
+    <button class="btn-calc" onclick="runDecoSchedule()" style="margin-top:8px;margin-bottom:0;">▶ GENERATE SCHEDULE</button>
+  <div id="decoResult" style="display:none;margin-top:8px;">
     <div class="card">
       <div style="margin-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -2271,6 +2278,13 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
       <div class="info-box"><strong>Deco Step Size:</strong> Depth interval between stops in metres. Standard is 3 m. Most dive computers use 3 m.</div>
       <div class="info-box"><strong>Last Deco Stop:</strong> Shallowest mandatory stop depth. Common: 3 m (standard) or 6 m (conservative). The diver holds here until tissues are safe to surface at GF High.</div>
       <div class="info-box"><strong>Min Stop Time:</strong> Minimum time at any deco stop regardless of ceiling clearance. Standard is 1 min. Smaller values give more precise plans but are harder to execute.</div>
+      <div class="info-box"><strong>Transit Mode:</strong> Controls how ascent segments <em>between</em> deco stops are modelled in Bühlmann GF mode.<br>
+        <br>
+        <strong>Schreiner (accurate)</strong> — tissues off-gas normally via the Schreiner equation during each ascent segment between stops. This is the most physically correct method. Stop durations shown reflect the actual hold time at that depth only. Run time includes transit segments separately.<br>
+        <br>
+        <strong>MultiDeco compatible</strong> — ascent between deco stops is treated as instantaneous for tissue loading, matching MultiDeco 4.x behaviour. Transit time is added to the displayed stop duration, so stop times and total run time match MultiDeco output exactly. This mode is slightly more conservative because transit off-gassing is not credited. Deco-zone ascent rows are hidden from the table (folded into the stop time, as MultiDeco displays them).<br>
+        <br>
+        To fully replicate MultiDeco output: set <em>Transit Mode: MultiDeco compatible</em> + <em>Stop Rounding: Yes</em> + <em>Water Vapor: 0.0577 bar</em>.</div>
       <div class="info-box"><strong>Stop Rounding:</strong> Whether deco stop times are rounded to whole minutes.<br>
         &nbsp;• <strong>No</strong> (Fractional) — transit time between stops is absorbed, giving precise values like 0:33 or 1:40. Matches ApexDeco output.<br>
         &nbsp;• <strong>Yes</strong> (Whole min) — every stop rounds up to the nearest whole minute. Simpler to execute underwater. Closer to MultiDeco output.</div>
@@ -2426,7 +2440,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://www.instagram.com/threecats_lsp" alt="Instagram QR Code" style="width: 140px; height: 140px; border: 3px solid var(--muted); border-radius: 8px; padding: 6px; background: white;"/>
       </a>
       <p style="color: var(--muted); font-size:12px; margin-top:8px;">@threecats_lsp</p>
-      <p style="color: var(--muted); font-size:10px; margin-top:4px; letter-spacing:1px; opacity:0.6;" id="appVersionLabel">Version 2.5 Beta 1</p>
+      <p style="color: var(--muted); font-size:10px; margin-top:4px; letter-spacing:1px; opacity:0.6;" id="appVersionLabel">Version 6.0.2</p>
     </div>
   </div>
 
@@ -2467,7 +2481,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
 // ═══════════════════════════════════════════════
 // BÜHLMANN ZH-L16C DATA
 // ═══════════════════════════════════════════════
-const APP_VERSION = '2.5 Beta 1';
+const APP_VERSION = '2.0 Beta 1';
 
 const ZHL16C = [
   [4.0,   1.2599, 0.5050],[8.0,   1.0000, 0.6514],[12.5,  0.8618, 0.7222],
@@ -2655,6 +2669,14 @@ function setAlgo(a) {
   document.body.classList.toggle('algo-buh', isBuh);
   document.body.classList.toggle('algo-tools', isTools);
 
+  // ── Clear all result cards on every algo switch ──
+  ['decoResult','gasConsumptionSummary','contingencyCard','contingencyResult','diveGraphCard',
+   'plannerProfileCanvas-wrap'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+  const _pr2 = document.getElementById('plannerResult'); if(_pr2){_pr2.style.display='none';_pr2.innerHTML='';}
+  const _mr2 = document.getElementById('multiResult'); if (_mr2) _mr2.style.display = 'none';
+
   if (isTools) {
     document.getElementById('algoLabel').textContent    = 'TOOLS';
     document.getElementById('algoSubtitle').textContent = 'Dive Planning Tools & Calculators';
@@ -2703,8 +2725,7 @@ function setAlgo(a) {
     toggleCustomO2();
   }
 
-  const _pr = document.getElementById('plannerResult'); if(_pr){_pr.style.display='none';_pr.innerHTML='';}
-  const _mr = document.getElementById('multiResult'); if (_mr) _mr.style.display = 'none';
+  // result cards already cleared above
 
   if (isRec) {
     switchTab('planner', document.getElementById('tab-planner'));
@@ -3574,16 +3595,16 @@ function resetToDefaults() {
   // ApexDeco-matched defaults
   const defaults = {
     // Rates
-    descentRate:      '22',
-    ascentRate:       '9',
-    decoAscentRate:   '9',
-    surfaceAscentRate:'9',
+    descentRate:      '20',
+    ascentRate:       '10',
+    decoAscentRate:   '3',
+    surfaceAscentRate:'3',
     // Stop settings
     decoStep:         '3',
     lastDecoStop:     '3',
-    minStopTime:      '1',
-    stopRounding:     'fractional',
-    waterVapor:       '0.0627',
+    minStopTime:      '2',
+    stopRounding:     'wholeminute',
+    waterVapor:       '0.0577',
     // ppO2 limits
     ppo2Bottom:       '1.4',
     ppo2Deco:         '1.6',
@@ -3629,7 +3650,7 @@ function resetToDefaults() {
   toggleDecoCustomO2?.('dg2Mix', 'dg2CustomField');
 
   // Clear localStorage v4
-  try { localStorage.removeItem('lspDiveSettings_v5'); } catch(e) {}
+  try { localStorage.removeItem('lspDiveSettings_v6'); } catch(e) {}
 
   // Save fresh defaults
   if (typeof appSettings !== 'undefined' && appSettings.save) {
@@ -4048,9 +4069,9 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
         ${bottomGasTagVPM} ${decoGasTagsVPM}
       </div>
       ${hasDeco
-        ? '<div class="alert deco" style="margin-top:10px;background:#ffffff;border-color:#cc0000;border-width:2px;color:#111111;"><span>🔴</span><div><strong>DECOMPRESSION DIVE.</strong> Do not skip mandatory stops. Switch gas at optimal depth shown above. Verify ppO₂ before each switch.</div></div>'
+        ? '<div class="alert deco" style="margin-top:10px;background:#ffffff;border-color:#cc0000;border-width:1px;color:#111111;"><span>🔴</span><div><strong>DECOMPRESSION DIVE.</strong> Do not skip mandatory stops. Switch gas at optimal depth shown above. Verify ppO₂ before each switch.</div></div>'
         : '<div class="alert ok" style="margin-top:10px;"><span>✓</span><div><strong>NO-DECO DIVE.</strong></div></div>'}
-      ${endMvpm > 40 ? '<div class="alert" style="margin-top:8px;background:#FF4433;border-color:#cc2200;color:#fff;font-weight:700;"><span>⚠</span><div><strong>HIGH NARCOTIC DEPTH.</strong> END exceeds 40 m equivalent. Consider a less narcotic gas mix.</div></div>' : endMvpm > 30 ? '<div class="alert" style="margin-top:8px;background:#FF4433;border-color:#cc2200;color:#fff;font-weight:700;"><span>⚠</span><div><strong>NARCOTIC DEPTH WARNING.</strong> END exceeds 30 m equivalent. Consider a less narcotic gas mix.</div></div>' : ''}`;
+      ${endMvpm > 40 ? '<div class="alert" style="margin-top:8px;background:#FF4433;border-color:#111111;border-width:1px;color:#fff;font-weight:700;"><span>⚠</span><div><strong>HIGH NARCOTIC DEPTH.</strong> END exceeds 40 m equivalent. Consider a less narcotic gas mix.</div></div>' : endMvpm > 30 ? '<div class="alert" style="margin-top:8px;background:#FF4433;border-color:#111111;border-width:1px;color:#fff;font-weight:700;"><span>⚠</span><div><strong>NARCOTIC DEPTH WARNING.</strong> END exceeds 30 m equivalent. Consider a less narcotic gas mix.</div></div>' : ''}`;
 
     // CNS warning goes to decoAlerts (after table) — handled by alertsContainer below
   }
@@ -5724,6 +5745,7 @@ function runDecoSchedule() {
   const minStopT   = parseFloat(document.getElementById('minStopTime').value) || 1;
   const switchPauseT = 0;
   const wholeMinStops = (document.getElementById('stopRounding')?.value || 'fractional') === 'wholeminute';
+  const mdCompatMode  = (document.getElementById('decoTransitMode')?.value || 'schreiner') === 'multideco';
   updateWaterVapor();
   const ppo2High = ppo2Deco;
   const ppo2Mid  = ppo2Bottom;
@@ -5874,11 +5896,18 @@ function runDecoSchedule() {
       const travelGas = getActiveGas(cur, bottomFN2, decoGases, getPPO2Limit, bottomMixLabel);
       const travelRate = decoZoneEntered ? decoRate : rate;
       const travelDur = (cur - stopDepth) / travelRate;
-      tissues = saturateLinear(tissues, cur, stopDepth, travelDur, travelGas.fN2);
+      if (decoZoneEntered && mdCompatMode) {
+        // MultiDeco-compatible mode: treat deco-zone transit as instant for tissue loading.
+        // Transit time is still counted in RT and added to the displayed stop duration below.
+        // (Schreiner mode: tissues off-gas normally during transit — more accurate.)
+      } else {
+        tissues = saturateLinear(tissues, cur, stopDepth, travelDur, travelGas.fN2);
+      }
       steps.push({
         type: 'ascent', from: cur, to: stopDepth,
         dur: travelDur, gas: travelGas.label,
-        pO2: ppO2Check(cur, travelGas.fN2), fN2: travelGas.fN2
+        pO2: ppO2Check(cur, travelGas.fN2), fN2: travelGas.fN2,
+        decoTransit: decoZoneEntered && mdCompatMode
       });
       rt  += travelDur;
       cur  = stopDepth;
@@ -5906,12 +5935,13 @@ function runDecoSchedule() {
     // At last stop: target=0 → uses gfH (surface GF). This is correct.
     // Use nextStop exactly — ceiling must be strictly below the next stop.
     const ceilTarget = (nextStop < lastStop) ? 0 : nextStop;
-    const gfForClear = gfAt(nextStop < lastStop ? 0 : nextStop);
+    const gfForClear = gfAt((nextStop < lastStop) ? 0 : nextStop);
 
     const isFirstDecoStop = (firstDecoDepth === null);
-    // Step resolution: first deco stop uses fine (10-sec) resolution like ApexDeco.
-    // Subsequent stops use minStopT increments — ApexDeco line 658: increment = isFirstStop ? 1/60 : minStopTime
-    const holdStep = isFirstDecoStop ? 1/6 : minStopT;
+    // Step resolution: first deco stop uses fine (10-sec) resolution.
+    // Subsequent stops: use 1-min steps for ceiling resolution (MultiDeco behaviour),
+    // regardless of minStopT. This ensures stops don't under-count.
+    const holdStep = isFirstDecoStop ? 1/6 : 1;
 
     const ceil     = ceiling(tissues, gfForClear);
     const mustStop = ceil > ceilTarget;
@@ -5940,13 +5970,8 @@ function runDecoSchedule() {
         }
         if (stopT < 1/60) { tissues = saturate(tissues, cur, 1/60 - stopT, stopFN2); rt += 1/60 - stopT; stopT = 1/60; }
       } else {
-        // Non-first stops rounding
         let roundedStop;
-        if (wholeMinStops) {
-          // Whole-minute: round raw hold up to nearest whole minute (transit loaded separately)
-          roundedStop = Math.max(minStopT, Math.ceil(stopT / minStopT) * minStopT);
-        } else {
-          // Fractional: round (transit + raw) up, subtract transit
+        {
           const totalAtLevel = Math.max(minStopT, Math.ceil((transitDur + stopT) / minStopT) * minStopT);
           roundedStop = totalAtLevel - transitDur;
         }
@@ -5955,8 +5980,15 @@ function runDecoSchedule() {
           tissues = saturate(tissues, cur, extra, stopFN2);
           rt += extra; stopT = roundedStop;
         }
+        // Enforce minimum stop time — every non-first deco stop gets at least minStopT
+        if (stopT < minStopT) {
+          const extra = minStopT - stopT;
+          tissues = saturate(tissues, cur, extra, stopFN2);
+          rt += extra; stopT = minStopT;
+        }
       }
-      steps.push({ type: 'deco', depth: cur, dur: stopT, gas: gasLabel, pO2: ppO2Check(cur, stopFN2), fN2: stopFN2 });
+      const mustStopDisplay = (mdCompatMode && !isFirstDecoStop) ? stopT + transitDur : stopT;
+      steps.push({ type: 'deco', depth: cur, dur: mustStopDisplay, gas: gasLabel, pO2: ppO2Check(cur, stopFN2), fN2: stopFN2 });
     } else if (minStopT > 0 && minStopZoneDepth !== null && cur <= minStopZoneDepth && cur !== lastStop) {
       decoZoneEntered = true;
       let stopT = 0;
@@ -5964,14 +5996,11 @@ function runDecoSchedule() {
         if (firstDecoDepth === null) firstDecoDepth = cur;
         const minFirstStop = Math.ceil(rt / minStopT) * minStopT - rt;
         const snapped = Math.max(0, Math.round(minFirstStop * 60) / 60);
-        // Whole-min mode: enforce minStopT only when snapped is truly near-zero (<2 sec).
-        // Meaningful fractional first stops (e.g. 0:07, 0:33, 0:40) are kept — MultiDeco behaviour.
-        const minVal = (wholeMinStops && snapped < 1/30) ? minStopT : 1/60;
-        stopT = Math.max(snapped, minVal);
+        // Always keep meaningful fractional first stop (RT-snap). MultiDeco behaviour.
+        // Never pad first stop to full minStopT — only enforce 1-sec minimum.
+        stopT = Math.max(snapped, 1/60);
       } else {
-        const needed = wholeMinStops
-          ? Math.max(0, minStopT)
-          : Math.max(0, minStopT - transitDur);
+        const needed = Math.max(0, minStopT - transitDur);
         stopT = needed;
       }
       if (stopT > 0) {
@@ -5982,8 +6011,24 @@ function runDecoSchedule() {
         tissues = saturate(tissues, cur, minStopT, stopFN2);
         stopT += minStopT; rt += minStopT;
       }
+      if (!isFirstDecoStop) {
+        // Round up and enforce minimum — only for non-first stops
+        const totalAtLevel = Math.max(minStopT, Math.ceil((transitDur + stopT) / minStopT) * minStopT);
+        const roundedStop = totalAtLevel - transitDur;
+        if (roundedStop > stopT) {
+          const extra = roundedStop - stopT;
+          tissues = saturate(tissues, cur, extra, stopFN2);
+          rt += extra; stopT = roundedStop;
+        }
+        if (stopT < minStopT) {
+          const extra = minStopT - stopT;
+          tissues = saturate(tissues, cur, extra, stopFN2);
+          rt += extra; stopT = minStopT;
+        }
+      }
       if (stopT > 0) {
-        steps.push({ type: 'deco', depth: cur, dur: stopT, gas: gasLabel, pO2: ppO2Check(cur, stopFN2), fN2: stopFN2 });
+        const minStopDisplay = (mdCompatMode && !isFirstDecoStop) ? stopT + transitDur : stopT;
+        steps.push({ type: 'deco', depth: cur, dur: minStopDisplay, gas: gasLabel, pO2: ppO2Check(cur, stopFN2), fN2: stopFN2 });
       }
     } else if (cur === lastStop) {
       const isDecoNeeded = steps.some(s => s.type === 'deco');
@@ -5996,9 +6041,7 @@ function runDecoSchedule() {
           stopT += minStopT; rt += minStopT;
         }
         let roundedLastStop;
-        if (wholeMinStops) {
-          roundedLastStop = Math.max(minStopT, Math.ceil(stopT / minStopT) * minStopT);
-        } else {
+        {
           const totalAtLevel = Math.max(minStopT, Math.ceil((transitToLastStop + stopT) / minStopT) * minStopT);
           roundedLastStop = totalAtLevel - transitToLastStop;
         }
@@ -6017,7 +6060,8 @@ function runDecoSchedule() {
         tissues = saturate(tissues, cur, stopT, stopFN2);
         rt += stopT;
       }
-      steps.push({ type: stopType, depth: cur, dur: stopT, gas: gasLabel, pO2: ppO2Check(cur, stopFN2), fN2: stopFN2 });
+      const lastStopDisplay = mdCompatMode ? stopT + transitToLastStop : stopT;
+      steps.push({ type: stopType, depth: cur, dur: lastStopDisplay, gas: gasLabel, pO2: ppO2Check(cur, stopFN2), fN2: stopFN2 });
     }
     // No stop needed and not lastStop — continue ascending
   }
@@ -6173,9 +6217,9 @@ function runDecoSchedule() {
       ${bottomGasTag} ${decoGasTags}
     </div>` : ''}
     ${hasDeco
-      ? '<div class="alert deco" style="margin-top:10px;background:#ffffff;border-color:#cc0000;border-width:2px;color:#111111;"><span>🔴</span><div><strong>DECOMPRESSION DIVE.</strong> Do not skip mandatory stops. Switch gas at optimal depth shown above. Verify ppO₂ before each switch.</div></div>'
+      ? '<div class="alert deco" style="margin-top:10px;background:#ffffff;border-color:#cc0000;border-width:1px;color:#111111;"><span>🔴</span><div><strong>DECOMPRESSION DIVE.</strong> Do not skip mandatory stops. Switch gas at optimal depth shown above. Verify ppO₂ before each switch.</div></div>'
       : '<div class="alert ok" style="margin-top:10px;"><span>✓</span><div><strong>NO-DECO DIVE.</strong> 3 min safety stop at 3 m included.</div></div>'}
-    ${endM > 40 ? '<div class="alert" style="margin-top:8px;background:#FF4433;border-color:#cc2200;color:#fff;font-weight:700;"><span>⚠</span><div><strong>HIGH NARCOTIC DEPTH.</strong> END exceeds 40 m equivalent. Consider a less narcotic gas mix.</div></div>' : endM > 30 ? '<div class="alert" style="margin-top:8px;background:#FF4433;border-color:#cc2200;color:#fff;font-weight:700;"><span>⚠</span><div><strong>NARCOTIC DEPTH WARNING.</strong> END exceeds 30 m equivalent. Consider a less narcotic gas mix.</div></div>' : ''}`;
+    ${endM > 40 ? '<div class="alert" style="margin-top:8px;background:#FF4433;border-color:#111111;border-width:1px;color:#fff;font-weight:700;"><span>⚠</span><div><strong>HIGH NARCOTIC DEPTH.</strong> END exceeds 40 m equivalent. Consider a less narcotic gas mix.</div></div>' : endM > 30 ? '<div class="alert" style="margin-top:8px;background:#FF4433;border-color:#111111;border-width:1px;color:#fff;font-weight:700;"><span>⚠</span><div><strong>NARCOTIC DEPTH WARNING.</strong> END exceeds 30 m equivalent. Consider a less narcotic gas mix.</div></div>' : ''}`;
 
   const tbody = document.getElementById('decoTableBody');
   const descentTimeMin = Math.round((depthM / descentRate) * 10) / 10;
@@ -6367,6 +6411,7 @@ function runDecoSchedule() {
       </tr>`;
     // ── ASCENT ROW ──
     } else {
+      if (s.decoTransit) return; // mdCompatMode: transit folded into stop display
       const cnsPct = rowCNS(pO2Val, stepDur);
       totalCNSfrac += segCNSfrac(pO2Val, stepDur);
       totalOTU     += segOTU(pO2Val, stepDur);
@@ -6374,7 +6419,7 @@ function runDecoSchedule() {
       tbody.innerHTML += `<tr class="asc-row" data-phase="ascent">
         <td><span style="font-size:18px;" class="asc-color">↑</span></td>
         <td data-label="Depth" class="asc-color">${dU?s.from+'m':mToFt(s.from)+'ft'}→${dU?s.to+'m':mToFt(s.to)+'ft'}</td>
-        <td data-label="Stop" class="asc-color" style="font-size:11px;color:var(--muted);">${fmtT(stepDur)}</td>
+        <td data-label="Stop" class="asc-color" style="font-size:11px;color:var(--muted);">${fmtMM(s.dur)}</td>
         <td data-label="Run" class="asc-color">${rtDisp}</td>
         <td data-label="Mix" style="color:${gasColor};">${s.gas.toUpperCase()}</td>
         <td data-label="EAD" style="color:var(--muted);"></td>
@@ -8589,14 +8634,42 @@ function buildExportText(mode) {
 
     lines.push('EMERGENCY PLAN');
     lines.push(hr);
-    lines.push(`Scenario    : ${c.label}`);
-    lines.push(`Depth       : ${depth}${du}`);
-    lines.push(`BT Time    : ${bt} min`);
-    lines.push(`Run Time    : ${c.lastRunFmt || c.lastRun + "'00\""  }  Deco Time: ${c.decoTimeFmt || c.decoTime + "'00\""}  CNS: ${c.totalCNS || '—'}  OTU: ${c.totalOTU || '—'}  PrT: ${c.totalPrT || '—'}`);
-    lines.push(`Water       : ${density}`);
+    // Algorithm + settings (reuse same logic as main deco export)
+    const eAlgoSel  = document.getElementById('algorithmSelect')?.value || 'ZHLC_GF';
+    const eAlgoNames = { ZHLC_GF: 'Buhlmann ZH-L16C + GF', VPMB: 'VPM-B', VPMB_GFS: 'VPM-B / GFS' };
+    const eAlgoName  = eAlgoNames[eAlgoSel] || eAlgoSel;
+    const eGfLow     = mGF?.low  ?? '-';
+    const eGfHigh    = mGF?.high ?? '-';
+    const eConsVal   = document.getElementById('conservatismSelect')?.value ?? '0';
+    const eAlgoSettings = eAlgoSel === 'ZHLC_GF'
+      ? `GF ${eGfLow}/${eGfHigh}`
+      : eAlgoSel === 'VPMB' ? `Conservatism +${eConsVal}` : `GF Hi ${eGfHigh}  Conservatism +${eConsVal}`;
+    const eAscentRate     = document.getElementById('ascentRate')?.value      || '-';
+    const eDecoAscentRate = document.getElementById('decoAscentRate')?.value  || '-';
+    const eSurfAscentRate = document.getElementById('surfaceAscentRate')?.value || '-';
+    const eDescentRate    = document.getElementById('descentRate')?.value || '-';
+    const eLastStop       = document.getElementById('lastDecoStop')?.value || '-';
+    const eDecoStep       = document.getElementById('decoStep')?.value    || '-';
     const eRnd = (document.getElementById('stopRounding')?.value||'fractional')==='wholeminute'?'Yes':'No';
     const eWV  = parseFloat(document.getElementById('waterVapor')?.value||'0.0627');
     const eWVL = eWV<=0.058?'M':'B';
+    // shortMix matching main deco export style (number+%)
+    const eShortMix = m => {
+      const s = (m||'').trim();
+      if (!s || /air/i.test(s) || s.includes('21%')) return 'AIR';
+      if (s.includes('100%') || /^100/i.test(s) || s === '100% O2' || s === '100% O₂') return '100% O2';
+      const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/);
+      if (ean) return ean[1] + '%';
+      const pct = s.match(/(\d+)%/);
+      if (pct) return pct[1] + '%';
+      return s;
+    };
+    lines.push(`Scenario    : ${c.label}`);
+    lines.push(`Algorithm   : ${eAlgoName}  (${eAlgoSettings})`);
+    lines.push(`Depth       : ${depth}${du}    BT: ${bt} min`);
+    lines.push(`Water       : ${density}`);
+    lines.push(`Descent     : ${eDescentRate}${du}/min  Ascent: ${eAscentRate}${du}/min  Deco: ${eDecoAscentRate}${du}/min  Surface: ${eSurfAscentRate}${du}/min`);
+    lines.push(`Last Stop   : ${eLastStop}${du}  Step: ${eDecoStep}${du}`);
     lines.push(`Stop Rounding: ${eRnd}  WV: ${eWV}(${eWVL})`);
     if (c.msg) lines.push(`Note        : ${clean(c.msg)}`);
     lines.push('');
@@ -8632,7 +8705,7 @@ function buildExportText(mode) {
         const stp  = (stpVal.length > 0 && stpVal.length <= 4 ? stpVal.padStart(5) : stpVal).padEnd(7);
         const runRaw2 = c2[3]||'';
         const run  = (runRaw2.length <= 4 ? runRaw2.padStart(5) : runRaw2).padEnd(6);
-        const mix  = shortMix(c2[4]||'').padEnd(5);
+        const mix  = eShortMix(c2[4]||'').padEnd(5);
         const eadVal = (c2[5]||'-').trim() || '-';
         const ead  = (eadVal === '-' ? eadVal.padStart(2) : eadVal.padStart(3)).padEnd(6);
         const ppo2  = (c2[6]||'').padStart(4).padEnd(5);
@@ -8793,11 +8866,21 @@ function buildMessengerText(mode) {
     };
     const clean = t => t.replace(/[📋⚠️🤿✓⚡🔵🔴🟢🚨⏱ℹ⇄↓↑]/g,'').replace(/\s*·\s*/g,' - ').replace(/ppO₂/g,'ppO2').replace(/O₂/g,'O2').replace(/[—–]/g,'-').replace(/Bühlmann/g,'Buhlmann').replace(/(\d)\s+(m|ft)\b/g,'$1$2').replace(/\s*→\s*/g,'>').replace(/\s+/g,' ').trim();
     const result = [];
+    result.push('EMERGENCY PLAN');
     result.push(`${depth}${du} / ${bt}min / ${c.label}`);
     const cRnd = (document.getElementById('stopRounding')?.value||'fractional')==='wholeminute'?'Yes':'No';
     const cWV  = parseFloat(document.getElementById('waterVapor')?.value||'0.0627');
     const cWVL = cWV<=0.058?'M':'B';
     result.push(`Stp Rounding: ${cRnd}  WV: ${cWV}(${cWVL})`);
+    const _cLastStop = document.getElementById('lastDecoStop')?.value || '-';
+    const _cDecoStep = document.getElementById('decoStep')?.value    || '-';
+    const _cAscRate  = document.getElementById('ascentRate')?.value      || '-';
+    const _cDecRate  = document.getElementById('decoAscentRate')?.value  || '-';
+    const _cSurfRate = document.getElementById('surfaceAscentRate')?.value || '-';
+    const _cDesRate  = document.getElementById('descentRate')?.value || '-';
+    result.push(`Last Stop   : ${_cLastStop}${du}  Step: ${_cDecoStep}${du}`);
+    result.push(`Descent     : ${_cDesRate}${du}/min  Ascent: ${_cAscRate}${du}/min`);
+    result.push(`Deco        : ${_cDecRate}${du}/min  Surface: ${_cSurfRate}${du}/min`);
     result.push('-'.repeat(28));
     const rows = document.querySelectorAll('#contingencyResult .deco-table tbody tr');
     rows.forEach(tr => {
@@ -8814,10 +8897,10 @@ function buildMessengerText(mode) {
     result.push('-'.repeat(28));
     const runDisp  = c.lastRunFmt  || `${c.lastRun}'00"`;
     const decoDisp = c.decoTimeFmt || `${c.decoTime}'00"`;
-    const cnsDisp  = c.totalCNS ? `  CNS:${c.totalCNS}` : '';
-    const otuDisp  = c.totalOTU && c.totalOTU !== '—' ? `  OTU:${c.totalOTU}` : '';
-    const prtDisp  = c.totalPrT ? `  PrT:${c.totalPrT}` : '';
-    result.push(`Run:${runDisp}  Deco:${decoDisp}${cnsDisp}${otuDisp}${prtDisp}`);
+    const cnsDisp  = c.totalCNS ? ` CNS:${c.totalCNS}` : '';
+    const otuDisp  = c.totalOTU && c.totalOTU !== '—' ? ` OTU:${c.totalOTU}` : '';
+    const prtDisp  = c.totalPrT ? ` PrT:${c.totalPrT}` : '';
+    result.push(`Run Time:${runDisp} Deco:${decoDisp}${cnsDisp}${otuDisp}${prtDisp}`);
     result.push('LSP D-Planner');
     return result.join('\n');
   }
@@ -8871,6 +8954,15 @@ function buildMessengerText(mode) {
   const wvVal  = parseFloat(document.getElementById('waterVapor')?.value||'0.0627');
   const wvLbl  = wvVal<=0.058?'M':'B';
   result.push(`Stp Rounding: ${rndVal}  WV: ${wvVal}(${wvLbl})`);
+  const _lastStop2    = document.getElementById('lastDecoStop')?.value || '-';
+  const _decoStep2    = document.getElementById('decoStep')?.value    || '-';
+  const _ascentRate2     = document.getElementById('ascentRate')?.value      || '-';
+  const _decoAscentRate2 = document.getElementById('decoAscentRate')?.value  || '-';
+  const _surfAscentRate2 = document.getElementById('surfaceAscentRate')?.value || '-';
+  const _descentRate2 = document.getElementById('descentRate')?.value || '-';
+  result.push(`Last Stop   : ${_lastStop2}${du}  Step: ${_decoStep2}${du}`);
+  result.push(`Descent     : ${_descentRate2}${du}/min  Ascent: ${_ascentRate2}${du}/min`);
+  result.push(`Deco        : ${_decoAscentRate2}${du}/min  Surface: ${_surfAscentRate2}${du}/min`);
   result.push('-'.repeat(28));
 
   rows.forEach(tr => {
@@ -8913,13 +9005,13 @@ function buildMessengerText(mode) {
     const otuM = t.match(/OTU:\s*(\d+)/i);
     const prtM = t.match(/PrT:\s*([\d.]+)/i);
     result.push('-'.repeat(28));
-    result.push(`Run:${runM?.[1]||'-'}  Deco:${decM?.[1]||'-'}  CNS:${cnsM?.[1]||'-'}  OTU:${otuM?.[1]||'-'}  PrT:${prtM?.[1]||'-'}`);
+    result.push(`Run Time:${runM?.[1]||'-'} Deco:${decM?.[1]||'-'} CNS:${cnsM?.[1]||'-'} OTU:${otuM?.[1]||'-'} PrT:${prtM?.[1]||'-'}`);
   } else if (_isVPMCopy) {
     const vx2 = window._lastVPMExport;
     if (vx2) {
       const toMMSS = (n) => { const m = Math.floor(n), s = Math.round((n - m) * 60); return `${m}'${String(s).padStart(2,'0')}"`; };
       result.push('-'.repeat(28));
-      result.push(`Run:${toMMSS(vx2.rt)}  Deco:${toMMSS(vx2.deco)}  CNS:${vx2.cns}  OTU:${vx2.otu}  PrT:${vx2.prt}`);
+      result.push(`Run Time:${toMMSS(vx2.rt)} Deco:${toMMSS(vx2.deco)} CNS:${vx2.cns} OTU:${vx2.otu} PrT:${vx2.prt}`);
     } else {
       const rtV  = document.getElementById('decoRunTimeDisplay')?.textContent?.trim().replace(/['\s]/g,'') || '-';
       const dtV  = document.getElementById('decoDecoTimeDisplay')?.textContent?.trim().replace(/\s*min\s*/,'') || '-';
@@ -8927,7 +9019,7 @@ function buildMessengerText(mode) {
       const otuV = document.getElementById('decoOTUDisplay')?.textContent?.trim() || '-';
       const prtN = (parseFloat(document.getElementById('decoDepth')?.value||'0') / 10.078) * Math.sqrt(parseFloat(document.getElementById('decoBT')?.value||'0'));
       result.push('-'.repeat(28));
-      result.push(`Run:${rtV}'00"  Deco:${dtV}'00"  CNS:${cnsV}  OTU:${otuV}  PrT:${isNaN(prtN)?'-':prtN.toFixed(1)}`);
+      result.push(`Run Time:${rtV}'00" Deco:${dtV}'00" CNS:${cnsV} OTU:${otuV} PrT:${isNaN(prtN)?'-':prtN.toFixed(1)}`);
     }
   }
 
@@ -10719,7 +10811,7 @@ var appSettings = {
     });
     
     try {
-      localStorage.setItem('lspDiveSettings_v5', JSON.stringify(values));
+      localStorage.setItem('lspDiveSettings_v6', JSON.stringify(values));
       if (verbose) {
         console.log('[LSP] ✅ Settings saved (' + Object.keys(values).length + ' fields) - Algo: ' + values['__algo__']);
       }
@@ -10742,7 +10834,7 @@ var appSettings = {
     }
     
     try {
-      const json = localStorage.getItem('lspDiveSettings_v5');
+      const json = localStorage.getItem('lspDiveSettings_v6');
       if (!json) {
         console.log('[LSP] ℹ️ No saved settings found (v3)');
         return false;
@@ -12478,7 +12570,7 @@ var appSettings = {
     });
     
     try {
-      localStorage.setItem('lspDiveSettings_v5', JSON.stringify(values));
+      localStorage.setItem('lspDiveSettings_v6', JSON.stringify(values));
       if (verbose) {
         console.log('[LSP] ✅ Settings saved (' + Object.keys(values).length + ' fields) - Algo: ' + values['__algo__']);
       }
@@ -12501,7 +12593,7 @@ var appSettings = {
     }
     
     try {
-      const json = localStorage.getItem('lspDiveSettings_v5');
+      const json = localStorage.getItem('lspDiveSettings_v6');
       if (!json) {
         console.log('[LSP] ℹ️ No saved settings found (v3)');
         return false;
@@ -14095,7 +14187,7 @@ var appSettings = {
     });
     
     try {
-      localStorage.setItem('lspDiveSettings_v5', JSON.stringify(values));
+      localStorage.setItem('lspDiveSettings_v6', JSON.stringify(values));
       if (verbose) {
         console.log('[LSP] ✅ Settings saved (' + Object.keys(values).length + ' fields) - Algo: ' + values['__algo__']);
       }
@@ -14118,7 +14210,7 @@ var appSettings = {
     }
     
     try {
-      const json = localStorage.getItem('lspDiveSettings_v5');
+      const json = localStorage.getItem('lspDiveSettings_v6');
       if (!json) {
         console.log('[LSP] ℹ️ No saved settings found (v3)');
         return false;
@@ -15551,7 +15643,7 @@ var appSettings = {
     });
     
     try {
-      localStorage.setItem('lspDiveSettings_v5', JSON.stringify(values));
+      localStorage.setItem('lspDiveSettings_v6', JSON.stringify(values));
       if (verbose) {
         console.log('[LSP] ✅ Settings saved (' + Object.keys(values).length + ' fields) - Algo: ' + values['__algo__']);
       }
@@ -15574,7 +15666,7 @@ var appSettings = {
     }
     
     try {
-      const json = localStorage.getItem('lspDiveSettings_v5');
+      const json = localStorage.getItem('lspDiveSettings_v6');
       if (!json) {
         console.log('[LSP] ℹ️ No saved settings found (v3)');
         return false;
@@ -16882,7 +16974,7 @@ var appSettings = {
     });
     
     try {
-      localStorage.setItem('lspDiveSettings_v5', JSON.stringify(values));
+      localStorage.setItem('lspDiveSettings_v6', JSON.stringify(values));
       if (verbose) {
         console.log('[LSP] ✅ Settings saved (' + Object.keys(values).length + ' fields) - Algo: ' + values['__algo__']);
       }
@@ -16905,7 +16997,7 @@ var appSettings = {
     }
     
     try {
-      const json = localStorage.getItem('lspDiveSettings_v5');
+      const json = localStorage.getItem('lspDiveSettings_v6');
       if (!json) {
         console.log('[LSP] ℹ️ No saved settings found (v3)');
         return false;
