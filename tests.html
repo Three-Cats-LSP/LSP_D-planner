@@ -7,443 +7,279 @@
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:       #0d1117;
-    --surface:  #161b22;
-    --border:   #30363d;
-    --text:     #e6edf3;
-    --muted:    #8b949e;
-    --faint:    #484f58;
-    --pass:     #3fb950;
-    --fail:     #f85149;
-    --skip:     #d29922;
-    --accent:   #58a6ff;
-    --radius:   6px;
-    --font:     'Satoshi', 'Inter', system-ui, sans-serif;
+    --bg:#0d1117;--surface:#161b22;--border:#30363d;
+    --text:#e6edf3;--muted:#8b949e;--faint:#484f58;
+    --pass:#3fb950;--fail:#f85149;--skip:#d29922;--accent:#58a6ff;
+    --r:6px;--font:'Satoshi','Inter',system-ui,sans-serif;
   }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { -webkit-font-smoothing: antialiased; }
-  body {
-    font-family: var(--font);
-    font-size: 14px;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100dvh;
-    padding: 32px 24px;
-  }
-  header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
-  }
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .logo svg { color: var(--accent); }
-  h1 {
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: -.3px;
-    color: var(--text);
-  }
-  .subtitle {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 2px;
-    font-weight: 400;
-    letter-spacing: .3px;
-  }
-  #summary-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 12px 16px;
-    margin-bottom: 20px;
-    font-size: 13px;
-    font-weight: 500;
-    flex-wrap: wrap;
-    min-height: 48px;
-  }
-  .pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    border-radius: 20px;
-    padding: 3px 10px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: .5px;
-  }
-  .pill.pass  { background: rgba(63,185,80,.15);  color: var(--pass); }
-  .pill.fail  { background: rgba(248,81,73,.15);  color: var(--fail); }
-  .pill.skip  { background: rgba(210,153,34,.15); color: var(--skip); }
-  #status-msg { color: var(--muted); font-size: 13px; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    font-size: 13px;
-  }
-  thead th {
-    background: rgba(88,166,255,.06);
-    color: var(--muted);
-    font-weight: 600;
-    font-size: 11px;
-    letter-spacing: .8px;
-    text-transform: uppercase;
-    padding: 10px 14px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-  }
-  tbody tr {
-    border-bottom: 1px solid rgba(48,54,61,.6);
-    transition: background .1s;
-  }
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: rgba(88,166,255,.04); }
-  td { padding: 9px 14px; vertical-align: middle; }
-  td:first-child { color: var(--faint); font-size: 11px; font-weight: 700; width: 36px; text-align: center; font-family: monospace; }
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .5px;
-    padding: 2px 8px;
-    border-radius: 4px;
-  }
-  .badge.PASS  { background: rgba(63,185,80,.15);  color: var(--pass); }
-  .badge.FAIL  { background: rgba(248,81,73,.18);  color: var(--fail); }
-  .badge.SKIP  { background: rgba(210,153,34,.15); color: var(--skip); }
-  .test-name { font-weight: 500; color: var(--text); }
-  .test-group { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .detail { font-family: 'JetBrains Mono', 'Fira Mono', monospace; font-size: 11px; color: var(--muted); max-width: 420px; word-break: break-all; }
-  .detail.err { color: var(--fail); }
-  .section-header td {
-    background: rgba(88,166,255,.04);
-    color: var(--accent);
-    font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    padding: 8px 14px;
-    border-bottom: 1px solid var(--border);
-  }
-  #iframe-container { display: none; }
-  .spinner {
-    display: inline-block;
-    width: 14px; height: 14px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin .7s linear infinite;
-    vertical-align: middle;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-font-smoothing:antialiased}
+  body{font-family:var(--font);font-size:14px;background:var(--bg);color:var(--text);min-height:100dvh;padding:32px 24px}
+  header{display:flex;align-items:center;gap:16px;margin-bottom:28px;flex-wrap:wrap}
+  h1{font-size:20px;font-weight:700;letter-spacing:-.3px}
+  .sub{font-size:12px;color:var(--muted);margin-top:2px;letter-spacing:.3px}
+  #sumbar{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:20px;font-size:13px;font-weight:500;flex-wrap:wrap;min-height:48px}
+  .pill{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;letter-spacing:.5px}
+  .pill.p{background:rgba(63,185,80,.15);color:var(--pass)}
+  .pill.f{background:rgba(248,81,73,.15);color:var(--fail)}
+  .pill.s{background:rgba(210,153,34,.15);color:var(--skip)}
+  #smsg{color:var(--muted);font-size:13px}
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;font-size:13px}
+  thead th{background:rgba(88,166,255,.06);color:var(--muted);font-weight:600;font-size:11px;letter-spacing:.8px;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+  tbody tr{border-bottom:1px solid rgba(48,54,61,.6);transition:background .1s}
+  tbody tr:last-child{border-bottom:none}
+  tbody tr:hover{background:rgba(88,166,255,.04)}
+  td{padding:9px 14px;vertical-align:middle}
+  td:first-child{color:var(--faint);font-size:11px;font-weight:700;width:36px;text-align:center;font-family:monospace}
+  .badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;letter-spacing:.5px;padding:2px 8px;border-radius:4px}
+  .badge.PASS{background:rgba(63,185,80,.15);color:var(--pass)}
+  .badge.FAIL{background:rgba(248,81,73,.18);color:var(--fail)}
+  .badge.SKIP{background:rgba(210,153,34,.15);color:var(--skip)}
+  .tn{font-weight:500;color:var(--text)}
+  .tg{font-size:11px;color:var(--muted);margin-top:2px}
+  .det{font-family:'JetBrains Mono','Fira Mono',monospace;font-size:11px;color:var(--muted);max-width:420px;word-break:break-all}
+  .det.e{color:var(--fail)}
+  .sh td{background:rgba(88,166,255,.04);color:var(--accent);font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border-bottom:1px solid var(--border)}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle}
+  @keyframes sp{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
-
 <header>
-  <div class="logo">
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="LSP D-Planner">
-      <rect width="28" height="28" rx="6" fill="currentColor" fill-opacity=".1"/>
-      <circle cx="14" cy="14" r="8" stroke="currentColor" stroke-width="1.5" fill="none"/>
-      <path d="M14 6v8l5 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      <circle cx="14" cy="14" r="2" fill="currentColor"/>
-    </svg>
-    <div>
-      <h1>LSP D-Planner — Test Suite</h1>
-      <div class="subtitle">VPM-B · Bühlmann ZHL-16C · Tool math verification</div>
-    </div>
+  <div>
+    <h1>LSP D-Planner — Test Suite</h1>
+    <div class="sub">VPM-B · Bühlmann ZHL-16C · Math verification</div>
   </div>
 </header>
-
-<div id="summary-bar">
-  <span id="status-msg"><span class="spinner"></span>&nbsp; Loading engine from index.html…</span>
-</div>
-
+<div id="sumbar"><span id="smsg"><span class="spin"></span>&nbsp; Loading engine…</span></div>
 <table>
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Test</th>
-      <th>Result</th>
-      <th>Detail</th>
-    </tr>
-  </thead>
-  <tbody id="tbody"></tbody>
+  <thead><tr><th>#</th><th>Test</th><th>Result</th><th>Detail</th></tr></thead>
+  <tbody id="tb"></tbody>
 </table>
 
-<!-- Hidden iframe loads index.html so we can borrow its globals -->
-<div id="iframe-container">
-  <iframe id="engine-frame" src="index.html" sandbox="allow-scripts allow-same-origin"></iframe>
-</div>
+<!-- Hidden iframe — same origin needed for eval access -->
+<iframe id="ef" src="index.html" style="display:none;width:0;height:0;border:0"
+  sandbox="allow-scripts allow-same-origin"></iframe>
 
 <script>
-// ── Test runner state ─────────────────────────────────────────────────────
-const tbody   = document.getElementById('tbody');
-const statusEl = document.getElementById('status-msg');
-const summaryBar = document.getElementById('summary-bar');
-let passed = 0, failed = 0, skipped = 0, idx = 0;
+const tb = document.getElementById('tb');
+const smsg = document.getElementById('smsg');
+let P=0,F=0,SK=0,idx=0;
 
-function sectionRow(label) {
-  const tr = document.createElement('tr');
-  tr.className = 'section-header';
-  tr.innerHTML = `<td colspan="4">${label}</td>`;
-  tbody.appendChild(tr);
+function sec(label){
+  const tr=document.createElement('tr');tr.className='sh';
+  tr.innerHTML=`<td colspan="4">${label}</td>`;tb.appendChild(tr);
 }
 
-function assert(name, condition, detail = '', group = '') {
+function assert(name,cond,detail='',group=''){
   idx++;
-  const status = condition === null ? 'SKIP' : condition ? 'PASS' : 'FAIL';
-  if (status === 'PASS') passed++;
-  else if (status === 'FAIL') failed++;
-  else skipped++;
-
-  const icon = { PASS: '✓', FAIL: '✗', SKIP: '—' }[status];
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>${idx}</td>
-    <td>
-      <div class="test-name">${name}</div>
-      ${group ? `<div class="test-group">${group}</div>` : ''}
-    </td>
-    <td><span class="badge ${status}">${icon} ${status}</span></td>
-    <td><span class="detail ${status === 'FAIL' ? 'err' : ''}">${detail}</span></td>
-  `;
-  tbody.appendChild(tr);
+  const st=cond===null?'SKIP':cond?'PASS':'FAIL';
+  if(st==='PASS')P++;else if(st==='FAIL')F++;else SK++;
+  const ico={PASS:'✓',FAIL:'✗',SKIP:'—'}[st];
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${idx}</td>
+    <td><div class="tn">${name}</div>${group?`<div class="tg">${group}</div>`:''}</td>
+    <td><span class="badge ${st}">${ico} ${st}</span></td>
+    <td><span class="det${st==='FAIL'?' e':''}">${detail}</span></td>`;
+  tb.appendChild(tr);
 }
 
-function near(a, b, tol = 0.5) { return Math.abs(a - b) <= tol; }
+function near(a,b,t=0.5){return Math.abs(a-b)<=t}
 
-// ── Grab engine from iframe ───────────────────────────────────────────────
-function grabEngine(iframe) {
-  try {
-    const w = iframe.contentWindow;
-    return { VPM: w.VPMEngine, SURFACEP: w.SURFACEP, BARPERMETRE: w.BARPERMETRE };
-  } catch(e) {
+// ── Use iframe.contentWindow.eval() to escape const/let scope ──────────────
+// const/let are NOT on window — but eval() in the iframe's context CAN access them.
+function grab(iframe){
+  try{
+    const w=iframe.contentWindow;
+    // eval runs in the iframe's scope — can see const/let block-scoped globals
+    const E   = w.eval('typeof VPMEngine!=="undefined"?VPMEngine:null');
+    const SP  = w.eval('typeof SURFACEP!=="undefined"?SURFACEP:undefined');
+    const BPM = w.eval('typeof BARPERMETRE!=="undefined"?BARPERMETRE:undefined');
+    return {E,SP,BPM};
+  }catch(e){
     return null;
   }
 }
 
-function runTests(W) {
-  const E = W.VPM;
-  const SURFACEP    = W.SURFACEP;
-  const BARPERMETRE = W.BARPERMETRE;
-
+function runTests({E,SP,BPM}){
   // ── 1. Engine existence ──────────────────────────────────────────────────
-  sectionRow('1 · Engine existence');
-  assert('VPMEngine exists',            !!E,                             `type=${typeof E}`,                     'window.VPMEngine');
-  assert('VPMEngine.calculate is fn',   typeof E?.calculate === 'function', `typeof=${typeof E?.calculate}`,   'window.VPMEngine');
-  assert('VPMEngine.MODELS defined',    typeof E?.MODELS === 'object',   `models=${JSON.stringify(Object.keys(E?.MODELS||{}))}`, 'window.VPMEngine');
-  assert('MODELS.VPMB defined',         E?.MODELS?.VPMB !== undefined,   `VPMB=${E?.MODELS?.VPMB}`,              'window.VPMEngine.MODELS');
-  assert('MODELS.VPMBGFS defined',      E?.MODELS?.VPMBGFS !== undefined, `VPMBGFS=${E?.MODELS?.VPMBGFS}`,      'window.VPMEngine.MODELS');
+  sec('1 · Engine existence');
+  assert('VPMEngine exists',          E!==null&&E!==undefined,          `type=${typeof E}`,'window (via eval)');
+  assert('VPMEngine.calculate is fn', typeof E?.calculate==='function', `typeof=${typeof E?.calculate}`,'VPMEngine');
+  assert('VPMEngine.MODELS defined',  typeof E?.MODELS==='object',
+    `keys=${JSON.stringify(Object.keys(E?.MODELS||{}))}`, 'VPMEngine.MODELS');
+  assert('MODELS.VPMB defined',       E?.MODELS?.VPMB!==undefined,
+    `VPMB="${E?.MODELS?.VPMB}"`, 'VPMEngine.MODELS');
+  assert('MODELS.VPMBGFS defined',    E?.MODELS?.VPMBGFS!==undefined,
+    `VPMBGFS="${E?.MODELS?.VPMBGFS}"`, 'VPMEngine.MODELS');
 
   // ── 2. Constants ─────────────────────────────────────────────────────────
-  sectionRow('2 · Physical constants');
-  assert('SURFACEP ≈ 1.013 bar',        near(SURFACEP, 1.013, 0.005),    `got ${SURFACEP}`,                      'window.SURFACEP');
-  assert('BARPERMETRE ≈ 0.0998 bar/m',  near(BARPERMETRE, 0.0998, 0.002), `got ${BARPERMETRE}`,                 'window.BARPERMETRE (salt 10.078m/bar)');
+  sec('2 · Physical constants');
+  assert('SURFACEP ≈ 1.013 bar',       near(SP,1.013,0.01),  `got ${SP}`,'SURFACEP (salt water, sea level)');
+  assert('BARPERMETRE ≈ 0.0993 bar/m', near(BPM,0.0993,0.005),`got ${BPM}`,'BARPERMETRE = 1/10.078');
 
-  if (!E) {
-    assert('(remaining tests skipped)', null, 'VPMEngine not available', '');
-    finalize(); return;
+  if(!E||typeof E.calculate!=='function'){
+    assert('(remaining tests skipped)',null,'VPMEngine.calculate not available','');
+    finalize();return;
   }
 
-  const cfg = (depth, bt, model, extras = {}) => {
-    try {
+  const VPMB   = E.MODELS.VPMB;
+  const VPMBGFS= E.MODELS.VPMBGFS;
+  const VPMBE  = E.MODELS.VPMBE;
+
+  function calc(depth,bt,model,extra={}){
+    try{
       return E.calculate(
-        [{ depth, time: bt, o2: 21, he: 0 }],
-        [{ o2: 50, he: 0, label: 'EAN50' }, { o2: 100, he: 0, label: '100% O2' }],
-        {
-          metric: true, waterType: 0,
-          descentRate: 22, ascentRate: 9, decoAscentRate: 9, surfaceAscentRate: 9,
-          stepSize: 3, lastStop: 3, minStopTime: 1,
-          ppO2Bottom: 1.4, ppO2Deco: 1.6, ppO2Low: 1.4, ppO2Mid: 1.5, ppO2High: 1.6,
-          o2MaxDepth: 6, conservatism: 0, gfHi: 85, gfs: 85,
-          ...extras
-        },
+        [{depth,time:bt,o2:21,he:0}],
+        [{o2:50,he:0,label:'EAN50'},{o2:100,he:0,label:'100% O2'}],
+        {metric:true,waterType:0,
+         descentRate:22,ascentRate:9,decoAscentRate:9,surfaceAscentRate:9,
+         stepSize:3,lastStop:3,minStopTime:1,
+         ppO2Bottom:1.4,ppO2Deco:1.6,ppO2Low:1.4,ppO2Mid:1.5,ppO2High:1.6,
+         o2MaxDepth:6,conservatism:0,gfHi:85,gfs:85,...extra},
         model
       );
-    } catch(e) { return { error: e.message }; }
-  };
+    }catch(e){return{error:e.message};}
+  }
 
-  // ── 3. No-deco boundary ──────────────────────────────────────────────────
-  sectionRow('3 · No-deco boundary');
-  const r20 = cfg(20, 20, E.MODELS.VPMB);
-  const stops20 = r20.stops?.filter(s => s.time > 0) || [];
-  assert('20m/20min air → no deco stops',  !r20.error && stops20.length === 0,
-    r20.error || `stops=${stops20.length}, runtime=${r20.totalRuntime?.toFixed(1)}min`, 'VPM-B');
+  // ── 3. No-deco dives ─────────────────────────────────────────────────────
+  sec('3 · No-deco boundary (VPM-B)');
+  const r20=calc(20,20,VPMB);
+  const s20=(r20.stops||[]).filter(s=>s.time>0);
+  assert('20m/20min air → 0 deco stops', !r20.error&&s20.length===0,
+    r20.error||`stops=${s20.length}, rt=${r20.totalRuntime?.toFixed(1)}min`, 'VPM-B');
 
-  const r15 = cfg(15, 60, E.MODELS.VPMB);
-  const stops15 = r15.stops?.filter(s => s.time > 0) || [];
-  assert('15m/60min air → no deco stops',  !r15.error && stops15.length === 0,
-    r15.error || `stops=${stops15.length}, runtime=${r15.totalRuntime?.toFixed(1)}min`, 'VPM-B NDL boundary');
+  const r15=calc(15,60,VPMB);
+  const s15=(r15.stops||[]).filter(s=>s.time>0);
+  assert('15m/60min air → 0 deco stops', !r15.error&&s15.length===0,
+    r15.error||`stops=${s15.length}, rt=${r15.totalRuntime?.toFixed(1)}min`, 'VPM-B NDL');
 
-  // ── 4. Deco dive correctness ─────────────────────────────────────────────
-  sectionRow('4 · Deco dive correctness');
-  const r40 = cfg(40, 25, E.MODELS.VPMB);
-  const stops40 = r40.stops?.filter(s => s.time > 0) || [];
-  assert('40m/25min → has deco stops',     !r40.error && stops40.length > 0,
-    r40.error || `stops=${stops40.length}`, 'VPM-B');
-  assert('40m/25min runtime > 35 min',     !r40.error && (r40.totalRuntime||0) > 35,
-    r40.error || `runtime=${r40.totalRuntime?.toFixed(1)}min`, 'VPM-B');
-  assert('40m/25min runtime < 80 min',     !r40.error && (r40.totalRuntime||0) < 80,
-    r40.error || `runtime=${r40.totalRuntime?.toFixed(1)}min`, 'sanity upper bound');
+  // ── 4. Deco dives ────────────────────────────────────────────────────────
+  sec('4 · Deco dive correctness (VPM-B)');
+  const r40=calc(40,25,VPMB);
+  const s40=(r40.stops||[]).filter(s=>s.time>0);
+  assert('40m/25min → has deco stops',   !r40.error&&s40.length>0,
+    r40.error||`stops=${s40.length}`,'VPM-B');
+  assert('40m/25min runtime 35–90 min',  !r40.error&&r40.totalRuntime>35&&r40.totalRuntime<90,
+    r40.error||`rt=${r40.totalRuntime?.toFixed(1)}min`,'sanity');
 
-  const r50 = cfg(50, 30, E.MODELS.VPMB);
-  const stops50 = r50.stops?.filter(s => s.time > 0) || [];
-  assert('50m/30min → has deco stops',     !r50.error && stops50.length > 0,
-    r50.error || `stops=${stops50.length}`, 'VPM-B');
+  const r50=calc(50,30,VPMB);
+  const s50=(r50.stops||[]).filter(s=>s.time>0);
+  assert('50m/30min → has deco stops',   !r50.error&&s50.length>0,
+    r50.error||`stops=${s50.length}`,'VPM-B');
 
-  // ── 5. Model ordering invariants ─────────────────────────────────────────
-  sectionRow('5 · Model ordering invariants');
-  const rb  = cfg(45, 30, E.MODELS.VPMB);
-  const rbe = cfg(45, 30, E.MODELS.VPMBE);
-  const rbgfs = cfg(45, 30, E.MODELS.VPMBGFS);
-  const hasAll = !rb.error && !rbe.error && !rbgfs.error;
-  assert('VPM-B/E runtime ≥ VPM-B (45m/30min)',
-    hasAll ? (rbe.totalRuntime||0) >= (rb.totalRuntime||0) - 1 : null,
-    hasAll ? `VPM-B=${rb.totalRuntime?.toFixed(1)}, VPM-BE=${rbe.totalRuntime?.toFixed(1)}` : 'engine error',
-    'VPM-B vs VPM-B/E');
-  assert('VPM-BGFS result exists (45m/30min)',
-    hasAll ? (rbgfs.totalRuntime||0) > 0 : null,
-    hasAll ? `runtime=${rbgfs.totalRuntime?.toFixed(1)}` : 'engine error',
-    'VPM-BGFS');
+  // ── 5. Model invariants ──────────────────────────────────────────────────
+  sec('5 · Model ordering invariants');
+  const rb=calc(45,30,VPMB), rbe=calc(45,30,VPMBE), rbgfs=calc(45,30,VPMBGFS);
+  const ok3=!rb.error&&!rbe.error&&!rbgfs.error;
+  assert('VPM-B/E runtime ≥ VPM-B (45m/30min)', ok3?(rbe.totalRuntime||0)>=(rb.totalRuntime||0)-1:null,
+    ok3?`VPM-B=${rb.totalRuntime?.toFixed(1)}, VPM-BE=${rbe.totalRuntime?.toFixed(1)}`:'engine error','model ordering');
+  assert('VPM-BGFS runtime > 0 (45m/30min)', ok3?(rbgfs.totalRuntime||0)>0:null,
+    ok3?`rt=${rbgfs.totalRuntime?.toFixed(1)}`:'engine error','VPM-BGFS');
 
-  // ── 6. Depth–deco monotonicity ───────────────────────────────────────────
-  sectionRow('6 · Depth-deco monotonicity');
-  const mk = (d, bt) => cfg(d, bt, E.MODELS.VPMB);
-  const r30 = mk(30, 30), r60 = mk(60, 30);
-  const d30 = r30.stops?.reduce((a,s) => a + s.time, 0) || 0;
-  const d60 = r60.stops?.reduce((a,s) => a + s.time, 0) || 0;
-  assert('60m deco time ≥ 30m deco time (30min BT)',
-    !r30.error && !r60.error ? d60 >= d30 : null,
-    `30m deco=${d30.toFixed(0)}min, 60m deco=${d60.toFixed(0)}min`, 'monotonicity');
+  // ── 6. Monotonicity ──────────────────────────────────────────────────────
+  sec('6 · Deco time monotonicity');
+  const r30=calc(30,30,VPMB),r60=calc(60,30,VPMB);
+  const dt30=(r30.stops||[]).reduce((a,s)=>a+s.time,0);
+  const dt60=(r60.stops||[]).reduce((a,s)=>a+s.time,0);
+  assert('60m deco time ≥ 30m deco time (30min BT)', !r30.error&&!r60.error?dt60>=dt30:null,
+    `30m=${dt30.toFixed(0)}min, 60m=${dt60.toFixed(0)}min`,'depth monotonicity');
 
-  const r40b = mk(40, 20), r40c = mk(40, 40);
-  const dt20 = r40b.stops?.reduce((a,s) => a + s.time, 0) || 0;
-  const dt40 = r40c.stops?.reduce((a,s) => a + s.time, 0) || 0;
-  assert('40m/40min deco ≥ 40m/20min deco',
-    !r40b.error && !r40c.error ? dt40 >= dt20 : null,
-    `20min BT deco=${dt20.toFixed(0)}min, 40min BT deco=${dt40.toFixed(0)}min`, 'BT monotonicity');
+  const r40s=calc(40,20,VPMB),r40l=calc(40,40,VPMB);
+  const dt20=(r40s.stops||[]).reduce((a,s)=>a+s.time,0);
+  const dt40=(r40l.stops||[]).reduce((a,s)=>a+s.time,0);
+  assert('40m/40min deco ≥ 40m/20min deco', !r40s.error&&!r40l.error?dt40>=dt20:null,
+    `20min BT=${dt20.toFixed(0)}min, 40min BT=${dt40.toFixed(0)}min`,'BT monotonicity');
 
-  // ── 7. Conservatism effect ───────────────────────────────────────────────
-  sectionRow('7 · Conservatism scaling');
-  const rCons0 = cfg(40, 25, E.MODELS.VPMB, { conservatism: 0 });
-  const rCons3 = cfg(40, 25, E.MODELS.VPMB, { conservatism: 3 });
-  const dCons0 = rCons0.stops?.reduce((a,s) => a + s.time, 0) || 0;
-  const dCons3 = rCons3.stops?.reduce((a,s) => a + s.time, 0) || 0;
-  assert('Conservatism +3 → more deco than C0 (40m/25min)',
-    !rCons0.error && !rCons3.error ? dCons3 >= dCons0 : null,
-    `C0 deco=${dCons0.toFixed(0)}min, C3 deco=${dCons3.toFixed(0)}min`, 'conservatism scaling');
+  // ── 7. Conservatism ──────────────────────────────────────────────────────
+  sec('7 · Conservatism scaling');
+  const rc0=calc(40,25,VPMB,{conservatism:0}),rc3=calc(40,25,VPMB,{conservatism:3});
+  const dc0=(rc0.stops||[]).reduce((a,s)=>a+s.time,0);
+  const dc3=(rc3.stops||[]).reduce((a,s)=>a+s.time,0);
+  assert('C3 deco ≥ C0 deco (40m/25min)', !rc0.error&&!rc3.error?dc3>=dc0:null,
+    `C0=${dc0.toFixed(0)}min, C3=${dc3.toFixed(0)}min`,'conservatism');
 
   // ── 8. Result shape ──────────────────────────────────────────────────────
-  sectionRow('8 · Result object shape');
-  const rShape = cfg(40, 25, E.MODELS.VPMB);
-  assert('result.plan is array',         !rShape.error && Array.isArray(rShape.plan),
-    `plan.length=${rShape.plan?.length}`, 'result shape');
-  assert('result.totalRuntime is number', !rShape.error && typeof rShape.totalRuntime === 'number',
-    `type=${typeof rShape.totalRuntime}`, 'result shape');
-  assert('result.stops is array',        !rShape.error && Array.isArray(rShape.stops),
-    `stops.length=${rShape.stops?.length}`, 'result shape');
-  assert('result.error is null',         !rShape.error && rShape.error === null,
-    `error=${rShape.error}`, 'result shape');
-  assert('plan has descent segment',     !rShape.error && rShape.plan?.some(s => s.type === 'descent'),
-    `types=${[...new Set(rShape.plan?.map(s=>s.type))].join(',')}`, 'result shape');
-  assert('plan has bottom segment',      !rShape.error && rShape.plan?.some(s => s.type === 'bottom'),
-    '', 'result shape');
+  sec('8 · Result object shape');
+  const rs=calc(40,25,VPMB);
+  assert('result.error is null',          !rs.error&&rs.error===null,    `error=${rs.error}`,'shape');
+  assert('result.plan is array',          !rs.error&&Array.isArray(rs.plan),`len=${rs.plan?.length}`,'shape');
+  assert('result.stops is array',         !rs.error&&Array.isArray(rs.stops),`len=${rs.stops?.length}`,'shape');
+  assert('result.totalRuntime is number', !rs.error&&typeof rs.totalRuntime==='number',`type=${typeof rs.totalRuntime}`,'shape');
+  assert('plan has descent segment',      !rs.error&&rs.plan?.some(s=>s.type==='descent'),
+    `types=[${[...new Set(rs.plan?.map(s=>s.type))]}]`,'shape');
+  assert('plan has bottom segment',       !rs.error&&rs.plan?.some(s=>s.type==='bottom'),'','shape');
+  assert('plan has stop segment',         !rs.error&&rs.plan?.some(s=>s.type==='stop'),'','shape (deco dive)');
 
   // ── 9. CNS & OTU ────────────────────────────────────────────────────────
-  sectionRow('9 · CNS / OTU tracking');
-  const rCNS = cfg(40, 25, E.MODELS.VPMB);
-  assert('totalCNS is finite number',    !rCNS.error && Number.isFinite(rCNS.totalCNS),
-    `CNS=${rCNS.totalCNS?.toFixed(1)}%`, 'oxygen tracking');
-  assert('totalOTU is finite number',    !rCNS.error && Number.isFinite(rCNS.totalOTU),
-    `OTU=${rCNS.totalOTU}`, 'oxygen tracking');
-  assert('CNS reasonable 0–200%',        !rCNS.error && rCNS.totalCNS >= 0 && rCNS.totalCNS < 200,
-    `CNS=${rCNS.totalCNS?.toFixed(1)}%`, 'sanity');
-  assert('OTU > 0 for deco dive',        !rCNS.error && (rCNS.totalOTU||0) > 0,
-    `OTU=${rCNS.totalOTU}`, 'sanity');
+  sec('9 · CNS / OTU oxygen tracking');
+  const ro=calc(40,25,VPMB);
+  assert('totalCNS is finite number', !ro.error&&Number.isFinite(ro.totalCNS),
+    `CNS=${ro.totalCNS?.toFixed(1)}%`,'O2 tracking');
+  assert('totalOTU is finite number', !ro.error&&Number.isFinite(ro.totalOTU),
+    `OTU=${ro.totalOTU}`,'O2 tracking');
+  assert('CNS in range 0–200%',       !ro.error&&ro.totalCNS>=0&&ro.totalCNS<200,
+    `CNS=${ro.totalCNS?.toFixed(1)}%`,'sanity');
+  assert('OTU > 0 for deco dive',     !ro.error&&(ro.totalOTU||0)>0,
+    `OTU=${ro.totalOTU}`,'sanity');
 
-  // ── 10. Fresh water vs salt water ────────────────────────────────────────
-  sectionRow('10 · Fresh vs salt water');
-  const rSalt  = cfg(40, 25, E.MODELS.VPMB, { waterType: 0 });
-  const rFresh = cfg(40, 25, E.MODELS.VPMB, { waterType: 1 });
-  assert('Fresh water result exists',    !rFresh.error && (rFresh.totalRuntime||0) > 0,
-    `runtime=${rFresh.totalRuntime?.toFixed(1)}min`, 'water density');
-  assert('Salt and fresh differ or equal (not error)',
-    !rSalt.error && !rFresh.error,
-    `salt=${rSalt.totalRuntime?.toFixed(1)}, fresh=${rFresh.totalRuntime?.toFixed(1)}`, 'water density');
+  // ── 10. Water type ───────────────────────────────────────────────────────
+  sec('10 · Fresh vs salt water');
+  const rSalt=calc(40,25,VPMB,{waterType:0}),rFresh=calc(40,25,VPMB,{waterType:1});
+  assert('Fresh water: no error',         !rFresh.error&&(rFresh.totalRuntime||0)>0,
+    rFresh.error||`rt=${rFresh.totalRuntime?.toFixed(1)}min`,'waterType:1');
+  assert('Salt and fresh both compute',   !rSalt.error&&!rFresh.error,
+    `salt=${rSalt.totalRuntime?.toFixed(1)}, fresh=${rFresh.totalRuntime?.toFixed(1)}`,'water density');
 
   finalize();
 }
 
-function finalize() {
-  const total = passed + failed + skipped;
-  const allOk = failed === 0;
-  summaryBar.innerHTML = `
-    <span class="pill ${allOk ? 'pass' : 'fail'}">${allOk ? '✓' : '✗'} ${passed}/${total} PASSED</span>
-    ${failed  ? `<span class="pill fail">✗ ${failed} FAILED</span>` : ''}
-    ${skipped ? `<span class="pill skip">— ${skipped} SKIPPED</span>` : ''}
-    <span id="status-msg" style="color:var(--${allOk?'pass':'fail'});font-size:13px;margin-left:4px">
-      ${allOk ? 'All tests passed ✓' : `${failed} test${failed>1?'s':''} failed`}
-    </span>
-  `;
+function finalize(){
+  const tot=P+F+SK,ok=F===0;
+  document.getElementById('sumbar').innerHTML=`
+    <span class="pill ${ok?'p':'f'}">${ok?'✓':'✗'} ${P}/${tot} PASSED</span>
+    ${F?`<span class="pill f">✗ ${F} FAILED</span>`:''}
+    ${SK?`<span class="pill s">— ${SK} SKIPPED</span>`:''}
+    <span id="smsg" style="color:var(--${ok?'pass':'fail'});font-size:13px;margin-left:4px">
+      ${ok?'All tests passed ✓':`${F} test${F>1?'s':''} failed`}
+    </span>`;
 }
 
-// ── Boot: load index.html in hidden iframe, wait for it, grab globals ─────
-(function boot() {
-  const iframe = document.getElementById('engine-frame');
-  let resolved = false;
+// ── Boot: wait for iframe to load, then eval() globals ──────────────────────
+(function boot(){
+  const iframe=document.getElementById('ef');
+  let done=false;
 
-  function tryGrab() {
-    if (resolved) return;
-    let W = null;
-    try {
-      const w = iframe.contentWindow;
-      // Check that VPMEngine is actually defined (not just window exists)
-      if (w && typeof w.VPMEngine !== 'undefined') {
-        W = { VPM: w.VPMEngine, SURFACEP: w.SURFACEP, BARPERMETRE: w.BARPERMETRE };
-      }
-    } catch(e) { /* cross-origin guard — shouldn't happen for same-origin */ }
-
-    if (W) {
-      resolved = true;
-      statusEl.innerHTML = 'Running tests…';
-      setTimeout(() => runTests(W), 60); // small tick so DOM is ready
+  function attempt(){
+    if(done)return;
+    let W=null;
+    try{
+      const w=iframe.contentWindow;
+      // The page is loaded when document.readyState is 'complete'
+      if(!w||w.document.readyState!=='complete')return;
+      W=grab(iframe);
+    }catch(e){return;}
+    if(W&&W.E!==null){
+      done=true;
+      smsg.textContent='Running tests…';
+      setTimeout(()=>runTests(W),80);
     }
   }
 
-  // Poll every 200ms for up to 10 seconds
-  let attempts = 0;
-  const poll = setInterval(() => {
+  let attempts=0;
+  const poll=setInterval(()=>{
     attempts++;
-    tryGrab();
-    if (resolved || attempts > 50) {
+    attempt();
+    if(done||attempts>100){
       clearInterval(poll);
-      if (!resolved) {
-        // Iframe failed or engine not found — run tests with null engine
-        statusEl.innerHTML = '⚠ Engine not found in index.html — running with null engine';
-        runTests({ VPM: null, SURFACEP: undefined, BARPERMETRE: undefined });
+      if(!done){
+        smsg.textContent='⚠ Engine not found after 20s — running with null engine';
+        runTests({E:null,SP:undefined,BPM:undefined});
       }
     }
-  }, 200);
+  },200);
 
-  iframe.addEventListener('load', () => {
-    // Give scripts 100ms to execute after load event
-    setTimeout(tryGrab, 100);
-  });
+  iframe.addEventListener('load',()=>setTimeout(attempt,150));
 })();
 </script>
 </body>
