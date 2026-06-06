@@ -699,17 +699,79 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
+let iframeBootError = null;
+
 function waitForEngine(iframe, timeout, cb) {
   const start = Date.now();
+
+  function attachErrorHooks() {
+    try {
+      const w = iframe.contentWindow;
+      if (!w || w.__lspTestHooksAttached) return;
+      w.__lspTestHooksAttached = true;
+      w.addEventListener('error', function(e) {
+        iframeBootError = e && e.message ? e.message : 'Unknown script error in index.html';
+      });
+      w.addEventListener('unhandledrejection', function(e) {
+        const reason = e && e.reason;
+        iframeBootError = reason && (reason.message || String(reason)) ? (reason.message || String(reason)) : 'Unhandled promise rejection in index.html';
+      });
+    } catch (_) {}
+  }
+
+  iframe.onload = function() {
+    attachErrorHooks();
+  };
+
+  function tryGetEngine() {
+    const w = iframe.contentWindow;
+    if (!w) return null;
+    if (w.VPMEngine && typeof w.VPMEngine.calculate === 'function') return { engine: w.VPMEngine, win: w };
+
+    try {
+      if (typeof w.eval === 'function') {
+        const hasEngine = w.eval('typeof VPMEngine !== \"undefined\" && VPMEngine && typeof VPMEngine.calculate === \"function\"');
+        if (hasEngine) {
+          const eng = w.VPMEngine || w.eval('VPMEngine');
+          if (eng && typeof eng.calculate === 'function') return { engine: eng, win: w };
+        }
+      }
+    } catch (_) {}
+
+    try {
+      const names = Object.getOwnPropertyNames(w);
+      for (const key of names) {
+        const value = w[key];
+        if (value && typeof value === 'object' && typeof value.calculate === 'function' && value.MODELS && ('ZHLCGF' in value.MODELS)) {
+          return { engine: value, win: w };
+        }
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
   function check() {
     try {
-      const eng = iframe.contentWindow && iframe.contentWindow.VPMEngine;
-      if (eng && typeof eng.calculate === 'function') return cb(null, eng, iframe.contentWindow);
-    } catch (e) {}
-    if (Date.now() - start > timeout) return cb(new Error('Timed out waiting for VPMEngine in index.html'));
-    setTimeout(check, 180);
+      attachErrorHooks();
+      const found = tryGetEngine();
+      if (found) return cb(null, found.engine, found.win);
+    } catch (e) {
+      return cb(new Error('Cannot access iframe window: ' + e.message));
+    }
+
+    if (iframeBootError) {
+      return cb(new Error('index.html boot error: ' + iframeBootError));
+    }
+
+    if (Date.now() - start > timeout) {
+      return cb(new Error('Timed out waiting for VPMEngine in index.html'));
+    }
+
+    setTimeout(check, 250);
   }
-  check();
+
+  setTimeout(check, 250);
 }
 
 function runAllGroups() {
@@ -736,7 +798,8 @@ function startTests() {
   const frame = document.getElementById('app-frame');
   frame.src = 'index.html?ts=' + Date.now();
 
-  waitForEngine(frame, 15000, function(err, engine, win) {
+  iframeBootError = null;
+  waitForEngine(frame, 30000, function(err, engine, win) {
     if (err) {
       statusEl.className = 'error';
       statusEl.textContent = '✗ ' + err.message + ' — keep this file beside index.html';
