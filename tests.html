@@ -138,11 +138,11 @@ summary{cursor:pointer;color:var(--accent);font-size:12px;font-weight:600;paddin
       <div class="field"><label>BT (min)</label><input type="number" id="cfgBT" value="25" min="5" max="120"></div>
     </div>
     <div class="row2">
-      <div class="field"><label>Descent (m/min)</label><input type="number" id="cfgDescent" value="22" min="5" max="30"></div>
-      <div class="field"><label>Ascent (m/min)</label><input type="number" id="cfgAscent" value="9" min="3" max="18"></div>
+      <div class="field"><label>Descent (m/min)</label><input type="number" id="cfgDescent" value="20" min="5" max="30"></div>
+      <div class="field"><label>Ascent (m/min)</label><input type="number" id="cfgAscent" value="10" min="3" max="18"></div>
     </div>
     <div class="row2">
-      <div class="field"><label>Deco asc (m/min)</label><input type="number" id="cfgDecoAsc" value="9" min="3" max="18"></div>
+      <div class="field"><label>Deco asc (m/min)</label><input type="number" id="cfgDecoAsc" value="3" min="3" max="18"></div>
       <div class="field"><label>Last stop (m)</label><select id="cfgLastStop"><option value="3" selected>3m</option><option value="6">6m</option></select></div>
     </div>
     <div class="row2">
@@ -288,9 +288,26 @@ async function loadEngine(){
   const engineRHS=src.substring(rhs,rhsEnd+1);
   log(`Engine RHS: ${engineRHS.length.toLocaleString()} chars`);
 
+  // Extract let/var constants that the engine closure references
+  const letVarNames=['allowO2AtMOD','SURFACEP','BARPERMETRE','SLPSWM','SLPFWM',
+    'WATERVAPOR','narcoticN2','narcoticO2'];
+  for(const n of letVarNames){
+    const re=new RegExp('(?:const|let|var)\\s+'+n+'\\s*=\\s*([^;\\n]+)','g');
+    let m,last=null;
+    while((m=re.exec(src))!==null)last=m[1].trim();
+    if(last){
+      try{
+        const val=(new Function('return('+last+')')());
+        constCode+='var '+n+'='+JSON.stringify(val)+';\n';
+        log('  '+n+'='+val);
+      }catch(e){/* skip complex exprs */}
+    }
+  }
+
   // Extract scalar constants needed by engine
   const constNames=['NC','GAMMA','GAMMAC','INITIALRADIUSN2','INITIALRADIUSHe',
-    'REGENTIME','WATERVAPORPRESSURE','CONSTANTPRESSUREOTHERGASES','CRITVOLUMELAMBDAFSWMIN'];
+    'REGENTIME','WATERVAPORPRESSURE','CONSTANTPRESSUREOTHERGASES','CRITVOLUMELAMBDAFSWMIN',
+    'allowO2AtMOD'];
   let constCode='';
   for(const n of constNames){
     const re=new RegExp(`(?:const|var|let)\\s+${n}\\s*=\\s*([^;\\n]+)`,'g');
@@ -299,12 +316,14 @@ async function loadEngine(){
     if(last){try{const v=(new Function(`return(${last})`))(n);constCode+=`var ${n}=${JSON.stringify((new Function(`return(${last})`))())};\n`;}catch(e){}}
   }
 
-  // Grep constants for tests
-  const spM =src.match(/const\s+SURFACEP\s*=\s*([\d.]+)/);
-  const bpmM=src.match(/const\s+BARPERMETRE\s*=\s*([\d.]+)/);
-  const slpM=src.match(/const\s+SLPSWM\s*=\s*([\d.]+)/);
+  // Grep constants for tests (let OR const)
+  const spM =src.match(/(?:const|let|var)\s+SURFACEP\s*=\s*([\d.]+)/);
+  const bpmM=src.match(/(?:const|let|var)\s+BARPERMETRE\s*=\s*([\d./]+)/);
+  const slpM=src.match(/(?:const|let|var)\s+SLPSWM\s*=\s*([\d.]+)/);
   const SP  = spM  ? parseFloat(spM[1])  : null;
-  const BPM = bpmM ? parseFloat(bpmM[1]) : (slpM ? 1/parseFloat(slpM[1]) : null);
+  let BPM   = null;
+  if(bpmM){ try{BPM=(new Function(`return(${bpmM[1]})`)());}catch(e){} }
+  if(!BPM && slpM){ BPM=1/parseFloat(slpM[1]); }
   log(`SURFACEP=${SP}, BARPERMETRE=${BPM}`);
 
   const script=`(function(){"use strict";${constCode}\nvar __E=${engineRHS};return __E;})()`;
@@ -326,8 +345,8 @@ function getSettings(){
     bt:         parseFloat(document.getElementById('cfgBT').value)||25,
     descentRate:parseFloat(document.getElementById('cfgDescent').value)||22,
     ascentRate: parseFloat(document.getElementById('cfgAscent').value)||9,
-    decoAscentRate:parseFloat(document.getElementById('cfgDecoAsc').value)||9,
-    surfaceAscentRate:9,
+    decoAscentRate:parseFloat(document.getElementById('cfgDecoAsc').value)||3,
+    surfaceAscentRate:parseFloat(document.getElementById('cfgDecoAsc').value)||3,
     stepSize:   parseInt(document.getElementById('cfgStep').value)||3,
     lastStop:   parseInt(document.getElementById('cfgLastStop').value)||3,
     waterType:  parseInt(document.getElementById('cfgWater').value)||0,
@@ -350,7 +369,7 @@ function buildCalcSettings(s,extra={}){
   return{
     metric:true,waterType:s.waterType,
     descentRate:s.descentRate,ascentRate:s.ascentRate,
-    decoAscentRate:s.decoAscentRate,surfaceAscentRate:s.surfaceAscentRate,
+    decoAscentRate:s.decoAscentRate,surfaceAscentRate:s.decoAscentRate,
     stepSize:s.stepSize,lastStop:s.lastStop,minStopTime:1,
     ppO2Bottom:s.ppO2Bottom,ppO2Deco:s.ppO2Deco,
     ppO2Low:s.ppO2Bottom,ppO2Mid:1.5,ppO2High:s.ppO2Deco,
@@ -712,9 +731,9 @@ btnRun.addEventListener('click',()=>{
 document.getElementById('btnReset').addEventListener('click',()=>{
   document.getElementById('cfgDepth').value=40;
   document.getElementById('cfgBT').value=25;
-  document.getElementById('cfgDescent').value=22;
-  document.getElementById('cfgAscent').value=9;
-  document.getElementById('cfgDecoAsc').value=9;
+  document.getElementById('cfgDescent').value=20;
+  document.getElementById('cfgAscent').value=10;
+  document.getElementById('cfgDecoAsc').value=3;
   document.getElementById('cfgLastStop').value=3;
   document.getElementById('cfgStep').value=3;
   document.getElementById('cfgWater').value=0;
