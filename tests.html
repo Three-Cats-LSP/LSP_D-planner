@@ -66,6 +66,7 @@
 </div>
 
 <button id="run-btn" onclick="startTests()">▶ RUN TESTS</button>
+<button id="export-btn" onclick="exportLog()" style="margin-left:10px;padding:8px 16px;background:#2a2a3a;color:#aaa;border:1px solid #444;border-radius:6px;cursor:pointer;font-size:13px;">⬇ Export Log</button>
 
 <div id="results"></div>
 
@@ -571,10 +572,49 @@ function startTests() {
     var elapsed = (performance.now() - t0).toFixed(0);
 
     document.getElementById('sum-time').textContent = elapsed + 'ms';
+    LAST_RESULTS = { groups: groupsWithResults, elapsed: elapsed, ts: new Date().toISOString() };
     renderResults(groupsWithResults);
     btn.disabled = false;
     btn.textContent = '↻ RUN AGAIN';
   });
+}
+
+var LAST_RESULTS = null;
+
+function exportLog() {
+  if (!LAST_RESULTS) { alert('Run the tests first.'); return; }
+  var lines = [];
+  var d = new Date(LAST_RESULTS.ts);
+  var totalPass = 0, totalFail = 0;
+  LAST_RESULTS.groups.forEach(function(g) {
+    g.results.forEach(function(r) { if (r.pass) totalPass++; else totalFail++; });
+  });
+  lines.push('LSP D-Planner — Test Log');
+  lines.push('Generated : ' + d.toLocaleString());
+  lines.push('Duration  : ' + LAST_RESULTS.elapsed + ' ms');
+  lines.push('Result    : ' + totalPass + ' passed, ' + totalFail + ' failed, ' + (totalPass + totalFail) + ' total');
+  lines.push('');
+  lines.push('='.repeat(60));
+  LAST_RESULTS.groups.forEach(function(g) {
+    var gPass = g.results.filter(function(r){ return r.pass; }).length;
+    lines.push('');
+    lines.push('GROUP: ' + g.name + '  [' + gPass + '/' + g.results.length + ']');
+    lines.push('-'.repeat(56));
+    g.results.forEach(function(r) {
+      var icon = r.pass ? 'PASS' : 'FAIL';
+      lines.push('  [' + icon + '] ' + r.name);
+      if (r.detail) lines.push('         ' + r.detail);
+    });
+  });
+  lines.push('');
+  lines.push('='.repeat(60));
+  lines.push('End of log');
+  var blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'lsp-test-log-' + d.toISOString().slice(0,19).replace(/[:T]/g,'-') + '.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 window.addEventListener('load', function() { setTimeout(startTests, 300); });

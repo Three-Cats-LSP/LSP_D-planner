@@ -306,6 +306,7 @@ iframe { display: none; }
       <button id="run-btn" onclick="startTests()">▶ Run Extended Tests</button>
       <button class="secondary-btn" onclick="toggleOnlyFailures()" id="fail-toggle">Show Failures Only: Off</button>
       <button class="secondary-btn" onclick="copyJsonSummary()">Copy JSON Summary</button>
+      <button class="secondary-btn" onclick="exportLog()">⬇ Export Log</button>
     </div>
   </div>
 
@@ -829,6 +830,7 @@ function startTests() {
       appVersion: win.APPVERSION || null,
       surfaceP: SURF,
       barPerMetre: BAR,
+      elapsed: elapsed,
       groups: groups
     };
 
@@ -870,6 +872,50 @@ async function copyJsonSummary() {
   } catch (e) {
     alert('Clipboard copy failed. Open devtools and copy from LAST_RESULTS instead.');
   }
+}
+
+function exportLog() {
+  if (!LAST_RESULTS) { alert('Run the tests first.'); return; }
+  const lines = [];
+  const d = new Date(LAST_RESULTS.generatedAt || Date.now());
+  let totalPass = 0, totalFail = 0, totalWarn = 0;
+  LAST_RESULTS.groups.forEach(g => {
+    g.results.forEach(r => {
+      if (!r.pass) totalFail++;
+      else if (r.warn) totalWarn++;
+      else totalPass++;
+    });
+  });
+  lines.push('LSP D-Planner — Extended Test Log');
+  lines.push('Generated : ' + d.toLocaleString());
+  lines.push('App Ver   : ' + (LAST_RESULTS.appVersion || '?'));
+  lines.push('Duration  : ' + (LAST_RESULTS.elapsed || '?') + ' ms');
+  lines.push('Result    : ' + totalPass + ' passed, ' + totalFail + ' failed, ' + totalWarn + ' warnings, ' + (totalPass + totalFail + totalWarn) + ' total');
+  lines.push('');
+  lines.push('='.repeat(60));
+  LAST_RESULTS.groups.forEach(g => {
+    const gPass = g.results.filter(r => r.pass && !r.warn).length;
+    const gWarn = g.results.filter(r => r.pass && r.warn).length;
+    const gFail = g.results.filter(r => !r.pass).length;
+    lines.push('');
+    lines.push('GROUP: ' + g.name + '  [' + gPass + ' pass / ' + gWarn + ' warn / ' + gFail + ' fail]');
+    lines.push('-'.repeat(56));
+    g.results.forEach(r => {
+      const tag = !r.pass ? 'FAIL' : r.warn ? 'WARN' : 'PASS';
+      lines.push('  [' + tag + '] ' + r.name);
+      if (r.detail) lines.push('         ' + r.detail);
+      if (r.error)  lines.push('         ERROR: ' + r.error);
+    });
+  });
+  lines.push('');
+  lines.push('='.repeat(60));
+  lines.push('End of log');
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'lsp-extended-log-' + d.toISOString().slice(0,19).replace(/[:T]/g,'-') + '.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 window.addEventListener('load', function() {

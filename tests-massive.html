@@ -185,6 +185,7 @@ iframe { display: none; }
       <button class="secondary-btn" onclick="collapseAll()">Collapse All</button>
       <button class="secondary-btn" onclick="expandAll()">Expand All</button>
       <button class="secondary-btn" onclick="copyJson()">Copy JSON</button>
+      <button class="secondary-btn" onclick="exportLog()">⬇ Export Log</button>
     </div>
   </div>
 
@@ -1766,6 +1767,52 @@ async function copyJson() {
     s.className = 'ready'; s.textContent = '✓ JSON copied to clipboard';
     setTimeout(() => { s.className = cls; s.textContent = prev; }, 1400);
   } catch(e) { alert('Clipboard failed — open DevTools and copy from window.LAST_RESULTS'); }
+}
+
+function exportLog() {
+  if (!LAST_RESULTS) { alert('Run the tests first.'); return; }
+  const lines = [];
+  const d = new Date(LAST_RESULTS.generatedAt || Date.now());
+  let totalPass = 0, totalFail = 0, totalWarn = 0;
+  LAST_RESULTS.groups.forEach(g => {
+    g.results.forEach(r => {
+      if (!r.pass) totalFail++;
+      else if (r.warn) totalWarn++;
+      else totalPass++;
+    });
+  });
+  lines.push('LSP D-Planner — Massive Test Log');
+  lines.push('Generated  : ' + d.toLocaleString());
+  lines.push('App Ver    : ' + (LAST_RESULTS.appVersion || '?'));
+  lines.push('Duration   : ' + (LAST_RESULTS.elapsed || '?') + ' ms');
+  lines.push('Engine calls: ' + (LAST_RESULTS.totalEngineCallsMade || '?'));
+  lines.push('Result     : ' + totalPass + ' passed, ' + totalFail + ' failed, ' + totalWarn + ' warnings, ' + (totalPass + totalFail + totalWarn) + ' total');
+  lines.push('');
+  lines.push('='.repeat(60));
+  LAST_RESULTS.groups.forEach(g => {
+    const gPass = g.results.filter(r => r.pass && !r.warn).length;
+    const gWarn = g.results.filter(r => r.pass && r.warn).length;
+    const gFail = g.results.filter(r => !r.pass).length;
+    lines.push('');
+    lines.push('GROUP: ' + g.name + '  [' + gPass + ' pass / ' + gWarn + ' warn / ' + gFail + ' fail]');
+    if (g.tier) lines.push('TIER : ' + g.tier);
+    lines.push('-'.repeat(56));
+    g.results.forEach(r => {
+      const tag = !r.pass ? 'FAIL' : r.warn ? 'WARN' : 'PASS';
+      lines.push('  [' + tag + '] ' + r.name);
+      if (r.detail) lines.push('         ' + r.detail);
+      if (r.error)  lines.push('         ERROR: ' + r.error);
+    });
+  });
+  lines.push('');
+  lines.push('='.repeat(60));
+  lines.push('End of log');
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'lsp-massive-log-' + d.toISOString().slice(0,19).replace(/[:T]/g,'-') + '.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 window.LAST_RESULTS_STORE = () => LAST_RESULTS; // debug access
