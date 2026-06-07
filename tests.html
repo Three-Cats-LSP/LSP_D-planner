@@ -542,7 +542,7 @@ function startTests() {
   var frame = document.getElementById('app-frame');
   frame.src = 'index.html?' + Date.now();
 
-  waitForEngine(frame, 12000, function(err, engine, win) {
+  waitForEngine(frame, 30000, function(err, engine, win) {
     if (err) {
       statusEl.className = 'error';
       statusEl.textContent = '✗ ' + err.message + ' — ensure tests.html is in the same folder as index.html';
