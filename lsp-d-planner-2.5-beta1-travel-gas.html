@@ -1668,62 +1668,6 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
       </div>
     </div>
 
-    <!-- Travel Gas Card -->
-    <div id="travelGasCard" style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:10px;display:none;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;color:#ff9f43;">🟠 TRAVEL GAS — DESCENT / ASCENT TRANSIT</div>
-        <button onclick="removeTravelGas()" title="Remove travel gas" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 4px;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>
-      </div>
-      <div class="form-grid" style="margin-bottom:0;">
-        <div class="field">
-          <label>Gas Mix</label>
-          <select id="travelGasMix" onchange="toggleDecoCustomO2('travelGasMix','travelGasCustomField');updateTravelGasMOD()">
-            <option value="air" selected>Air (21%)</option>
-            <option value="ean32">EAN32 (32%)</option>
-            <option value="ean36">EAN36 (36%)</option>
-            <option value="custom">Custom O₂ %</option>
-          </select>
-        </div>
-        <div class="field" id="travelGasCustomField" style="display:none;">
-          <label>O₂ %</label>
-          <input type="number" id="travelGasCustomO2" value="21" min="16" max="40" step="1" oninput="updateTravelGasMOD()">
-        </div>
-        <div class="field">
-          <label>Switch Depth</label>
-          <select id="travelGasSwitchMode" onchange="updateTravelGasMOD()" style="font-size:11px;">
-            <option value="auto" selected>Auto (MOD)</option>
-            <option value="manual">Manual</option>
-          </select>
-        </div>
-        <div class="field" id="travelGasManualDepthField" style="display:none;">
-          <label id="travelGasManualDepthLbl">Switch Depth (m)</label>
-          <input type="number" id="travelGasManualDepth" value="30" min="1" max="100" step="1" oninput="updateTravelGasMOD()">
-        </div>
-        <div class="field">
-          <label>Auto Switch Depth (MOD)</label>
-          <input type="text" id="travelGasMODDisplay" readonly style="cursor:default;" placeholder="Select gas" title="Calculated switch depth from ppO2 limit">
-        </div>
-        <div class="field">
-          <label>Cyl. Size (L)</label>
-          <input type="number" id="cylTravelGas_size" value="12" min="1" max="30" step="0.5" placeholder="12">
-        </div>
-        <div class="field">
-          <label id="cylTravelGas_pres_lbl">Cyl. bar</label>
-          <input type="number" id="cylTravelGas_pres" value="200" min="0" max="300" step="10" placeholder="200">
-        </div>
-      </div>
-      <div style="margin-top:10px;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;">
-        Breathed from surface → switch depth on descent, and from bottom gas MOD → first deco gas on ascent.
-      </div>
-    </div>
-
-    <!-- Add Travel Gas button -->
-    <button id="addTravelGasBtn" onclick="addTravelGas()"
-      style="margin-top:8px;width:100%;padding:9px;background:none;border:1px dashed #ff9f43;border-radius:8px;color:#ff9f43;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;opacity:0.7;"
-      onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
-      + ADD TRAVEL GAS
-    </button>
-
     <!-- Gas Mix 1 — Bottom Gas -->
     <div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:10px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">🔵 GAS MIX 1 — BOTTOM GAS</div>
@@ -1749,6 +1693,62 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
         <div class="field"><label id="cylBot_pres_lbl">Cyl. bar</label><input type="number" id="cylBot_pres" value="200" min="0" max="300" step="10" placeholder="200"></div>
       </div>
     </div>
+
+    <!-- Travel Gas Card -->
+    <div id="travelGasCard" style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:8px;display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;color:#ff9f43;">🟠 TRAVEL GAS — DESCENT / ASCENT TRANSIT</div>
+        <button onclick="removeTravelGas()" title="Remove travel gas" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 4px;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">✕</button>
+      </div>
+      <div class="form-grid" style="margin-bottom:0;">
+        <div class="field">
+          <label>Gas Mix</label>
+          <select id="travelGasMix" title="Travel gas breathing mix. Used from surface to switch depth on descent, and above bottom gas MOD on ascent." onchange="toggleDecoCustomO2('travelGasMix','travelGasCustomField');updateTravelGasMOD()">
+            <option value="air" selected>Air (21%)</option>
+            <option value="ean32">EAN32 (32%)</option>
+            <option value="ean36">EAN36 (36%)</option>
+            <option value="custom">Custom O₂ %</option>
+          </select>
+        </div>
+        <div class="field" id="travelGasCustomField" style="display:none;">
+          <label>O₂ %</label>
+          <input type="number" id="travelGasCustomO2" value="21" min="16" max="40" step="1" title="Custom O₂% for travel gas. Keep below 40% — travel gas is used at shallow depths where high O₂ would be toxic." oninput="updateTravelGasMOD()">
+        </div>
+        <div class="field">
+          <label>Switch Depth</label>
+          <select id="travelGasSwitchMode" title="Auto: switch depth = travel gas MOD at ppO₂ Bottom limit (recommended). Manual: you set the depth yourself." onchange="updateTravelGasMOD()" style="font-size:11px;">
+            <option value="auto" selected>Auto (MOD)</option>
+            <option value="manual">Manual</option>
+          </select>
+        </div>
+        <div class="field" id="travelGasManualDepthField" style="display:none;">
+          <label id="travelGasManualDepthLbl">Switch Depth (m)</label>
+          <input type="number" id="travelGasManualDepth" value="30" min="1" max="100" step="1" title="Manually set the depth where you switch from travel gas to bottom gas on descent (and back on ascent)." oninput="updateTravelGasMOD()">
+        </div>
+        <div class="field">
+          <label>Auto Switch Depth (MOD)</label>
+          <input type="text" id="travelGasMODDisplay" readonly style="cursor:default;" placeholder="Select gas" title="Auto mode: shows travel gas MOD — deepest depth where travel gas ppO₂ stays within the Bottom ppO₂ limit. Manual mode: shows what the auto depth would be for reference.">
+        </div>
+        <div class="field">
+          <label>Cyl. Size (L)</label>
+          <input type="number" id="cylTravelGas_size" value="12" min="1" max="30" step="0.5" title="Travel gas cylinder volume in litres. Used to calculate gas consumption and remaining pressure." placeholder="12">
+        </div>
+        <div class="field">
+          <label id="cylTravelGas_pres_lbl">Cyl. bar</label>
+          <input type="number" id="cylTravelGas_pres" value="200" min="0" max="300" step="10" title="Travel gas cylinder fill pressure in bar. Together with cylinder size, used to estimate gas consumption as a % of fill." placeholder="200">
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;">
+        Breathed from surface → switch depth on descent, and from bottom gas MOD → first deco gas on ascent.
+      </div>
+    </div>
+
+    <!-- Add Travel Gas button -->
+    <button id="addTravelGasBtn" onclick="addTravelGas()" title="Add a travel gas — breathed from surface to switch depth on descent, and above bottom gas MOD on ascent. Prevents O₂ toxicity in shallow water with high-O₂ bottom mixes."
+      style="margin-top:8px;width:100%;padding:9px;background:none;border:1px dashed #ff9f43;border-radius:8px;color:#ff9f43;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;opacity:0.7;"
+      onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
+      + ADD TRAVEL GAS
+    </button>
 
     <!-- Dynamic deco gas cards container -->
     <div id="decoGasCards">
@@ -2395,6 +2395,15 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
         Pair <em>Stop Rounding: Yes</em> + <em>0.0577 bar (M)</em> to most closely match MultiDeco output. Pair <em>No</em> + <em>0.0627 bar (B)</em> for the Bühlmann standard.</div>
     </div>
 
+    <div class="card" style="margin-bottom:12px;border-left:3px solid #ff9900;">
+      <div class="card-title" style="color:#ff9900;">🟠 Travel Gas</div>
+      <div class="info-box"><strong>What is a travel gas?</strong> A breathing mix used from the surface down to the depth where your bottom gas becomes safe (its MOD). It prevents O₂ toxicity on descent when the bottom mix is too O₂-rich for shallow depths. Example: diving 40 m on EAN32 — EAN32 exceeds 1.4 bar ppO₂ above ~32 m, so you breathe AIR from the surface to the switch depth, then switch to EAN32 for the rest of the descent.</div>
+      <div class="info-box"><strong>Ascent transit:</strong> Travel gas is also used on ascent. Once you rise above the bottom gas MOD, the bottom mix becomes unsafe again. You switch back to travel gas until you reach the first deco gas switch depth. The planner handles this automatically and shows both legs as separate table rows.</div>
+      <div class="info-box"><strong>Switch Mode — Auto (recommended):</strong> Switch depth is calculated from the travel gas MOD at the current ppO₂ Bottom limit. The planner picks the deepest safe switch point automatically.</div>
+      <div class="info-box"><strong>Switch Mode — Manual:</strong> You specify the switch depth directly. Useful to match a buddy's plan, align with a landmark depth, or override the auto calculation.</div>
+      <div class="info-box"><strong>Cylinder fields:</strong> Travel gas cylinder size (L) and pressure (bar) — included in the gas consumption summary alongside bottom and deco gases.</div>
+    </div>
+
     <div class="card" style="margin-bottom:12px;">
       <div class="card-title">Gas & SAC</div>
       <div class="info-box"><strong>BT SAC:</strong> Surface Air Consumption during the bottom phase (L/min). Used to calculate cylinder gas consumption. Typical technical diver: 18–22 L/min. Stress and exertion increase SAC significantly.</div>
@@ -2488,6 +2497,15 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     <p style="font-size:12px;color:var(--muted);margin-top:12px;font-style:italic;">
       Dive planning is a skill taught in dive courses. This tool is intended to support trained divers in understanding their plans — not to replace the training itself.
     </p>
+  </div>
+
+  <div class="card" style="margin-bottom:12px;border-left:3px solid #ff9900;">
+    <div class="card-title" style="color:#ff9900;">🟠 Travel Gas</div>
+    <div class="info-box"><strong>Definition:</strong> A travel gas (also called a back-gas or transit gas) is a breathing mix used from the surface to the depth where the bottom gas MOD is reached on descent, and again on ascent when you rise above the bottom gas MOD until the first deco gas switch. It prevents O₂ toxicity at shallower depths when the bottom mix has a high O₂ fraction.</div>
+    <div class="info-box"><strong>When you need it:</strong> Any time your bottom gas ppO₂ exceeds the configured limit in shallow water. Common scenario: EAN32 as bottom gas on a 40 m dive — EAN32 hits 1.4 bar ppO₂ at ~33 m, so you need a travel gas (e.g. AIR or a custom mix) for the surface-to-33 m segment.</div>
+    <div class="info-box"><strong>Switch depth — Auto:</strong> Calculated as the MOD of the travel gas at the configured ppO₂ Bottom limit. This is where the travel gas itself reaches its limit — the planner switches you to bottom gas exactly there. Formula: <code style="font-family:'JetBrains Mono',monospace;">depth = (ppO₂_limit / fO₂_travel − P_surface) / 0.099</code></div>
+    <div class="info-box"><strong>Switch depth — Manual:</strong> Diver-specified. Useful when coordinating with a buddy, aligning with a site landmark, or when using a hypoxic travel gas that has a minimum safe depth.</div>
+    <div class="info-box"><strong>Table output:</strong> When a travel gas is active, the descent in the deco table splits into two rows: travel gas (orange) surface → switch depth, then bottom gas (blue) switch depth → bottom. On ascent, a travel gas segment also appears above the bottom gas MOD. Gas consumption is tracked separately per gas.</div>
   </div>
 
   <div class="card">
