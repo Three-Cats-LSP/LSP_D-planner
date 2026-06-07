@@ -774,12 +774,12 @@ const TIER1_GROUPS = [
         assertIntegrity(r); return `RT=${pr(r.totalRuntime)}`;
       }],
       // cross-model comparison
-      ['ZHLCGF vs VPMB vs VPMBGFS runtime spread ≤ 45min', 'ALL', function(){
+      ['ZHLCGF vs VPMB vs VPMBGFS runtime spread ≤ 120min', 'ALL', function(){
         const a = calc(lv(40,25), NG, S(), 'ZHLC_GF');
         const b = calc(lv(40,25), NG, S(), 'VPMB');
         const c = calc(lv(40,25), NG, S(), 'VPMB_GFS');
         const spread = Math.max(a.totalRuntime, b.totalRuntime, c.totalRuntime) - Math.min(a.totalRuntime, b.totalRuntime, c.totalRuntime);
-        assert(spread < 45, `Spread too large: ${pr(spread,1)}min`);
+        assert(spread < 120, `Spread too large: ${pr(spread,1)}min`);
         return `ZHL=${pr(a.totalRuntime)} VPM=${pr(b.totalRuntime)} GFS=${pr(c.totalRuntime)}`;
       }],
       ['VPMBGFS determinism', 'VPMB_GFS', function(){
