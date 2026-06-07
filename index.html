@@ -2710,12 +2710,19 @@ if (typeof window !== 'undefined') {
 let WATER_VAPOR = 0.0627; // alveolar water vapor pressure (bar) — updated by waterVapor setting
 
 // Water density pressure factors (bar per metre)
+// NOTE: These are ApexDeco-convention empirical values, NOT strict SI physics.
+// Strict SI:  1000 kg/m³ × 9.80665 / 100000 = 0.09807 bar/m (fresh)
+//             1025 kg/m³ × 9.80665 / 100000 = 0.10052 bar/m (standard ocean)
+//             1027 kg/m³ × 9.80665 / 100000 = 0.10071 bar/m (ApexDeco ref density)
+// App uses rounded/matched constants to align output with ApexDeco and dive computers.
+// BAR_PER_METRE init = 1/10.078 = 0.09922 (ApexDeco default before setWater() is called).
+// Do NOT compare BAR_PER_METRE to strict SI range before setWater('salt') is called.
 const WATER_DENSITY = {
-  fresh:    0.09681,  // 1000 kg/m³
+  fresh:    0.09681,  // ApexDeco-convention (strict SI: 1000 kg/m³ → 0.09807)
   en13319:  0.09964,  // 1020 kg/m³ — EN13319
-  salt:     0.10020,  // 1027 kg/m³ — standard salt water
+  salt:     0.10020,  // ApexDeco-convention (strict SI: 1025 kg/m³ → 0.10052, 1027 → 0.10071)
 };
-let BAR_PER_METRE = 1/10.078; // ApexDeco salt water default (1027 kg/m³)
+let BAR_PER_METRE = 1/10.078; // ApexDeco init default (= 0.09922); updated by setWater()
 
 // ── Narcosis settings ──
 let narcoticN2 = true;   // N₂ always narcotic by default
