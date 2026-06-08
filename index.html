@@ -3394,7 +3394,8 @@ function setDecoAlgorithm(model, skipSave) {
         <option value="hi/85"${curHi===85||(!curHi)?' selected':''}>85</option>
         <option value="hi/90"${curHi===90?' selected':''}>90</option>
         <option value="hi/95"${curHi===95?' selected':''}>95</option>
-        <option value="hi/100"${curHi===100?' selected':''}>100</option>`;
+        <option value="hi/100"${curHi===100?' selected':''}>100</option>
+        <option value="custom">Custom…</option>`;
     } else {
       // Bühlmann: Lo/Hi presets
       gfLabel.textContent = 'GF:';
@@ -3417,8 +3418,18 @@ function setDecoAlgorithm(model, skipSave) {
   // GF row: show for Bühlmann and VPM-B/GFS, hide for VPM-B
   const showGF = isZHLCGF || isVPMBGFS;
   document.getElementById('gfPresetsRow').style.display = showGF ? 'flex' : 'none';
-  document.getElementById('gfCustomRow').style.display  =
-    (showGF && document.getElementById('gfPresetSelect')?.value === 'custom') ? 'flex' : 'none';
+  const customRowEl   = document.getElementById('gfCustomRow');
+  const isCustomSel   = document.getElementById('gfPresetSelect')?.value === 'custom';
+  if (customRowEl) {
+    customRowEl.style.display = (showGF && isCustomSel) ? 'flex' : 'none';
+    // When switching to Bühlmann, restore Low + separator visibility
+    if (isZHLCGF) {
+      const lowEl = document.getElementById('gfLowInput');
+      const sepEl = customRowEl.querySelector('span');
+      if (lowEl) lowEl.style.display = '';
+      if (sepEl) sepEl.style.display = '';
+    }
+  }
 
   // Conservatism row: show for VPM-B and VPM-B/GFS
   document.getElementById('conservatismRow').style.display = isVPM ? 'flex' : 'none';
@@ -3467,8 +3478,32 @@ function setDecoAlgorithm(model, skipSave) {
 
 function handleGFSelect(val) {
   const customRow = document.getElementById('gfCustomRow');
-  if (val === 'custom') {
-    if (customRow) customRow.style.display = 'flex';
+  const isVPMBGFSMode = document.getElementById('algorithmSelect')?.value === 'VPMB_GFS';
+  if (val === 'custom' && isVPMBGFSMode) {
+    // VPM-B/GFS custom: show only GF High (Low is determined by VPM-B bubble mechanics)
+    if (customRow) {
+      customRow.style.display = 'flex';
+      const lowEl  = document.getElementById('gfLowInput');
+      const sepEl  = customRow.querySelector('span');
+      const highEl = document.getElementById('gfHighInput');
+      if (lowEl)  lowEl.style.display  = 'none';
+      if (sepEl)  sepEl.style.display  = 'none';
+      if (highEl) {
+        highEl.style.display = '';
+        const savedHigh = localStorage.getItem('gfCustomHigh');
+        if (savedHigh) highEl.value = savedHigh;
+      }
+      setCustomGF();
+    }
+  } else if (val === 'custom') {
+    if (customRow) {
+      customRow.style.display = 'flex';
+      // Bühlmann custom: show both Low + separator + High
+      const lowEl = document.getElementById('gfLowInput');
+      const sepEl = customRow.querySelector('span');
+      if (lowEl) lowEl.style.display = '';
+      if (sepEl) sepEl.style.display = '';
+    }
     const savedLow  = localStorage.getItem('gfCustomLow');
     const savedHigh = localStorage.getItem('gfCustomHigh');
     const lowInput  = document.getElementById('gfLowInput');
@@ -3503,12 +3538,31 @@ function setGF(low, high) {
   // Sync GF dropdown
   const sel = document.getElementById('gfPresetSelect');
   if (sel) {
-    const key = `${low}/${high}`;
-    const opt = Array.from(sel.options).find(o => o.value === key);
-    sel.value = opt ? key : 'custom';
+    const isVPMBGFS = document.getElementById('algorithmSelect')?.value === 'VPMB_GFS';
+    let opt;
+    if (isVPMBGFS) {
+      // Match hi/N format for VPM-B/GFS
+      opt = Array.from(sel.options).find(o => o.value === `hi/${high}`);
+    } else {
+      opt = Array.from(sel.options).find(o => o.value === `${low}/${high}`);
+    }
+    sel.value = opt ? opt.value : 'custom';
     const customRow = document.getElementById('gfCustomRow');
-    if (customRow) customRow.style.display = opt ? 'none' : 'flex';
-    if (!opt && lowInput && highInput) { lowInput.value = low; highInput.value = high; }
+    if (!opt) {
+      if (customRow) customRow.style.display = 'flex';
+      if (isVPMBGFS) {
+        // Custom for VPM-B/GFS: only show High
+        const lowEl = document.getElementById('gfLowInput');
+        const sepEl = customRow?.querySelector('span');
+        if (lowEl) lowEl.style.display = 'none';
+        if (sepEl) sepEl.style.display = 'none';
+        if (highInput) highInput.value = high;
+      } else {
+        if (lowInput && highInput) { lowInput.value = low; highInput.value = high; }
+      }
+    } else {
+      if (customRow) customRow.style.display = 'none';
+    }
   }
 
   // Legacy button sync (in case gf-btn elements still exist elsewhere)
