@@ -3936,7 +3936,7 @@ function runPlanner() {
   if (algo === 'padi') {
     const fO2 = 1 - fN2;
     const isNitrox = mix !== 'air';
-    const gasLabel = mix === 'ean32' ? 'EAN 32' : mix === 'ean36' ? 'EAN 36' : mix === 'custom' ? `EAN ${Math.round(fO2*100)}` : 'Air';
+    const gasLabel = mix === 'ean32' ? '32/00' : mix === 'ean36' ? '36/00' : mix === 'custom' ? `${Math.round(fO2*100)}/00` : '21/00';
     const ndl = padiNDL(depthM, mix);
     const rem = Math.max(0, ndl-bt);
     const group = padiGroup(depthM, bt, mix);
@@ -4202,15 +4202,12 @@ function getDecoGasFractions(selectId, customId, trimixO2Id, trimixHeId) {
   return null;
 }
 
-// Get trimix gas label: "18/45" for trimix, "EAN50" for nitrox, "AIR" for air, "100% O2"
+// Gas label format: "O2/He" for all mixes — "21/00" = air, "50/00" = EAN50, "21/35" = trimix, "100/00" = O2
 function getGasLabel(fO2, fHe) {
   if (fO2 === null || fO2 === undefined) return null;
   const o2pct = Math.round(fO2 * 100);
   const hePct = Math.round((fHe || 0) * 100);
-  if (fO2 >= 0.995) return '100% O2';
-  if (hePct > 0) return `${o2pct}/${hePct}`;
-  if (o2pct === 21) return 'AIR';
-  return `EAN${o2pct}`;
+  return `${o2pct}/${String(hePct).padStart(2, '0')}`;
 }
 
 function getDecoGasFrac(selectId, customId) {
@@ -4680,7 +4677,7 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
     const depthM2 = parseFloat(depthRaw) || 0;
     const durMin = (() => { const p = stopRaw.split(':'); return p.length===2 ? parseInt(p[0]) + parseInt(p[1])/60 : parseFloat(stopRaw)||0; })();
     if (!durMin || !mixRaw || mixRaw === '-') return;
-    const gasKey = mixRaw === 'AIR' ? 'AIR' : mixRaw.startsWith('EAN') ? mixRaw : mixRaw.startsWith('100') ? '100% O2' : mixRaw;
+    const gasKey = mixRaw; // labels now always in O2/He format (e.g. '50/00', '21/35', '100/00')
     const sac = (ph === 'bottom') ? sacBotVPM : sacDecoVPM;
     const absP = 1.013 + depthM2 * BAR_PER_METRE;
     gasConsVPM[gasKey] = (gasConsVPM[gasKey] || 0) + sac * absP * durMin;
@@ -4785,7 +4782,7 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
     // Gas tags
     const bottomGasTagVPM = `<div style="display:inline-flex;align-items:center;gap:6px;background:#ffffff;border:2px solid #4169E1;border-radius:16px;padding:3px 10px;font-size:11px;color:#111111;font-weight:700;"><span style="color:#4169E1;font-size:10px;font-weight:700;">Bottom:</span> <strong>${gasLabel} — ${bottomO2pct}% O₂ @ surface→${rawDdisp}${du}</strong></div>`;
     const decoGasTagsVPM = decoGases.map((dg, i) => {
-      const lbl = dg.o2 >= 99 ? '100% O2' : `EAN${dg.o2}`;
+      const lbl = `${dg.o2}/${String(dg.he || 0).padStart(2,'0')}`; // uniform O2/He format
       const switchD = dg.o2 >= 99 ? 6 : Math.floor(((settings.ppO2Deco || 1.6) / (dg.o2/100) - 1.013) / (dU ? BAR_PER_METRE : BAR_PER_METRE * 0.3048) / (dU ? 1 : 3.28084));
       const switchDdisp = dU ? Math.max(3, Math.floor(switchD/3)*3) : Math.max(10, Math.floor(switchD/10)*10);
       return `<div style="display:inline-flex;align-items:center;gap:6px;background:#ffffff;border:2px solid #4169E1;border-radius:16px;padding:3px 10px;font-size:11px;color:#111111;font-weight:600;"><span style="color:#4169E1;font-size:10px;font-weight:700;">Deco:</span> <strong>${lbl} — ${dg.o2}% O₂ @ ${switchDdisp}${du}</strong></div>`;
@@ -6587,11 +6584,10 @@ function getTravelGasInfo() {
     fN2 = (100 - Math.min(40, Math.max(16, o2))) / 100;
   } else fN2 = FN2_AIR;
 
-  const label = mix === 'air' ? 'AIR'
-    : mix === 'ean32' ? 'EAN32'
-    : mix === 'ean36' ? 'EAN36'
-    : mix === 'custom' ? 'TRAVEL' + Math.round((1-fN2)*100)
-    : 'TRAVEL';
+  // Uniform O2/He format for travel gas label
+  const _trvO2 = mix === 'air' ? 21 : mix === 'ean32' ? 32 : mix === 'ean36' ? 36
+    : mix === 'custom' ? Math.round((1-fN2)*100) : 21;
+  const label = `${_trvO2}/00`;
 
   const mode = document.getElementById('travelGasSwitchMode')?.value || 'auto';
   const ppO2Bot = parseFloat(document.getElementById('ppo2Bottom')?.value) || 1.4;
@@ -9155,17 +9151,8 @@ function calcBestMix() {
   const actualPPO2 = ((o2clamped / 100) * ata).toFixed(2);
   const col = o2clamped > 40 ? 'var(--yellow)' : 'var(--accent)';
 
-  // Gas name
-  let name = 'Custom';
-  if (o2clamped === 21)       name = 'AIR';
-  else if (o2clamped === 32)  name = 'EAN 32';
-  else if (o2clamped === 36)  name = 'EAN 36';
-  else if (o2clamped === 40)  name = 'EAN 40';
-  else if (o2clamped === 50)  name = 'EAN 50';
-  else if (o2clamped === 80)  name = 'EAN 80';
-  else if (o2clamped === 100) name = 'O₂';
-  else if (o2clamped >= 22 && o2clamped <= 40) name = 'EAN ' + o2clamped;
-  else name = o2clamped + '% O₂';
+  // Gas name — uniform O2/He format
+  const name = o2clamped + '/00';
 
   document.getElementById('bestMixResult').textContent    = o2clamped + '%';
   document.getElementById('bestMixResult').style.color    = col;
@@ -9476,15 +9463,11 @@ function buildExportText(mode) {
     // ── helper: shorten mix names for table (trimix-aware) ──
     const shortMix = m => {
       const s = (m||'').trim();
-      if (!s || /air/i.test(s) || s === '21/0' || s.includes('21%')) return 'AIR';
-      if (s.includes('100%') || /^100/i.test(s) || s === '100% O2' || s === '100% O₂') return '100% O2';
-      // Trimix: "21/35" → "21/35" (already compact — keep as-is)
-      if (/^\d+\/\d+$/.test(s)) return s;
-      // EAN 50 → EAN50, EAN50 → EAN50
-      const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/);
-      if (ean) return 'EAN' + ean[1];
-      const pct = s.match(/(\d+)%/);
-      if (pct) return 'EAN' + pct[1];
+      if (!s) return '-';
+      if (/^\d+\/\d+$/.test(s)) return s; // O2/He format already
+      if (/air/i.test(s)) return '21/00';
+      const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/); if (ean) return ean[1] + '/00';
+      const pct = s.match(/(\d+)%/); if (pct) return pct[1] + '/00';
       return s;
     };
 
@@ -9676,12 +9659,11 @@ function buildExportText(mode) {
     const bt    = document.getElementById('decoBT')?.value    || '-';
     const shortMix = m => {
       const s = (m||'').trim();
-      if (!s || /air/i.test(s) || s.includes('21%')) return 'AIR';
-      if (s.includes('100%') || /^100/i.test(s)) return '100% O2';
-      const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/);
-      if (ean) return 'EAN' + ean[1];
-      const pct = s.match(/(\d+)%/);
-      if (pct) return pct[1] + '%';
+      if (!s) return '-';
+      if (/^\d+\/\d+$/.test(s)) return s; // O2/He format already
+      if (/air/i.test(s)) return '21/00';
+      const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/); if (ean) return ean[1] + '/00';
+      const pct = s.match(/(\d+)%/); if (pct) return pct[1] + '/00';
       return s;
     };
 
@@ -9709,13 +9691,11 @@ function buildExportText(mode) {
     // shortMix matching main deco export style (number+%)
     const eShortMix = m => {
       const s = (m||'').trim();
-      if (!s || /air/i.test(s) || s === '21/0' || s.includes('21%')) return 'AIR';
-      if (s.includes('100%') || /^100/i.test(s) || s === '100% O2' || s === '100% O₂') return '100% O2';
-      if (/^\d+\/\d+$/.test(s)) return s; // trimix "21/35" — keep as-is
-      const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/);
-      if (ean) return 'EAN' + ean[1];
-      const pct = s.match(/(\d+)%/);
-      if (pct) return 'EAN' + pct[1];
+      if (!s) return '-';
+      if (/^\d+\/\d+$/.test(s)) return s; // O2/He format already
+      if (/air/i.test(s)) return '21/00';
+      const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/); if (ean) return ean[1] + '/00';
+      const pct = s.match(/(\d+)%/); if (pct) return pct[1] + '/00';
       return s;
     };
     lines.push(`Scenario    : ${c.label}`);
@@ -9914,10 +9894,10 @@ function buildMessengerText(mode) {
     const du    = units === 'metric' ? 'm' : 'ft';
     const shortMix = m => {
       const s = (m||'').trim().replace(/[📋⚠️🤿]/g,'').trim();
-      if (!s || /air/i.test(s) || s === '21/0') return 'AIR';
-      if (/100/.test(s)) return 'O2';
-      if (/^\d+\/\d+$/.test(s)) return s; // trimix "21/35" — keep as-is
-      const ean = s.match(/(\d+)%/); if (ean) return 'EAN' + ean[1];
+      if (!s) return '-';
+      if (/^\d+\/\d+$/.test(s)) return s; // O2/He format already
+      if (/air/i.test(s)) return '21/00';
+      const ean = s.match(/(\d+)%/); if (ean) return ean[1] + '/00';
       return s;
     };
     const clean = t => t.replace(/[📋⚠️🤿✓⚡🔵🔴🟢🚨⏱ℹ⇄↓↑]/g,'').replace(/\s*·\s*/g,' - ').replace(/ppO₂/g,'ppO2').replace(/O₂/g,'O2').replace(/[—–]/g,'-').replace(/Bühlmann/g,'Buhlmann').replace(/(\d)\s+(m|ft)\b/g,'$1$2').replace(/\s*→\s*/g,'>').replace(/\s+/g,' ').trim();
@@ -9978,13 +9958,11 @@ function buildMessengerText(mode) {
 
   const shortMix = m => {
     const s = (m||'').trim();
-    if (!s || /air/i.test(s) || s === '21/0' || s.includes('21%')) return 'AIR';
-    if (s.includes('100%') || /^100/i.test(s)) return 'O2';
-    if (/^\d+\/\d+$/.test(s)) return s; // trimix "21/35" — keep as-is
-    const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/);
-    if (ean) return 'EAN' + ean[1];
-    const pct = s.match(/(\d+)%/);
-    if (pct) return 'EAN' + pct[1];
+    if (!s) return '-';
+    if (/^\d+\/\d+$/.test(s)) return s; // O2/He format already
+    if (/air/i.test(s)) return '21/00';
+    const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/); if (ean) return ean[1] + '/00';
+    const pct = s.match(/(\d+)%/); if (pct) return pct[1] + '/00';
     return s;
   };
   const clean = t => t
