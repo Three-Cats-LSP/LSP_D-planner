@@ -3783,9 +3783,9 @@ function setUnits(u) {
     convertNumericInput(id, v => (v * CUFT_PER_L).toFixed(1).replace(/\.0$/, ''), v => Math.round(v / CUFT_PER_L), 50, 1766);
   });
 
-  // Bug fix: SAC values must also be converted on unit switch
-  convertNumericInput('sacBottom', v => (v * CUFT_PER_L).toFixed(2).replace(/0$/, ''), v => Math.round(v / CUFT_PER_L), 5, 60);
-  convertNumericInput('sacDeco',   v => (v * CUFT_PER_L).toFixed(2).replace(/0$/, ''), v => Math.round(v / CUFT_PER_L), 3, 40);
+  // SAC conversion (L/min ↔ cu ft/min)
+  convertNumericInput('sacBottom', v => (v * CUFT_PER_L).toFixed(2).replace(/\.0+$/, ''), v => Math.round(v / CUFT_PER_L), 60, 2.12);
+  convertNumericInput('sacDeco',   v => (v * CUFT_PER_L).toFixed(2).replace(/\.0+$/, ''), v => Math.round(v / CUFT_PER_L), 40, 1.41);
 
   const du = u === 'metric' ? 'm' : 'ft';
   setTxt('depthLbl', `Depth (${du})`);
