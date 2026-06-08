@@ -155,25 +155,28 @@ To deploy a new version: replace `index.html` on `main`.
 
 ## Changelog
 
-### 2.7 (current)
+### 2.7 (current — milestone)
 
-**Post-milestone bug fixes:**
-- **VPM-B/GFS GF UI** — selecting VPM-B/GF hybrid now shows only GF High (not Low+High like Bühlmann); GF Low is irrelevant — VPM-B bubble mechanics determine deep stop depth. Preset dropdown rebuilt with Hi-only values; Custom option shows only GF High input. Switching back to Bühlmann restores full Low+High UI correctly.
-- **Imperial gas consumption — SAC value not converted** — switching to imperial updated SAC labels but not the numeric value (22 L/min shown instead of ~0.78 cu ft/min → 28× gas estimate error). Fixed: `convertNumericInput` now applied to both `sacBottom` and `sacDeco` on unit switch.
-- **Gas volume display hardcoded as `L`** — Bühlmann and VPM gas cards always showed volumes in litres even in imperial mode. Fixed: `volUnitV` now derived from current unit setting in both render paths; warning alerts and "avail" labels also updated.
-- **`volUnitV` ReferenceError in Bühlmann loop** — variable was declared only inside the VPM path; Bühlmann gas card render would throw `ReferenceError` every time in any mode. Fixed: declaration added inside the Bühlmann `for...of` loop.
-- **SAC footer unit label** — "Bottom SAC: X L/min" footer in gas cards now switches to `cu ft/min` in imperial mode for both Bühlmann and VPM paths.
+**Algorithms**
+- **Helium / Trimix** — full O₂/He/N₂ entry for bottom gas and all deco gases; He half-time selector (Bühlmann 2003 1.51 min / Baker 1.88 min); END display throughout profile
+- **VPM-B altitude-adjusted critical radii** — bubble nuclei radii scaled by `(P_SL / P_alt)^(1/3)` at altitude; sea-level dives unchanged
+- **VPM-B repetitive dive bubble state carry** — carries tissue loading and per-compartment bubble radii between dives; surface-interval regeneration model
+- **VPM-B/GFS GF UI** — GF High-only mode when VPMB_GFS selected (VPM-B bubble mechanics replace GF Low); preset dropdown rebuilt with Hi-only values; restores full Low+High UI on switch back to Bühlmann
 
-**Milestone additions (v2.7):**
-- **Helium / Trimix support** — full O₂/He/N₂ entry for bottom gas and all deco gases; He half-time selector (Bühlmann 2003 1.51 min / Baker 1.88 min); END display throughout profile
-- **VPM-B altitude-adjusted critical radii** — initial bubble nuclei radii scaled by `(P_SL / P_alt)^(1/3)` at altitude; sea-level dives unchanged
-- **VPM-B repetitive dive bubble state carry** — carries both tissue loading and per-compartment bubble radii between dives with surface-interval regeneration
-- **Travel gas** — full implementation with dedicated card, descent table split, ascent transit
-- **Unified `?` tooltip system** — consistent icon colour, size, and style across all 18+ tooltip instances; GF and altitude tooltips added
-- **Gas label format** — standardised to `O₂/He` fraction notation (`32/00`, `21/35`, `100%`, `Air`)
-- **Knowledge Base** — 18 reference PDFs organised and named in `Knowledge Base/` directory
-- **`audit.py`** — static analysis script expanded to 111 checks across 20+ groups
-- **8 + post-milestone bug fixes** (see above)
+**Gas & Units**
+- **Travel gas** — dedicated card, descent table split, ascent transit above bottom MOD
+- **Gas label format** — standardised to O₂/He fraction notation (`32/00`, `21/35`, `100%`, `Air`)
+- **Imperial gas consumption** — SAC values convert correctly on unit switch (L/min ↔ cu ft/min); gas card volumes show `cu ft` in imperial mode; SAC footer label switches in both Bühlmann and VPM paths
+
+**UI**
+- **Unified `?` tooltip system** — consistent icon colour, size, and style across all tooltip instances; GF and altitude tooltips added
+- **Footer icons** — Instagram and GitHub icons same size (36px), vertically centered
+
+**Quality**
+- **`audit.py`** — 111 static checks across 20+ groups
+- **`tests-massive.html`** — 294-check regression suite including algorithm switching, VPM-B/GFS GF UI, SAC unit conversion, gas volume display
+- **Knowledge Base** — 18 reference PDFs organised in `Knowledge Base/` directory
+- **Dead code removed** — `zFactorN2` (non-standard, incompatible with ZHL-16C ideal-gas model)
 
 ### 2.5
 - Altitude + Acclimatize in exports
