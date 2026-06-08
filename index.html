@@ -4357,7 +4357,8 @@ function getActiveGas(curDepthM, bottomFN2, decoGases, getPPO2LimitFn, bottomLab
   let best = null;
   for (const dg of decoGases) {
     if (curDepthM > dg.depth) continue;
-    const fO2 = 1 - dg.fN2;
+    // fO2 = 1-fN2-fHe for trimix; dg.fO2 is stored when available (Bug fix: 1-fN2 wrong for trimix)
+    const fO2 = dg.fO2 != null ? dg.fO2 : Math.max(0, 1 - dg.fN2 - (dg.fHe || 0));
     // Pure O2 (≥99.5%): allowed at its switch depth regardless of ppO2
     // ApexDeco uses o2MaxDepth special-case — we mirror that here
     const isPureO2 = fO2 >= 0.995 && allowO2AtMOD;
