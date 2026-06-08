@@ -1068,13 +1068,13 @@ const TIER1_GROUPS = [
       }],
       ['TMX CNS finite — ZHL at 60m/25min', 'ZHLC_GF', function(){
         const tmx = [g(18,45)]; const r = calc(lv(60,25), [...tmx,...EAN50_O2], S(), 'ZHLC_GF');
-        assertShape(r); assertCond(Number.isFinite(r.cns), `CNS not finite: ${r.cns}`);
-        return `CNS=${pr(r.cns)}% OTU=${pr(r.otu)}`;
+        assertShape(r); assertCond(Number.isFinite(r.totalCNS), `CNS not finite: ${r.totalCNS}`);
+        return `CNS=${pr(r.totalCNS)}% OTU=${pr(r.totalOTU)}`;
       }],
       ['TMX OTU finite — VPM-B at 60m/25min', 'VPMB', function(){
         const tmx = [g(18,45)]; const r = calc(lv(60,25), [...tmx,...EAN50_O2], S(), 'VPMB');
-        assertShape(r); assertCond(Number.isFinite(r.otu), `OTU not finite: ${r.otu}`);
-        return `CNS=${pr(r.cns)}% OTU=${pr(r.otu)}`;
+        assertShape(r); assertCond(Number.isFinite(r.totalOTU), `OTU not finite: ${r.totalOTU}`);
+        return `CNS=${pr(r.totalCNS)}% OTU=${pr(r.totalOTU)}`;
       }],
     ]
   },
