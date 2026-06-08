@@ -4772,13 +4772,14 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
   });
   const gasElVPM = document.getElementById('gasConsumptionSummary');
   if (gasElVPM && Object.keys(gasConsVPM).length) {
-    const cylIds = [['cylBot_size','cylBot_pres'],['cylDg1_size','cylDg1_pres'],['cylDg2_size','cylDg2_pres']];
+    const cylIds = [['cylBot_size','cylBot_pres'],['cylDg1_size','cylDg1_pres'],['cylDg2_size','cylDg2_pres'],['cylTravelGas_size','cylTravelGas_pres']];
     const cylCapVPM = {};
     Object.keys(gasConsVPM).forEach((label, idx) => {
       const [sId,pId] = cylIds[idx] || [];
       if (!sId) return;
       const sz = parseFloat(document.getElementById(sId)?.value) || 0;
-      const pr = parseFloat(document.getElementById(pId)?.value) || 0;
+      const prRaw = parseFloat(document.getElementById(pId)?.value) || 0;
+      const pr = units === 'imperial' ? prRaw / 14.5038 : prRaw;
       if (sz > 0 && pr > 0) cylCapVPM[label] = sz * pr;
     });
     let ghtml = `<div class="card" style="margin-top:8px;"><div class="card-title">Gas Consumption</div><div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-top:0;">`;
@@ -7580,6 +7581,7 @@ function runDecoSchedule() {
       ['cylBot_size','cylBot_pres'],
       ['cylDg1_size','cylDg1_pres'],
       ['cylDg2_size','cylDg2_pres'],
+      ['cylTravelGas_size','cylTravelGas_pres'],
     ];
     const cylCapacity = {}; // gas label → available litres
     gasLabels.forEach((label, idx) => {
@@ -11928,6 +11930,11 @@ var appSettings = {
     'botTrimixO2', 'botTrimixHe',
     'dg1TrimixO2', 'dg1TrimixHe', 'dg2TrimixO2', 'dg2TrimixHe',
     'vpmRepMode', 'vpmSurfaceInterval',
+    'sacBottom', 'sacDeco',
+    'cylBot_size', 'cylBot_pres',
+    'cylDg1_size', 'cylDg1_pres',
+    'cylDg2_size', 'cylDg2_pres',
+    'cylTravelGas_size', 'cylTravelGas_pres',
   ],
   
   REC_FIELDS: ['ndlRange', 'ndlUImp', 'ndlUMet'],

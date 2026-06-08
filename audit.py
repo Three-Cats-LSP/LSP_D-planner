@@ -768,6 +768,139 @@ if deco_fields_idx2 > 0:
 else:
     fail("DECO_FIELDS not found — cannot check Feature B persistence")
 
+# GROUP 18 — FEATURE: SAC-based gas consumption
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 18.1 SAC inputs present
+for eid, desc in [("sacBottom", "bottom SAC L/min"), ("sacDeco", "deco SAC L/min")]:
+    if f'id="{eid}"' in html:
+        ok(f"SAC input id=\"{eid}\" ({desc}) present")
+    else:
+        fail(f"SAC input id=\"{eid}\" ({desc}) missing")
+
+# 18.2 Cylinder fields present for all gas positions
+cyl_fields = [
+    ("cylBot_size",        "bottom gas cylinder size"),
+    ("cylBot_pres",        "bottom gas cylinder pressure"),
+    ("cylDg1_size",        "deco gas 1 cylinder size"),
+    ("cylDg1_pres",        "deco gas 1 cylinder pressure"),
+    ("cylDg2_size",        "deco gas 2 cylinder size"),
+    ("cylDg2_pres",        "deco gas 2 cylinder pressure"),
+    ("cylTravelGas_size",  "travel gas cylinder size"),
+    ("cylTravelGas_pres",  "travel gas cylinder pressure"),
+]
+for eid, desc in cyl_fields:
+    if f'id="{eid}"' in html:
+        ok(f"Cylinder field id=\"{eid}\" ({desc}) present")
+    else:
+        fail(f"Cylinder field id=\"{eid}\" ({desc}) missing")
+
+# 18.3 Gas consumption function uses correct formula: SAC × P_abs × time
+if "sac * absP * durMin" in js or "sac * absP * dur" in js:
+    ok("Gas consumption formula: SAC × P_abs × duration (correct surface-equivalent litres)")
+else:
+    fail("Gas consumption formula missing sac × absP × duration")
+
+# 18.4 Buhlmann path converts psi→bar for imperial units
+# Search 800 chars from cylIds definition to cover the entire forEach loop
+buh_cyl_start = js.find("const cylIds = [\n      ['cylBot_size','cylBot_pres']")
+buh_cyl_block = js[buh_cyl_start:buh_cyl_start + 800] if buh_cyl_start > 0 else ""
+if "14.5038" in buh_cyl_block or ("imperial" in buh_cyl_block and "prRaw" in buh_cyl_block):
+    ok("Buhlmann gas consumption: cylinder pressure converted psi→bar in imperial mode")
+else:
+    fail("Buhlmann gas consumption: no psi→bar conversion — cylinder capacity overstated in imperial mode")
+
+# 18.5 VPM path ALSO converts psi→bar for imperial units
+vpm_cyl_start = js.find("cylCapVPM = {};")
+vpm_cyl_block = js[vpm_cyl_start:vpm_cyl_start + 400] if vpm_cyl_start > 0 else ""
+if "14.5038" in vpm_cyl_block or ("imperial" in vpm_cyl_block and "pr " in vpm_cyl_block):
+    ok("VPM gas consumption: cylinder pressure converted psi→bar in imperial mode")
+else:
+    fail("VPM gas consumption: no psi→bar conversion — WRONG cylinder capacity in imperial mode")
+
+# 18.6 Travel gas cylinder included in Buhlmann cylIds
+buh_cyl_section = js[js.find("const cylIds = ["):js.find("const cylIds = [") + 400] if "const cylIds = [" in js else ""
+if "cylTravelGas_size" in buh_cyl_section:
+    ok("Buhlmann cylIds includes travel gas cylinder")
+else:
+    fail("Buhlmann cylIds missing travel gas — travel gas consumption has no shortage warning")
+
+# 18.7 Travel gas cylinder included in VPM cylIds
+vpm_cyl_ids = js[js.find("[['cylBot_size','cylBot_pres']"):js.find("[['cylBot_size','cylBot_pres']") + 300] if "[['cylBot_size','cylBot_pres']" in js else ""
+if "cylTravelGas_size" in vpm_cyl_ids:
+    ok("VPM cylIds includes travel gas cylinder")
+else:
+    fail("VPM cylIds missing travel gas — travel gas consumption has no shortage warning")
+
+# 18.8 All SAC and cylinder fields in DECO_FIELDS (persistence)
+deco_fields_idx3 = html.find("DECO_FIELDS:")
+if deco_fields_idx3 > 0:
+    deco_fields_block3 = html[deco_fields_idx3:deco_fields_idx3 + 1200]
+    gas_fields_required = [
+        ("sacBottom",           "bottom SAC"),
+        ("sacDeco",             "deco SAC"),
+        ("cylBot_size",         "bottom cylinder size"),
+        ("cylBot_pres",         "bottom cylinder pressure"),
+        ("cylDg1_size",         "deco gas 1 cylinder size"),
+        ("cylDg1_pres",         "deco gas 1 cylinder pressure"),
+        ("cylDg2_size",         "deco gas 2 cylinder size"),
+        ("cylDg2_pres",         "deco gas 2 cylinder pressure"),
+        ("cylTravelGas_size",   "travel gas cylinder size"),
+        ("cylTravelGas_pres",   "travel gas cylinder pressure"),
+    ]
+    for field_id, description in gas_fields_required:
+        if field_id in deco_fields_block3:
+            ok(f"DECO_FIELDS includes {field_id} ({description})")
+        else:
+            fail(f"DECO_FIELDS missing '{field_id}' ({description}) — value lost on page reload")
+else:
+    fail("DECO_FIELDS not found — cannot verify gas consumption field persistence")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 19 — FEATURE: VPM-B/GFS gradient blending (applyGFSurfacing)
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 19.1 applyGFSurfacing function exists
+if "function applyGFSurfacing(" in js:
+    ok("applyGFSurfacing() function present")
+else:
+    fail("applyGFSurfacing() missing — VPM-B/GFS gradient blending not implemented")
+
+# 19.2 Blend fraction: stopDepth / firstStopDepth (1 at first stop → VPM, 0 at surface → GF)
+if "fraction = stopDepth / firstStopDepth" in js:
+    ok("GFS blend fraction = stopDepth/firstStopDepth (1=first stop pure VPM, 0=surface pure GF)")
+else:
+    fail("GFS blend fraction formula wrong — direction of VPM→GF transition incorrect")
+
+# 19.3 Blend formula: vpmGrad * fraction + buhlGrad * (1 - fraction)
+if "blendedGrad = vpmGrad * fraction + buhlGrad * (1 - fraction)" in js:
+    ok("GFS blend formula: linear VPM→GF interpolation correct")
+else:
+    fail("GFS blend formula missing or wrong")
+
+# 19.4 applyGFSurfacing uses weighted a/b for trimix (not plain N2 values)
+gfs_fn = re.search(r"function applyGFSurfacing\(.*?\n    \}", js, re.DOTALL)
+if gfs_fn:
+    body = gfs_fn.group(0)
+    if "ZHL16C_He" in body and "pTotal" in body:
+        ok("applyGFSurfacing uses weighted a/b for trimix (ZHL16C_He + pTotal weighting)")
+    else:
+        fail("applyGFSurfacing does not use weighted a/b — GFS ceiling wrong for trimix")
+else:
+    fail("applyGFSurfacing function body not found for trimix check")
+
+# 19.5 applyGFSurfacing only called for VPMB_GFS model (not VPMB or VPMBE)
+# Find the call and check the guard that wraps it
+gfs_call_idx = js.find("applyGFSurfacing(ctx.state")
+if gfs_call_idx > 0:
+    guard_ctx = js[max(0, gfs_call_idx - 150):gfs_call_idx]
+    if "model === 'VPMB_GFS'" in guard_ctx or 'model === "VPMB_GFS"' in guard_ctx:
+        ok("applyGFSurfacing called only when model === 'VPMB_GFS'")
+    else:
+        fail("applyGFSurfacing may be called for wrong models — check conditional")
+else:
+    fail("applyGFSurfacing call site not found")
+
 # ══════════════════════════════════════════════════════════════════════════════
 # PRINT RESULTS
 # ══════════════════════════════════════════════════════════════════════════════
@@ -791,5 +924,7 @@ if FAIL:
 else:
     print("  ALL CHECKS PASSED ✓\n")
     sys.exit(0)
+
+# ══════════════════════════════════════════════════════════════════════════════
 
 # ══════════════════════════════════════════════════════════════════════════════
