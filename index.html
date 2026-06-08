@@ -9473,16 +9473,18 @@ function buildExportText(mode) {
     const lastStop    = document.getElementById('lastDecoStop')?.value || '-';
     const decoStep    = document.getElementById('decoStep')?.value    || '-';
 
-    // ── helper: shorten mix names for table ──
+    // ── helper: shorten mix names for table (trimix-aware) ──
     const shortMix = m => {
       const s = (m||'').trim();
-      if (!s || /air/i.test(s) || s.includes('21%')) return 'AIR';
+      if (!s || /air/i.test(s) || s === '21/0' || s.includes('21%')) return 'AIR';
       if (s.includes('100%') || /^100/i.test(s) || s === '100% O2' || s === '100% O₂') return '100% O2';
-      // EAN 50 → 50%, EAN50 → 50%, 50% → 50%
+      // Trimix: "21/35" → "21/35" (already compact — keep as-is)
+      if (/^\d+\/\d+$/.test(s)) return s;
+      // EAN 50 → EAN50, EAN50 → EAN50
       const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/);
-      if (ean) return ean[1] + '%';
+      if (ean) return 'EAN' + ean[1];
       const pct = s.match(/(\d+)%/);
-      if (pct) return pct[1] + '%';
+      if (pct) return 'EAN' + pct[1];
       return s;
     };
 
@@ -9549,17 +9551,51 @@ function buildExportText(mode) {
       : decoModelSel === 'VPMB'
         ? `Conservatism +${consVal}`
         : `GF Hi ${gfHigh}  Conservatism +${consVal}`;
+    // ── bottom gas: read fractions directly for accurate trimix label ──
+    const _expBotFracs = getBottomGasFractions();
+    const _expBotLabel = getGasLabel(_expBotFracs.fO2, _expBotFracs.fHe);
+    const _expBotO2    = Math.round(_expBotFracs.fO2 * 100);
+    const _expBotHe    = Math.round((_expBotFracs.fHe || 0) * 100);
+    const _expBotN2    = Math.round(_expBotFracs.fN2 * 100);
+    const _expIsTrimix = _expBotHe > 0;
+    const _expBotDetail = _expIsTrimix
+      ? `${_expBotLabel}  (O2:${_expBotO2}% He:${_expBotHe}% N2:${_expBotN2}%)`
+      : _expBotLabel;
+
+    // ── He half-time mode (VPM only) ──
+    const _heHtMode = document.getElementById('heHalfTimeMode')?.value || 'buhlmann2003';
+    const _heHtLabel = _heHtMode === 'baker' ? 'Baker 1.88 min' : 'Buhlmann 2003 1.51 min';
+
+    // ── VPM altitude radii factor ──
+    const _expSurfP = 1.01325 * Math.exp(-(altM) / 8434);
+    const _expAltFactor = Math.pow(1.01325 / _expSurfP, 1/3);
+    const _expAltRadii = isVPMExport && altM > 0
+      ? `  Radii factor: x${_expAltFactor.toFixed(3)}`
+      : '';
+
+    // ── VPM repetitive dive state ──
+    const _vpmRepEl = document.getElementById('vpmRepMode');
+    const _vpmRepActive = isVPMExport && _vpmRepEl && _vpmRepEl.checked && typeof _lastVPMResult !== 'undefined' && _lastVPMResult;
+    const _vpmSI = _vpmRepActive ? (parseFloat(document.getElementById('vpmSurfaceInterval')?.value || '60')) : null;
+
     lines.push(`Algorithm   : ${algoNameExp}  (${algoSettings})`);
+    if (isVPMExport) lines.push(`He Half-Time: ${_heHtLabel}`);
     lines.push(`Depth       : ${depth}${du}    BT: ${bt} min`);
-    lines.push(`Bottom Gas  : ${shortMix(gas)}    Water: ${density}`);
+    lines.push(`Bottom Gas  : ${_expBotDetail}    Water: ${density}`);
     lines.push(`Descent     : ${descentRate}${du}/min  Ascent: ${ascentRate}${du}/min  Deco: ${decoAscentRate}${du}/min  Surface: ${surfAscentRate}${du}/min`);
     lines.push(`Last Stop   : ${lastStop}${du}  Step: ${decoStep}${du}`);
     const rndTxt = (document.getElementById('stopRounding')?.value||'fractional')==='wholeminute'?'Yes':'No';
     const wvTxt  = parseFloat(document.getElementById('waterVapor')?.value||'0.0627');
     const wvLblTxt = wvTxt<=0.058?'M':'B';
     lines.push(`Stop Rounding: ${rndTxt}  WV: ${wvTxt}(${wvLblTxt})`);
-    lines.push(`Altitude     : ${altLabel}  Acclimatized: ${acclLabel}`);
-    gswInfos.forEach((g, i) => lines.push(`Deco Gas ${i+1}  : ${g.gas} (switch @ ${g.depth})`));
+    lines.push(`Altitude     : ${altLabel}  Acclimatized: ${acclLabel}${_expAltRadii}`);
+    if (_vpmRepActive) lines.push(`Repetitive   : Yes  Surface Interval: ${_vpmSI} min  (bubble state + tissue loading carried)`);
+    gswInfos.forEach((g, i) => {
+      // Re-read deco gas labels properly via getDecoCardFractions for trimix accuracy
+      const _dgCard = getDecoCardFractions ? getDecoCardFractions(i) : null;
+      const _dgLabel = _dgCard ? getGasLabel(_dgCard.fO2, _dgCard.fHe) : g.gas;
+      lines.push(`Deco Gas ${i+1}  : ${_dgLabel} (switch @ ${g.depth})`);
+    });
     lines.push(`Deco Time   : ${decoTimeVal}  Run Time: ${runTimeVal}  CNS: ${cnsExpVal}  OTU: ${otuExpVal}  PrT: ${prtExpVal}`);
     lines.push('');
 
@@ -9673,12 +9709,13 @@ function buildExportText(mode) {
     // shortMix matching main deco export style (number+%)
     const eShortMix = m => {
       const s = (m||'').trim();
-      if (!s || /air/i.test(s) || s.includes('21%')) return 'AIR';
+      if (!s || /air/i.test(s) || s === '21/0' || s.includes('21%')) return 'AIR';
       if (s.includes('100%') || /^100/i.test(s) || s === '100% O2' || s === '100% O₂') return '100% O2';
+      if (/^\d+\/\d+$/.test(s)) return s; // trimix "21/35" — keep as-is
       const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/);
-      if (ean) return ean[1] + '%';
+      if (ean) return 'EAN' + ean[1];
       const pct = s.match(/(\d+)%/);
-      if (pct) return pct[1] + '%';
+      if (pct) return 'EAN' + pct[1];
       return s;
     };
     lines.push(`Scenario    : ${c.label}`);
@@ -9877,8 +9914,9 @@ function buildMessengerText(mode) {
     const du    = units === 'metric' ? 'm' : 'ft';
     const shortMix = m => {
       const s = (m||'').trim().replace(/[📋⚠️🤿]/g,'').trim();
-      if (!s || /air/i.test(s)) return 'AIR';
+      if (!s || /air/i.test(s) || s === '21/0') return 'AIR';
       if (/100/.test(s)) return 'O2';
+      if (/^\d+\/\d+$/.test(s)) return s; // trimix "21/35" — keep as-is
       const ean = s.match(/(\d+)%/); if (ean) return 'EAN' + ean[1];
       return s;
     };
@@ -9940,8 +9978,9 @@ function buildMessengerText(mode) {
 
   const shortMix = m => {
     const s = (m||'').trim();
-    if (!s || /air/i.test(s) || s.includes('21%')) return 'AIR';
+    if (!s || /air/i.test(s) || s === '21/0' || s.includes('21%')) return 'AIR';
     if (s.includes('100%') || /^100/i.test(s)) return 'O2';
+    if (/^\d+\/\d+$/.test(s)) return s; // trimix "21/35" — keep as-is
     const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/);
     if (ean) return 'EAN' + ean[1];
     const pct = s.match(/(\d+)%/);
@@ -9960,6 +9999,14 @@ function buildMessengerText(mode) {
     .replace(/\s*→\s*/g, '>')
     .replace(/\s+/g, ' ').trim();
 
+  // ── bottom gas header for messenger (trimix-aware) ──
+  const _msgBotFracs = getBottomGasFractions();
+  const _msgBotLabel = getGasLabel(_msgBotFracs.fO2, _msgBotFracs.fHe);
+  const _msgBotHe    = Math.round((_msgBotFracs.fHe || 0) * 100);
+  const _msgBotDetail = _msgBotHe > 0
+    ? `${_msgBotLabel} (O2:${Math.round(_msgBotFracs.fO2*100)}% He:${_msgBotHe}% N2:${Math.round(_msgBotFracs.fN2*100)}%)`
+    : _msgBotLabel;
+
   const result = [];
   // Algorithm + settings line
   const _algoSel = document.getElementById('algorithmSelect')?.value || 'ZHLC_GF';
@@ -9972,6 +10019,7 @@ function buildMessengerText(mode) {
       ? `${_algoShort} C+${_cons}`
       : `${_algoShort} GFHi${gfH} C+${_cons}`;
   result.push(`${depth}${du} / ${bt}min / ${_algoStr}`);
+  result.push(`Bottom Gas  : ${_msgBotDetail}`);
   const rndVal = (document.getElementById('stopRounding')?.value||'fractional')==='wholeminute'?'Yes':'No';
   const wvVal  = parseFloat(document.getElementById('waterVapor')?.value||'0.0627');
   const wvLbl  = wvVal<=0.058?'M':'B';
@@ -9979,7 +10027,18 @@ function buildMessengerText(mode) {
   const _mAltM   = (typeof altitudeM !== 'undefined') ? altitudeM : 0;
   const _mAltLbl = _mAltM === 0 ? 'Sea level' : `${_mAltM}m`;
   const _mAccl   = (typeof altAcclimatized !== 'undefined') ? altAcclimatized : true;
-  result.push(`Altitude    : ${_mAltLbl}  Acclimatized: ${_mAccl ? 'Yes' : 'No'}`);
+  const _mIsVPM  = _algoSel === 'VPMB' || _algoSel === 'VPMB_GFS';
+  const _mAltSurfP = 1.01325 * Math.exp(-_mAltM / 8434);
+  const _mAltRadii = _mIsVPM && _mAltM > 0
+    ? `  Radii x${Math.pow(1.01325 / _mAltSurfP, 1/3).toFixed(3)}`
+    : '';
+  result.push(`Altitude    : ${_mAltLbl}  Acclimatized: ${_mAccl ? 'Yes' : 'No'}${_mAltRadii}`);
+  // VPM repetitive dive
+  const _mRepEl = document.getElementById('vpmRepMode');
+  if (_mIsVPM && _mRepEl && _mRepEl.checked && typeof _lastVPMResult !== 'undefined' && _lastVPMResult) {
+    const _mSI = parseFloat(document.getElementById('vpmSurfaceInterval')?.value || '60');
+    result.push(`Repetitive  : SI ${_mSI} min (bubble state + tissue carried)`);
+  }
   const _lastStop2    = document.getElementById('lastDecoStop')?.value || '-';
   const _decoStep2    = document.getElementById('decoStep')?.value    || '-';
   const _ascentRate2     = document.getElementById('ascentRate')?.value      || '-';
