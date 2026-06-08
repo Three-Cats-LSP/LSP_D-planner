@@ -63,6 +63,7 @@
 
   --text:   #d8eef8;
   --muted:  #3e6882;
+  --tip:    #5ba4c2;
   --dim:    #142535;
   
   /* Theme toggle */
@@ -100,6 +101,7 @@ body.light-theme {
 
   --text:   #1a1a1a;
   --muted:  #555555;
+  --tip:    #4a7fa0;
   --dim:    #cccccc;
 }
 
@@ -356,6 +358,39 @@ body.algo-tools .algo-switcher > div:last-child .header-warn {
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+/* ── Unified tooltip-trigger icon ─────────────────────────
+   Single source of truth for every ? info icon in the app.
+   Color: --tip  (teal-steel, between --muted and --accent)
+   Usage: <span class="tip-icon" onclick="showTip(...)">SVG</span>
+   For standalone button wrappers add class="tip-icon tip-btn"
+──────────────────────────────────────────────────────────── */
+.tip-icon {
+  display: inline-block;
+  line-height: 0;
+  vertical-align: middle;
+  margin-left: 3px;
+  cursor: pointer;
+  color: var(--tip);
+  opacity: 0.75;
+  transition: opacity 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+.tip-icon:hover {
+  opacity: 1;
+  color: var(--accent);
+}
+/* Standalone button variant (toggleReference, settingsHelp) */
+.tip-btn {
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  border-radius: 6px;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .algo-toggle {
@@ -1232,7 +1267,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
 
   <!-- SINGLE ROW: Algorithm | algo settings | Water | Units | Warning -->
   <div id="algorithmRow" class="algo-switcher" style="display:none;align-items:center;gap:10px;padding:6px 14px;border-top:1px solid var(--border);flex-wrap:wrap;min-height:38px;">
-    <span class="algo-label-text" style="white-space:nowrap;">Algorithm:</span>
+    <span class="algo-label-text" style="white-space:nowrap;">Algorithm:</span><span class="tip-icon" onclick="showTip('Algorithm Selection','Which decompression algorithm is used to compute deco schedules.\n\nZHL-16C + GF (Bühlmann): tissue-saturation model with Gradient Factors. GF low controls first stop depth; GF high controls surface tissue tolerance. Widely validated, deterministic, matches dive computers.\n\nVPM-B: bubble-mechanics model. Minimises bubble growth by suppressing decompression stops deep, allowing faster ascent with less shallow time. Generally produces shorter total deco on short/shallow dives but may give MORE deco than GF on deep, long trimix dives.\n\nVPM-B + GFS: VPM-B bubble model with Gradient Factor Safety overlay. Always at least as conservative as VPM-B alone.\n\n⚠ Conservatism order is PROFILE-DEPENDENT:\n• Deep / long trimix: ZHL-16C + GF is usually more conservative (longer TTS).\n• Short / shallow dives: VPM-B may match or exceed GF conservatism.\nThere is no single most-conservative model — compare TTS for your specific dive.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span>
     <select id="algorithmSelect" onchange="setDecoAlgorithm(this.value)" style="padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;">
       <option value="ZHLC_GF" selected>Bühlmann ZH-L16C + GF</option>
       <option value="VPMB">VPM-B</option>
@@ -1240,7 +1275,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     </select>
     <!-- GF (Bühlmann + VPM-B/GFS) -->
     <div id="gfPresetsRow" style="display:none;align-items:center;gap:6px;flex-shrink:0;">
-      <span class="algo-label-text" style="white-space:nowrap;">GF:</span>
+      <span class="algo-label-text" style="white-space:nowrap;">GF:</span><span class="tip-icon" onclick="showTip('Gradient Factors','GF Low / GF High — two numbers that scale the Bühlmann supersaturation limit.\n\nGF Low: applied at the deepest deco stop. Controls first-stop depth.\n  Lower = deeper first stop = more conservative start.\n\nGF High: applied at the surface. Controls how much tissue supersaturation is allowed on surfacing.\n  Lower = more conservative finish.\n\nTypical presets:\n  20/85 — aggressive deep stops, permissive finish (classic tech)\n  55/80 ★ — modern consensus; matches Shearwater default\n  100/75 ★ — no deep stops, tight finish (shallow-stop approach)\n\n★ = widely used in technical diving training agencies.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span>
       <select id="gfPresetSelect" onchange="handleGFSelect(this.value)" style="padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;">
         <option value="20/85" selected>20/85</option>
         <option value="30/70">30/70</option>
@@ -1293,7 +1328,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     </div>
     <!-- Conservatism (VPM-B and VPM-B/GFS) -->
     <div id="conservatismRow" style="display:none;align-items:center;gap:6px;flex-shrink:0;">
-      <span class="algo-label-text" style="white-space:nowrap;">Conservatism:</span>
+      <span class="algo-label-text" style="white-space:nowrap;">Conservatism:</span><span class="tip-icon" onclick="showTip('VPM-B Conservatism','Adds a safety margin on top of VPM-B bubble mechanics by scaling the critical supersaturation threshold.\n\n0 — Standard VPM-B (no added margin)\n1 — +5%  radius allowance\n2 — +12% radius allowance\n3 — +22% radius allowance\n4 — +35% radius allowance\n5 — +50% radius allowance\n\nHigher values produce deeper and/or longer decompression stops.\n\nNote: conservatism level does not change the profile-dependence of the model — on deep trimix dives, even VPM-B at conservatism 0 may produce less deco than GF 20/85.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span>
       <select id="conservatismSelect" style="padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;">
         <option value="0">0 — Standard</option>
         <option value="1">1 — +5%</option>
@@ -1332,7 +1367,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     <!-- Altitude -->
     <span style="color:var(--border);font-size:14px;flex-shrink:0;">|</span>
     <div id="altitudeRow" style="display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;">
-      <span class="algo-label-text" style="white-space:nowrap;">Alt:</span>
+      <span class="algo-label-text" style="white-space:nowrap;">Alt:</span><span class="tip-icon" onclick="showTip('Altitude','Dive site elevation above sea level.\n\nAt altitude, surface pressure is lower than 1 atm — the diver surfaces into a thinner atmosphere, which increases decompression stress.\n\nEffects on deco calculations:\n  • Bühlmann ZHL-16C + GF: M-values are pressure-scaled automatically to the reduced surface pressure (Cross correction).\n  • VPM-B: initial bubble critical radii are also scaled (altitude factor = (P_SL / P_alt)^⅓), making nuclei slightly larger at altitude and requiring more cautious ascents.\n\nAcclimatized: set to Yes if the diver has spent ≥12 h at or above the dive altitude before the dive. This uses actual atmospheric pressure for deco. Set to No for same-day travel — a conservative surface N₂ loading offset is applied.\n\nSea level (0 m) = standard calculations, no altitude correction.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span>
       <select id="altitudeSelect" onchange="handleAltitudeSelect(this.value)" style="padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;">
         <option value="0" selected>Sea level (0 m)</option>
         <option value="500">500 m</option>
@@ -1426,7 +1461,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
   <button class="tab-btn" id="tab-multi" onclick="switchTab('multi',this)">Multi Dive</button>
   <button class="tab-btn" id="tab-cns" onclick="switchTab('cns',this)">CNS O₂</button>
   <button class="tab-btn" id="tab-ndlref" onclick="switchTab('ndlref',this)">NDL Tables</button>
-  <button onclick="toggleReference()" title="Reference & Info" style="margin-left:auto;flex-shrink:0;background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;color:var(--muted);transition:all 0.2s;display:inline-flex;align-items:center;justify-content:center;" onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'"><svg width="14" height="14" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></button>
+  <button class="tip-icon tip-btn" onclick="toggleReference()" title="Reference & Info"><svg width="14" height="14" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></button>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -1558,7 +1593,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       <div class="card-title" style="margin-bottom:0;">Decompression Schedule</div>
-      <button onclick="document.getElementById('settingsHelpModal').style.display='block'" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--accent);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;" title="Settings help"><svg width="14" height="14" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></button>
+      <button class="tip-icon tip-btn" onclick="document.getElementById('settingsHelpModal').style.display='block'" title="Settings help"><svg width="14" height="14" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></button>
     </div>
     <div class="info-box">Generates a full ascent profile with deco stops using Bühlmann ZH-L16C + Gradient Factors. Configure up to two decompression gases below — they switch automatically at the specified depths during ascent and are factored into tissue off-gassing.</div>
     <div class="form-grid">
@@ -1620,7 +1655,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
         </select>
       </div>
       <div class="field">
-        <label>Minimum Stop <span onclick="showTip('Minimum Stop','Minimum time spent at any deco stop, regardless of ceiling clearance.\n1:00 = standard. Smaller values give precise plans but are harder to execute.')" style="display:inline-block;line-height:0;vertical-align:middle;margin-left:2px;cursor:pointer;opacity:0.6;" title=""><svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
+        <label>Minimum Stop <span class="tip-icon" onclick="showTip('Minimum Stop','Minimum time spent at any deco stop, regardless of ceiling clearance.\n1:00 = standard. Smaller values give precise plans but are harder to execute.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
         <select id="minStopTime">
           <option value="2" selected>2:00</option>
           <option value="1">1:00</option>
@@ -1630,28 +1665,28 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
         </select>
       </div>
       <div class="field">
-        <label>Stop Rounding <span onclick="showTip('Stop Rounding','Whether stop times are rounded to whole minutes.\nNo = fractional (Buhlmann default).\nYes (MultiDeco) = whole-minute rounding, matching MultiDeco output.')" style="display:inline-block;line-height:0;vertical-align:middle;margin-left:2px;cursor:pointer;opacity:0.6;"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
+        <label>Stop Rounding <span class="tip-icon" onclick="showTip('Stop Rounding','Whether stop times are rounded to whole minutes.\nNo = fractional (Buhlmann default).\nYes (MultiDeco) = whole-minute rounding, matching MultiDeco output.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
         <select id="stopRounding">
           <option value="fractional">No</option>
           <option value="wholeminute" selected>Yes (MultiDeco)</option>
         </select>
       </div>
       <div class="field">
-        <label>Transit Mode <span onclick="showTip('Transit Mode','How deco-zone ascent transits between stops are modelled.\n\nSchreiner (accurate): tissues off-gas via Schreiner equation during each ascent segment. Most physically correct. Stop durations reflect actual hold time at depth only.\n\nMultiDeco compatible: ascent between stops is treated as instantaneous for tissue loading (matches MultiDeco 4.x). Transit time is added to the displayed stop duration, so stop times and run times match MultiDeco output exactly. Slightly more conservative.')" style="display:inline-block;line-height:0;vertical-align:middle;margin-left:2px;cursor:pointer;opacity:0.6;"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
+        <label>Transit Mode <span class="tip-icon" onclick="showTip('Transit Mode','How deco-zone ascent transits between stops are modelled.\n\nSchreiner (accurate): tissues off-gas via Schreiner equation during each ascent segment. Most physically correct. Stop durations reflect actual hold time at depth only.\n\nMultiDeco compatible: ascent between stops is treated as instantaneous for tissue loading (matches MultiDeco 4.x). Transit time is added to the displayed stop duration, so stop times and run times match MultiDeco output exactly. Slightly more conservative.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
         <select id="decoTransitMode">
           <option value="schreiner">Schreiner (accurate)</option>
           <option value="multideco" selected>MultiDeco compatible</option>
         </select>
       </div>
       <div class="field">
-        <label>Water Vapor <span onclick="showTip('Water Vapor','Alveolar water vapor pressure used in tissue loading calculations.\n0.0627 bar = Buhlmann standard.\n0.0577 bar = MultiDeco standard.\nPair with Stop Rounding to match target tool.')" style="display:inline-block;line-height:0;vertical-align:middle;margin-left:2px;cursor:pointer;opacity:0.6;"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
+        <label>Water Vapor <span class="tip-icon" onclick="showTip('Water Vapor','Alveolar water vapor pressure used in tissue loading calculations.\n0.0627 bar = Buhlmann standard.\n0.0577 bar = MultiDeco standard.\nPair with Stop Rounding to match target tool.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
         <select id="waterVapor" onchange="updateWaterVapor()">
           <option value="0.0627">0.0627 bar (Bühlmann)</option>
           <option value="0.0577" selected>0.0577 bar (MultiDeco)</option>
         </select>
       </div>
       <div class="field">
-        <label>He HT Comp 1 <span onclick="showTip('He Half-Time','Helium half-time for the fastest (compartment 1) tissue.\n\nBaker 1.88 min — canonical VPM-B value (Baker FORTRAN 1998, ApexDeco, MultiDeco).\nBühlmann 1.51 min — Bühlmann 2003 textbook value (Subsurface, Shearwater, DivePro).\n\nRatio to N2 comp 1 (4.0 min):\n  Baker:     4.0 / 1.88 = 2.13\n  Bühlmann:  4.0 / 1.51 = 2.65 (≈ √(28/4), physical diffusion ratio)\n\nPractical difference: negligible for dives >15 min. Only measurable on very short deep bounce dives where fast-compartment He loading is significant.\n\nDefault: Baker 1.88 (matches VPM-B and ApexDeco).')" style="display:inline-block;line-height:0;vertical-align:middle;margin-left:2px;cursor:pointer;opacity:0.6;"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
+        <label>He HT Comp 1 <span class="tip-icon" onclick="showTip('He Half-Time','Helium half-time for the fastest (compartment 1) tissue.\n\nBaker 1.88 min — canonical VPM-B value (Baker FORTRAN 1998, ApexDeco, MultiDeco).\nBühlmann 1.51 min — Bühlmann 2003 textbook value (Subsurface, Shearwater, DivePro).\n\nRatio to N2 comp 1 (4.0 min):\n  Baker:     4.0 / 1.88 = 2.13\n  Bühlmann:  4.0 / 1.51 = 2.65 (≈ √(28/4), physical diffusion ratio)\n\nPractical difference: negligible for dives >15 min. Only measurable on very short deep bounce dives where fast-compartment He loading is significant.\n\nDefault: Baker 1.88 (matches VPM-B and ApexDeco).')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
         <select id="heHalfTimeMode" onchange="updateHeHalfTime()">
           <option value="baker">1.88 min (Baker / VPM-B)</option>
           <option value="buhl2003" selected>1.51 min (Bühlmann 2003)</option>
@@ -1669,14 +1704,14 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
 
     <div class="form-grid" style="margin-top:10px;">
       <div class="field">
-        <label>N₂ Narcotic <span onclick="showTip('N2 Narcotic','Whether N2 is counted as narcotic when calculating Equivalent Narcotic Depth (END).\nYes = NOAA/IANTD standard.')" style="display:inline-block;line-height:0;vertical-align:middle;margin-left:2px;cursor:pointer;opacity:0.6;"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
+        <label>N₂ Narcotic <span class="tip-icon" onclick="showTip('N2 Narcotic','Whether N2 is counted as narcotic when calculating Equivalent Narcotic Depth (END).\nYes = NOAA/IANTD standard.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
         <select id="n2NarcSel" onchange="setNarcosis('n2', this.value==='yes')">
           <option value="yes" selected>Yes</option>
           <option value="no">No</option>
         </select>
       </div>
       <div class="field">
-        <label>O₂ Narcotic <span onclick="showTip('O2 Narcotic','Whether O2 is counted as narcotic when calculating Equivalent Narcotic Depth (END).\nYes = NOAA/IANTD standard.\nNo = some technical agencies exclude O2.')" style="display:inline-block;line-height:0;vertical-align:middle;margin-left:2px;cursor:pointer;opacity:0.6;"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
+        <label>O₂ Narcotic <span class="tip-icon" onclick="showTip('O2 Narcotic','Whether O2 is counted as narcotic when calculating Equivalent Narcotic Depth (END).\nYes = NOAA/IANTD standard.\nNo = some technical agencies exclude O2.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
         <select id="o2NarcSel" onchange="setNarcosis('o2', this.value==='yes')">
           <option value="yes" selected>Yes</option>
           <option value="no">No</option>
@@ -1699,7 +1734,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
         </select>
       </div>
       <div class="field">
-        <label>O₂ @ MOD <span onclick="showTip('O2 @ MOD','Controls how pure O2 (100%) MOD is calculated.\n\n• Allow at MOD: O2 is always usable at 6m — real-world standard (Shearwater, V-Planner).\n• Strict ppO2: O2 subject to the ppO2 limit check; at 1.6 bar limit it still yields 6m, but at 1.5 bar it gives 5m.')" style="display:inline-block;line-height:0;vertical-align:middle;margin-left:2px;cursor:pointer;opacity:0.6;"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
+        <label>O₂ @ MOD <span class="tip-icon" onclick="showTip('O2 @ MOD','Controls how pure O2 (100%) MOD is calculated.\n\n• Allow at MOD: O2 is always usable at 6m — real-world standard (Shearwater, V-Planner).\n• Strict ppO2: O2 subject to the ppO2 limit check; at 1.6 bar limit it still yields 6m, but at 1.5 bar it gives 5m.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
         <select id="o2AtMODSelect" onchange="setAllowO2AtMOD(this.value === 'on');updateGasMODDisplays()">
           <option value="on" selected>Allow at MOD</option>
           <option value="off">Strict ppO&#8322;</option>
@@ -1737,7 +1772,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
           <input type="number" id="botTrimixHe" value="35" min="0" max="90" step="1" oninput="updateGasMODDisplays();if(window._lastContingency) calcContingency()" placeholder="35">
         </div>
         <div class="field">
-          <label>MOD <span onclick="showTip('MOD','Maximum Operating Depth — calculated from the selected gas O2 fraction and current ppO2 limit. Not table-based.')" style="display:inline-block;line-height:0;vertical-align:middle;margin-left:2px;cursor:pointer;opacity:0.6;"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
+          <label>MOD <span class="tip-icon" onclick="showTip('MOD','Maximum Operating Depth — calculated from the selected gas O2 fraction and current ppO2 limit. Not table-based.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
           <input type="text" id="botMODDisplay" readonly style="cursor:default;" placeholder="Enter depth & gas" title="Calculated MOD using selected Bottom Gas and Max Bottom ppO₂">
         </div>
         <div class="field"><label>Cyl. Size (L)</label><input type="number" id="cylBot_size" value="12" min="1" max="30" step="0.5" placeholder="12"></div>
@@ -1837,7 +1872,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
             <input type="text" id="dg1SwitchDepthDisplay" class="switch-depth-display" readonly style="cursor:default;" placeholder="Calculate to see">
           </div>
           <div class="field">
-            <label>MOD <span onclick="showTip('MOD','Maximum Operating Depth — calculated from the selected gas O2 fraction and current ppO2 limit. Not table-based.')" style="display:inline-block;line-height:0;vertical-align:middle;margin-left:2px;cursor:pointer;opacity:0.6;"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
+            <label>MOD <span class="tip-icon" onclick="showTip('MOD','Maximum Operating Depth — calculated from the selected gas O2 fraction and current ppO2 limit. Not table-based.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
             <input type="text" id="dg1MODDisplay" readonly style="cursor:default;" placeholder="Select gas" title="Calculated MOD using selected gas and Max Deco ppO₂">
           </div>
           <div class="field"><label>Cyl. Size (L)</label><input type="number" id="cylDg1_size" value="11" min="1" max="30" step="0.5" placeholder="11"></div>
@@ -1879,7 +1914,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
             <input type="text" id="dg2SwitchDepthDisplay" class="switch-depth-display" readonly style="cursor:default;" placeholder="Calculate to see">
           </div>
           <div class="field">
-            <label>MOD <span onclick="showTip('MOD','Maximum Operating Depth — calculated from the selected gas O2 fraction and current ppO2 limit. Not table-based.')" style="display:inline-block;line-height:0;vertical-align:middle;margin-left:2px;cursor:pointer;opacity:0.6;"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
+            <label>MOD <span class="tip-icon" onclick="showTip('MOD','Maximum Operating Depth — calculated from the selected gas O2 fraction and current ppO2 limit. Not table-based.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
             <input type="text" id="dg2MODDisplay" readonly style="cursor:default;" placeholder="Select gas" title="Calculated MOD using selected gas and Max Deco ppO₂">
           </div>
           <div class="field"><label>Cyl. Size (L)</label><input type="number" id="cylDg2_size" value="11" min="1" max="30" step="0.5" placeholder="11"></div>
@@ -1906,7 +1941,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
         <input type="checkbox" id="vpmRepMode" onchange="updateVpmRepUI()"
           style="width:14px;height:14px;accent-color:var(--accent);cursor:pointer;">
         <span>Repetitive VPM Dive</span>
-        <span onclick="showTip('Repetitive VPM Dive','Carries both tissue gas pressures AND bubble state (adjusted critical radii) from the previous VPM dive.\n\nTissue loading: N₂/He off-gasses during surface interval (Haldane).\n\nBubble state: compressed nuclei partially regenerate toward altitude-adjusted initial radii during surface interval (REGEN_TIME = 14 days), then carry into this dive — producing correct VPM repetitive dive behaviour.\n\nNote: only available for VPM-B and VPM-B+GFS models.')" style="display:inline-block;line-height:0;vertical-align:middle;cursor:pointer;opacity:0.6;">
+        <span class="tip-icon" onclick="showTip('Repetitive VPM Dive','Carries both tissue gas pressures AND bubble state (adjusted critical radii) from the previous VPM dive.\n\nTissue loading: N₂/He off-gasses during surface interval (Haldane).\n\nBubble state: compressed nuclei partially regenerate toward altitude-adjusted initial radii during surface interval (REGEN_TIME = 14 days), then carry into this dive — producing correct VPM repetitive dive behaviour.\n\nNote: only available for VPM-B and VPM-B+GFS models.')">
           <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg>
         </span>
       </label>
@@ -2170,7 +2205,8 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     <button class="tab-btn"        id="tool-maxdepth"  onclick="switchTool('maxdepth',this)">Max Depth</button>
     <button class="tab-btn"        id="tool-avgdepth"  onclick="switchTool('avgdepth',this)">Avg Depth</button>
     <button class="tab-btn"        id="tool-converter" onclick="switchTool('converter',this)">Unit Converter</button>
-    <button onclick="toggleReference()" title="Reference & Info" style="margin-left:auto;flex-shrink:0;background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;color:var(--muted);transition:all 0.2s;display:inline-flex;align-items:center;justify-content:center;" onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'"><svg width="14" height="14" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></button>
+    <button class="tab-btn"        id="tool-knowledge" onclick="switchTool('knowledge',this)">Knowledge</button>
+    <button class="tip-icon tip-btn" onclick="toggleReference()" title="Reference & Info"><svg width="14" height="14" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></button>
   </div>
 
   <!-- ── MOD Calculator ── -->
@@ -2435,6 +2471,74 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     </div>
   </div>
 
+  <!-- ════════════════════ KNOWLEDGE PANEL ════════════════════ -->
+  <div id="tool-panel-knowledge" style="display:none;">
+    <div class="card">
+      <div class="card-title">📚 Knowledge Base</div>
+      <div class="info-box" style="margin-bottom:4px;">Technical references, practical diver notes, and links to primary sources. Use the source links to study the algorithms independently.</div>
+
+      <!-- ── Practical Diver Notes ─────────────────────────────── -->
+      <div style="margin-top:16px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--tip);margin-bottom:10px;">Practical Diver Notes — MultiDeco FAQ</div>
+        <ul style="font-size:12px;line-height:2;padding-left:18px;color:var(--text);">
+          <li><strong>Follow run times.</strong> Stop times include transit between stops.</li>
+          <li><strong>No extra deep stops.</strong> Adding deep stops significantly increases total obligation.</li>
+          <li><strong>Extending shallow stops (6 m, 3 m) is safe.</strong></li>
+          <li><strong>Ascent rate deviations are most critical in the deep deco zone.</strong></li>
+          <li><strong>Lost deco gas:</strong> wait the time difference at current depth, then follow new plan.</li>
+          <li><strong>Conservatism:</strong> use +2 or +3 for most divers. +3 or +4 for cold, strenuous, multi-day, or prior DCS history.</li>
+          <li><strong>Do not fake VPM conservatism</strong> by inflating depth/time — this breaks the repetitive dive calculations.</li>
+          <li><strong>High O₂ deco mixes after trimix</strong> generally do not accelerate deco. Helium deco mixes close to the switch point do accelerate it.</li>
+          <li><strong>First deco gas switch</strong> works best when at or just above the first deco stop depth.</li>
+        </ul>
+      </div>
+
+      <!-- ── Algorithm Comparison ──────────────────────────────── -->
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--tip);margin-bottom:10px;">Algorithm Comparison</div>
+        <div class="info-box"><strong>Bühlmann ZH-L16C + GF</strong> — dissolved gas model, tunable via GF Low/High. Every major dive computer uses it. Best for any technical dive where you want predictable, well-understood behaviour.</div>
+        <div class="info-box"><strong>VPM-B</strong> — bubble mechanics model (Yount & Hoffman). Tracks microscopic bubble nuclei rather than dissolved gas. Tends to give deeper first stops and shorter shallow stops. Best for divers who prefer a bubble-focused approach.<br><br><em>⚠ Conservatism order is profile-dependent:</em> on deep/long trimix dives GF is usually more conservative (longer TTS); on short/shallow dives VPM-B can match or exceed GF. Compare TTS for your specific dive.</div>
+        <div class="info-box"><strong>VPM-B / GFS</strong> — hybrid: VPM-B bubble mechanics for deep/mid stops, Bühlmann GF High ceiling at shallow stops. Useful when VPM-B's shallow stops feel too long.</div>
+      </div>
+
+      <!-- ── VPM-B Physics ─────────────────────────────────────── -->
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--tip);margin-bottom:10px;">VPM-B Physics</div>
+        <div class="info-box"><strong>Critical radii:</strong> each tissue has initial bubble nuclei radii for N₂ and He. Descent compresses (crushes) them. During ascent, allowable supersaturation is derived from bubble mechanics — smaller radii = more conservative stops.</div>
+        <div class="info-box"><strong>Altitude correction:</strong> at altitude, reduced surface pressure expands initial radii by (P_SL / P_alt)^⅓ — making nuclei larger and requiring more conservative ascents. Applied automatically when altitude > 0.</div>
+        <div class="info-box"><strong>Repetitive dives:</strong> bubble nuclei regenerate during surface interval (τ ≈ 14 days). Use the VPM Repetitive mode to carry both tissue loading and bubble state between dives for accurate repetitive dive planning.</div>
+      </div>
+
+      <!-- ── Primary Sources ───────────────────────────────────── -->
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--tip);margin-bottom:10px;">Primary Sources</div>
+        <div style="font-size:12px;line-height:2;color:var(--text);">
+          <div style="margin-bottom:8px;">📄 <strong>Bühlmann (1983, 2003)</strong> — <em>Decompression–Decompression Sickness</em> — the original ZHL-16 tissue model and M-value tables.<br><a href="https://link.springer.com/book/10.1007/978-3-642-61953-4" target="_blank" rel="noopener noreferrer" style="color:var(--tip);text-decoration:underline;font-size:11px;">springer.com — Bühlmann 1984</a></div>
+          <div style="margin-bottom:8px;">📄 <strong>Baker (1998)</strong> — <em>Understanding M-values</em> — introduced Gradient Factors as a practical safety buffer on Bühlmann M-values.<br><a href="https://www.nigelhewitt.co.uk/diving/maths/mvalues.pdf" target="_blank" rel="noopener noreferrer" style="color:var(--tip);text-decoration:underline;font-size:11px;">nigelhewitt.co.uk — Baker 1998 (PDF)</a></div>
+          <div style="margin-bottom:8px;">📄 <strong>Yount & Hoffman (1986)</strong> — <em>On the use of a bubble formation model to calculate diving tables</em> — the original VPM paper.<br><a href="https://www.sciencedirect.com/science/article/abs/pii/0014480086901534" target="_blank" rel="noopener noreferrer" style="color:var(--tip);text-decoration:underline;font-size:11px;">ScienceDirect — Yount &amp; Hoffman 1986</a></div>
+          <div style="margin-bottom:8px;">📄 <strong>Baker (1998) VPM-B FORTRAN</strong> — canonical VPM-B implementation with conservatism levels 0–5.<br><a href="https://www.tahdiving.com/vpmb/" target="_blank" rel="noopener noreferrer" style="color:var(--tip);text-decoration:underline;font-size:11px;">tahdiving.com — VPM-B Reference</a></div>
+          <div style="margin-bottom:8px;">📄 <strong>Wienke (2002)</strong> — <em>Technical Diving in Depth</em> — extended VPM theory, trimix, altitude, repetitive dives.<br><a href="https://www.springer.com/gp/book/9783540431282" target="_blank" rel="noopener noreferrer" style="color:var(--tip);text-decoration:underline;font-size:11px;">springer.com — Wienke 2002</a></div>
+          <div style="margin-bottom:8px;">📄 <strong>US Navy Diving Manual Rev 7 (2016)</strong> — standard tables, O₂ toxicity limits, CNS/OTU reference values.<br><a href="https://www.navsea.navy.mil/Portals/103/Documents/SUPSALV/Diving/US%20DIVING%20MANUAL_REV7.pdf" target="_blank" rel="noopener noreferrer" style="color:var(--tip);text-decoration:underline;font-size:11px;">navsea.navy.mil — US Navy Diving Manual Rev 7 (PDF)</a></div>
+          <div style="margin-bottom:8px;">📄 <strong>Doolette & Mitchell (2003)</strong> — <em>Biophysical basis for inner ear decompression sickness</em> — He fast tissue physiology.<br><a href="https://pubmed.ncbi.nlm.nih.gov/12851511/" target="_blank" rel="noopener noreferrer" style="color:var(--tip);text-decoration:underline;font-size:11px;">PubMed — Doolette &amp; Mitchell 2003</a></div>
+        </div>
+      </div>
+
+      <!-- ── LSP Documentation ─────────────────────────────────── -->
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--tip);margin-bottom:10px;">LSP D-Planner Documentation</div>
+        <div style="font-size:12px;line-height:1.8;color:var(--text);">
+          <div style="margin-bottom:10px;">Full technical documentation, algorithm notes, and knowledge base PDF available in the open-source repository.</div>
+          <a href="https://github.com/Three-Cats-LSP/LSP_D-planner" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:var(--surface);border:1px solid var(--border-hi);border-radius:8px;color:var(--text);text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:11px;transition:border-color 0.2s,color 0.2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border-hi)';this.style.color='var(--text)'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.165 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.603-3.369-1.342-3.369-1.342-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/></svg>
+            GitHub · Three-Cats-LSP/LSP_D-planner
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <!-- ════════════════ END KNOWLEDGE PANEL ════════════════════ -->
+
 </div>
 
 
@@ -2624,34 +2728,6 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
       </div>
     </div>
 
-    <div class="card" style="margin-bottom:12px;">
-      <div class="card-title">VPM-B Algorithm</div>
-      <div class="info-box"><strong>Variable Permeability Model — Bubble (VPM-B)</strong> is a bubble-mechanics decompression model developed by Yount & Hoffman. Unlike Bühlmann which tracks dissolved gas in tissues, VPM-B tracks the behaviour of microscopic bubble nuclei (cavitation sites) in tissues.</div>
-      <div class="info-box"><strong>How it works:</strong> Each tissue compartment has initial critical bubble radii for N₂ and He. As pressure increases on descent, bubbles are compressed (crushing pressure). During ascent, allowable supersaturation is calculated from bubble mechanics — smaller radii = more conservative stops.</div>
-      <div class="info-box"><strong>Conservatism 0–5:</strong> Scales the initial bubble radii. Higher conservatism = smaller initial radii = more conservative stops and deeper first stop.
-        <br>&nbsp;• <strong>0</strong> — Standard (ApexDeco default)
-        <br>&nbsp;• <strong>1</strong> — +5% initial radii reduction
-        <br>&nbsp;• <strong>2</strong> — +12%  &nbsp;• <strong>3</strong> — +22%  &nbsp;• <strong>4</strong> — +35%  &nbsp;• <strong>5</strong> — +50%</div>
-      <div class="info-box"><strong>vs Bühlmann:</strong> VPM-B typically gives deeper first stops and shorter shallow stops. Total deco time is often similar or slightly less. VPM-B has no GF Low/High — conservatism replaces that role. No gradient factors are applied.</div>
-    </div>
-
-    <div class="card" style="margin-bottom:12px;">
-      <div class="card-title">VPM-B / GFS (Gradient Factor Surfacing)</div>
-      <div class="info-box"><strong>VPM-B / GFS</strong> is a hybrid model: VPM-B bubble mechanics determine the stop schedule, but GF High (Gradient Factor High) is applied at the last few stops to reduce the shallow stop obligation using a Bühlmann-style M-value blend.</div>
-      <div class="info-box"><strong>Why use it:</strong> Pure VPM-B can produce aggressive shallow stops (especially at last stop). GFS softens this — the last stop and near-surface stops are computed using a Bühlmann M-value ceiling at GF High, which often reduces the 6m last stop time significantly.</div>
-      <div class="info-box"><strong>Settings:</strong> Requires both Conservatism (0–5) AND GF High. GF High only (not GF Low — that's determined by VPM-B bubble mechanics). Typical GF High: 80–90.</div>
-      <div class="info-box"><strong>Practical difference:</strong> VPM-B/GFS ≈ VPM-B but with a faster, less aggressive surface ascent. Useful when you prefer bubble mechanics for the deep/mid-water stops but want Bühlmann-style shallow clearance.</div>
-    </div>
-
-    <div class="card" style="margin-bottom:12px;">
-      <div class="card-title">Algorithm Comparison</div>
-      <div class="info-box">
-        <strong>Bühlmann ZH-L16C + GF</strong> — dissolved gas model, fully tunable via GF Low/High. Widely validated, every major dive computer uses it. Best for: any technical dive where you want predictable, well-understood behaviour.<br><br>
-        <strong>VPM-B</strong> — bubble mechanics model. Tends to give deeper first stops, shorter shallow stops. Best for: divers who prefer a bubble-focused approach and are comfortable with the model.<br><br>
-        <strong>VPM-B / GFS</strong> — hybrid. VPM-B for deep stops + Bühlmann clearance at surface. Best for: when VPM-B's shallow stops feel too long.
-      </div>
-    </div>
-
     <div style="margin-top:24px; padding-top:24px; border-top: 1px solid var(--border); text-align:center;">
       <div class="card-title">Follow Three Cats LSP Diving Team</div>
       <p style="color: var(--muted); font-size:13px; margin: 8px 0;">Scan QR code to visit Instagram</p>
@@ -2659,7 +2735,13 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://www.instagram.com/threecats_lsp" alt="Instagram QR Code" style="width: 140px; height: 140px; border: 3px solid var(--muted); border-radius: 8px; padding: 6px; background: white;"/>
       </a>
       <p style="color: var(--muted); font-size:12px; margin-top:8px;">@threecats_lsp</p>
-      <p style="color: var(--muted); font-size:10px; margin-top:4px; letter-spacing:1px; opacity:0.6;" id="appVersionLabel">Version 2.6</p>
+      <div style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:10px;">
+        <a href="https://github.com/Three-Cats-LSP/LSP_D-planner" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:7px;padding:7px 14px;background:var(--surface);border:1px solid var(--border-hi);border-radius:8px;color:var(--muted);text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:11px;transition:border-color 0.2s,color 0.2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border-hi)';this.style.color='var(--muted)'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.165 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.603-3.369-1.342-3.369-1.342-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/></svg>
+          Open Source · GitHub
+        </a>
+      </div>
+      <p style="color: var(--muted); font-size:10px; margin-top:12px; letter-spacing:1px; opacity:0.6;" id="appVersionLabel">Version 2.6</p>
     </div>
   </div>
 
@@ -2667,7 +2749,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
 </div>
 
 
-<!-- Instagram Footer -->
+<!-- Footer: Instagram + GitHub -->
 <div style="text-align: center; padding: 4px 24px 24px; background: transparent; border-top: none; margin-top: -2px;">
   <a href="https://www.instagram.com/threecats_lsp" target="_blank" rel="noopener noreferrer" title="Follow @threecats_lsp on Instagram" style="display: inline-block; transition: transform 0.2s ease, opacity 0.2s ease; cursor: pointer; opacity: 0.8;" onmouseover="this.style.transform='scale(1.15)'; this.style.opacity='1'" onmouseout="this.style.transform='scale(1)'; this.style.opacity='0.8'">
     <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2689,6 +2771,9 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
       <!-- Flash dot -->
       <circle cx="36" cy="12" r="1.8" fill="url(#instaGradient)"/>
     </svg>
+  </a>
+  <a href="https://github.com/Three-Cats-LSP/LSP_D-planner" target="_blank" rel="noopener noreferrer" title="View source on GitHub" style="display:inline-block;margin-left:14px;vertical-align:top;opacity:0.7;transition:opacity 0.2s,transform 0.2s;" onmouseover="this.style.opacity='1';this.style.transform='scale(1.15)'" onmouseout="this.style.opacity='0.7';this.style.transform='scale(1)'">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="var(--muted)" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.165 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.603-3.369-1.342-3.369-1.342-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/></svg>
   </a>
   <p id="mainVersionLabel" style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:10px;margin-top:6px;letter-spacing:1px;opacity:0.5;"></p>
 </div>
@@ -3309,7 +3394,8 @@ function setDecoAlgorithm(model, skipSave) {
         <option value="hi/85"${curHi===85||(!curHi)?' selected':''}>85</option>
         <option value="hi/90"${curHi===90?' selected':''}>90</option>
         <option value="hi/95"${curHi===95?' selected':''}>95</option>
-        <option value="hi/100"${curHi===100?' selected':''}>100</option>`;
+        <option value="hi/100"${curHi===100?' selected':''}>100</option>
+        <option value="custom">Custom…</option>`;
     } else {
       // Bühlmann: Lo/Hi presets
       gfLabel.textContent = 'GF:';
@@ -3332,8 +3418,18 @@ function setDecoAlgorithm(model, skipSave) {
   // GF row: show for Bühlmann and VPM-B/GFS, hide for VPM-B
   const showGF = isZHLCGF || isVPMBGFS;
   document.getElementById('gfPresetsRow').style.display = showGF ? 'flex' : 'none';
-  document.getElementById('gfCustomRow').style.display  =
-    (showGF && document.getElementById('gfPresetSelect')?.value === 'custom') ? 'flex' : 'none';
+  const customRowEl   = document.getElementById('gfCustomRow');
+  const isCustomSel   = document.getElementById('gfPresetSelect')?.value === 'custom';
+  if (customRowEl) {
+    customRowEl.style.display = (showGF && isCustomSel) ? 'flex' : 'none';
+    // When switching to Bühlmann, restore Low + separator visibility
+    if (isZHLCGF) {
+      const lowEl = document.getElementById('gfLowInput');
+      const sepEl = customRowEl.querySelector('span');
+      if (lowEl) lowEl.style.display = '';
+      if (sepEl) sepEl.style.display = '';
+    }
+  }
 
   // Conservatism row: show for VPM-B and VPM-B/GFS
   document.getElementById('conservatismRow').style.display = isVPM ? 'flex' : 'none';
@@ -3382,8 +3478,32 @@ function setDecoAlgorithm(model, skipSave) {
 
 function handleGFSelect(val) {
   const customRow = document.getElementById('gfCustomRow');
-  if (val === 'custom') {
-    if (customRow) customRow.style.display = 'flex';
+  const isVPMBGFSMode = document.getElementById('algorithmSelect')?.value === 'VPMB_GFS';
+  if (val === 'custom' && isVPMBGFSMode) {
+    // VPM-B/GFS custom: show only GF High (Low is determined by VPM-B bubble mechanics)
+    if (customRow) {
+      customRow.style.display = 'flex';
+      const lowEl  = document.getElementById('gfLowInput');
+      const sepEl  = customRow.querySelector('span');
+      const highEl = document.getElementById('gfHighInput');
+      if (lowEl)  lowEl.style.display  = 'none';
+      if (sepEl)  sepEl.style.display  = 'none';
+      if (highEl) {
+        highEl.style.display = '';
+        const savedHigh = localStorage.getItem('gfCustomHigh');
+        if (savedHigh) highEl.value = savedHigh;
+      }
+      setCustomGF();
+    }
+  } else if (val === 'custom') {
+    if (customRow) {
+      customRow.style.display = 'flex';
+      // Bühlmann custom: show both Low + separator + High
+      const lowEl = document.getElementById('gfLowInput');
+      const sepEl = customRow.querySelector('span');
+      if (lowEl) lowEl.style.display = '';
+      if (sepEl) sepEl.style.display = '';
+    }
     const savedLow  = localStorage.getItem('gfCustomLow');
     const savedHigh = localStorage.getItem('gfCustomHigh');
     const lowInput  = document.getElementById('gfLowInput');
@@ -3418,12 +3538,31 @@ function setGF(low, high) {
   // Sync GF dropdown
   const sel = document.getElementById('gfPresetSelect');
   if (sel) {
-    const key = `${low}/${high}`;
-    const opt = Array.from(sel.options).find(o => o.value === key);
-    sel.value = opt ? key : 'custom';
+    const isVPMBGFS = document.getElementById('algorithmSelect')?.value === 'VPMB_GFS';
+    let opt;
+    if (isVPMBGFS) {
+      // Match hi/N format for VPM-B/GFS
+      opt = Array.from(sel.options).find(o => o.value === `hi/${high}`);
+    } else {
+      opt = Array.from(sel.options).find(o => o.value === `${low}/${high}`);
+    }
+    sel.value = opt ? opt.value : 'custom';
     const customRow = document.getElementById('gfCustomRow');
-    if (customRow) customRow.style.display = opt ? 'none' : 'flex';
-    if (!opt && lowInput && highInput) { lowInput.value = low; highInput.value = high; }
+    if (!opt) {
+      if (customRow) customRow.style.display = 'flex';
+      if (isVPMBGFS) {
+        // Custom for VPM-B/GFS: only show High
+        const lowEl = document.getElementById('gfLowInput');
+        const sepEl = customRow?.querySelector('span');
+        if (lowEl) lowEl.style.display = 'none';
+        if (sepEl) sepEl.style.display = 'none';
+        if (highInput) highInput.value = high;
+      } else {
+        if (lowInput && highInput) { lowInput.value = low; highInput.value = high; }
+      }
+    } else {
+      if (customRow) customRow.style.display = 'none';
+    }
   }
 
   // Legacy button sync (in case gf-btn elements still exist elsewhere)
@@ -3643,6 +3782,10 @@ function setUnits(u) {
   allCylSize.forEach(id => {
     convertNumericInput(id, v => (v * CUFT_PER_L).toFixed(1).replace(/\.0$/, ''), v => Math.round(v / CUFT_PER_L), 50, 1766);
   });
+
+  // ── SAC conversion (L/min ↔ cu ft/min) ──
+  convertNumericInput('sacBottom', v => (v * CUFT_PER_L).toFixed(2).replace(/\.0+$/, ''), v => Math.round(v / CUFT_PER_L), 60, 2.12);
+  convertNumericInput('sacDeco',   v => (v * CUFT_PER_L).toFixed(2).replace(/\.0+$/, ''), v => Math.round(v / CUFT_PER_L), 40, 1.41);
 
   const du = u === 'metric' ? 'm' : 'ft';
   setTxt('depthLbl', `Depth (${du})`);
@@ -3936,7 +4079,7 @@ function runPlanner() {
   if (algo === 'padi') {
     const fO2 = 1 - fN2;
     const isNitrox = mix !== 'air';
-    const gasLabel = mix === 'ean32' ? 'EAN 32' : mix === 'ean36' ? 'EAN 36' : mix === 'custom' ? `EAN ${Math.round(fO2*100)}` : 'Air';
+    const gasLabel = mix === 'ean32' ? '32/00' : mix === 'ean36' ? '36/00' : mix === 'custom' ? `${Math.round(fO2*100)}/00` : 'Air';
     const ndl = padiNDL(depthM, mix);
     const rem = Math.max(0, ndl-bt);
     const group = padiGroup(depthM, bt, mix);
@@ -4202,15 +4345,15 @@ function getDecoGasFractions(selectId, customId, trimixO2Id, trimixHeId) {
   return null;
 }
 
-// Get trimix gas label: "18/45" for trimix, "EAN50" for nitrox, "AIR" for air, "100% O2"
+// Gas label format: named labels for common gases, O2/He for everything else
+// Examples: "Air" = 21/00, "50/00" = EAN50, "21/35" = trimix, "100%" = pure O2
 function getGasLabel(fO2, fHe) {
   if (fO2 === null || fO2 === undefined) return null;
+  if (fO2 >= 0.995) return '100%';
   const o2pct = Math.round(fO2 * 100);
   const hePct = Math.round((fHe || 0) * 100);
-  if (fO2 >= 0.995) return '100% O2';
-  if (hePct > 0) return `${o2pct}/${hePct}`;
-  if (o2pct === 21) return 'AIR';
-  return `EAN${o2pct}`;
+  if (o2pct === 21 && hePct === 0) return 'Air';
+  return `${o2pct}/${String(hePct).padStart(2, '0')}`;
 }
 
 function getDecoGasFrac(selectId, customId) {
@@ -4516,10 +4659,10 @@ function runVPMSchedule(depthM, bt, descentRate, ascentRate, decoAscentRate, sur
   // ───────────────────────────────────────────────────────────────────────────
 
   // Render into the existing deco table using the same format as Bühlmann
-  renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct, decoGases, model);
+  renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct, decoGases, model, _vpmBotFracs);
 }
 
-function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct, decoGases, model) {
+function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct, decoGases, model, _vpmBotFracs) {
   const dU = units === 'metric';
   const du = dU ? 'm' : 'ft';
   const plan = result.plan || [];
@@ -4680,20 +4823,21 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
     const depthM2 = parseFloat(depthRaw) || 0;
     const durMin = (() => { const p = stopRaw.split(':'); return p.length===2 ? parseInt(p[0]) + parseInt(p[1])/60 : parseFloat(stopRaw)||0; })();
     if (!durMin || !mixRaw || mixRaw === '-') return;
-    const gasKey = mixRaw === 'AIR' ? 'AIR' : mixRaw.startsWith('EAN') ? mixRaw : mixRaw.startsWith('100') ? '100% O2' : mixRaw;
+    const gasKey = mixRaw; // labels now always in O2/He format (e.g. '50/00', '21/35', '100/00')
     const sac = (ph === 'bottom') ? sacBotVPM : sacDecoVPM;
     const absP = 1.013 + depthM2 * BAR_PER_METRE;
     gasConsVPM[gasKey] = (gasConsVPM[gasKey] || 0) + sac * absP * durMin;
   });
   const gasElVPM = document.getElementById('gasConsumptionSummary');
   if (gasElVPM && Object.keys(gasConsVPM).length) {
-    const cylIds = [['cylBot_size','cylBot_pres'],['cylDg1_size','cylDg1_pres'],['cylDg2_size','cylDg2_pres']];
+    const cylIds = [['cylBot_size','cylBot_pres'],['cylDg1_size','cylDg1_pres'],['cylDg2_size','cylDg2_pres'],['cylTravelGas_size','cylTravelGas_pres']];
     const cylCapVPM = {};
     Object.keys(gasConsVPM).forEach((label, idx) => {
       const [sId,pId] = cylIds[idx] || [];
       if (!sId) return;
       const sz = parseFloat(document.getElementById(sId)?.value) || 0;
-      const pr = parseFloat(document.getElementById(pId)?.value) || 0;
+      const prRaw = parseFloat(document.getElementById(pId)?.value) || 0;
+      const pr = units === 'imperial' ? prRaw / 14.5038 : prRaw;
       if (sz > 0 && pr > 0) cylCapVPM[label] = sz * pr;
     });
     let ghtml = `<div class="card" style="margin-top:8px;"><div class="card-title">Gas Consumption</div><div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-top:0;">`;
@@ -4704,7 +4848,8 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
       const pct = hasInfo ? Math.min(100, Math.round((litres / avail) * 100)) : null;
       const over = hasInfo && litres > avail;
       const col = over ? 'var(--red)' : pct > 80 ? 'var(--yellow)' : 'var(--green)';
-      ghtml += `<div class="stat"><div class="stat-val" style="font-size:18px;color:${over?'var(--red)':'var(--text)'};">${Math.round(litres)} L</div><div class="stat-lbl">${gas.toUpperCase()}</div>${hasInfo?`<div style="margin-top:4px;background:var(--bg-alt);border-radius:3px;height:6px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${col};border-radius:3px;"></div></div><div style="font-size:10px;color:${col};margin-top:2px;font-family:'JetBrains Mono',monospace;">${over?'⚠ SHORT':'✓'} ${Math.round(avail)} L avail</div>`:''}</div>`;
+      const volUnitV = units === 'imperial' ? 'cu ft' : 'L';
+      ghtml += `<div class="stat"><div class="stat-val" style="font-size:18px;color:${over?'var(--red)':'var(--text)'};">${Math.round(litres)} ${volUnitV}</div><div class="stat-lbl">${gas.toUpperCase()}</div>${hasInfo?`<div style="margin-top:4px;background:var(--bg-alt);border-radius:3px;height:6px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${col};border-radius:3px;"></div></div><div style="font-size:10px;color:${col};margin-top:2px;font-family:'JetBrains Mono',monospace;">${over?'⚠ SHORT':'✓'} ${Math.round(avail)} ${volUnitV} avail</div>`:''}</div>`;
       if (over) gwarn += `<div class="alert dang" style="margin-top:6px;"><span>⚠</span><div><strong>${gas.toUpperCase()} runs out</strong> — need ${Math.round(litres)} L, have ${Math.round(avail)} L. Short by <strong>${Math.round(litres-avail)} L</strong>. Reduce BT or add more gas.</div></div>`;
     }
     ghtml += `</div>${gwarn}<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;letter-spacing:1px;">Bottom SAC: ${sacBotVPM} L/min · Deco SAC: ${sacDecoVPM} L/min</div></div>`;
@@ -4785,7 +4930,7 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
     // Gas tags
     const bottomGasTagVPM = `<div style="display:inline-flex;align-items:center;gap:6px;background:#ffffff;border:2px solid #4169E1;border-radius:16px;padding:3px 10px;font-size:11px;color:#111111;font-weight:700;"><span style="color:#4169E1;font-size:10px;font-weight:700;">Bottom:</span> <strong>${gasLabel} — ${bottomO2pct}% O₂ @ surface→${rawDdisp}${du}</strong></div>`;
     const decoGasTagsVPM = decoGases.map((dg, i) => {
-      const lbl = dg.o2 >= 99 ? '100% O2' : `EAN${dg.o2}`;
+      const lbl = dg.o2 >= 99 ? '100%' : (dg.o2 === 21 && !dg.he) ? 'Air' : `${dg.o2}/${String(dg.he || 0).padStart(2,'0')}`;
       const switchD = dg.o2 >= 99 ? 6 : Math.floor(((settings.ppO2Deco || 1.6) / (dg.o2/100) - 1.013) / (dU ? BAR_PER_METRE : BAR_PER_METRE * 0.3048) / (dU ? 1 : 3.28084));
       const switchDdisp = dU ? Math.max(3, Math.floor(switchD/3)*3) : Math.max(10, Math.floor(switchD/10)*10);
       return `<div style="display:inline-flex;align-items:center;gap:6px;background:#ffffff;border:2px solid #4169E1;border-radius:16px;padding:3px 10px;font-size:11px;color:#111111;font-weight:600;"><span style="color:#4169E1;font-size:10px;font-weight:700;">Deco:</span> <strong>${lbl} — ${dg.o2}% O₂ @ ${switchDdisp}${du}</strong></div>`;
@@ -6536,7 +6681,7 @@ function addDecoGasCard() {
         <input type="text" id="dg${idx}SwitchDepthDisplay" class="switch-depth-display" readonly style="cursor:default;" placeholder="Calculate to see">
       </div>
       <div class="field">
-        <label>MOD <span onclick="showTip('MOD','Maximum Operating Depth — calculated from the selected gas O2 fraction and current ppO2 limit. Not table-based.')" style="display:inline-block;line-height:0;vertical-align:middle;margin-left:2px;cursor:pointer;opacity:0.6;"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" style="display:inline-block;vertical-align:middle;" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
+        <label>MOD <span class="tip-icon" onclick="showTip('MOD','Maximum Operating Depth — calculated from the selected gas O2 fraction and current ppO2 limit. Not table-based.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></label>
         <input type="text" id="dg${idx}MODDisplay" readonly style="cursor:default;" placeholder="Select gas" title="Calculated MOD using selected gas and Max Deco ppO₂">
       </div>
       <div class="field"><label>Cyl. Size (L)</label><input type="number" id="cylDg${idx}_size" value="11" min="1" max="30" step="0.5" placeholder="11"></div>
@@ -6587,11 +6732,10 @@ function getTravelGasInfo() {
     fN2 = (100 - Math.min(40, Math.max(16, o2))) / 100;
   } else fN2 = FN2_AIR;
 
-  const label = mix === 'air' ? 'AIR'
-    : mix === 'ean32' ? 'EAN32'
-    : mix === 'ean36' ? 'EAN36'
-    : mix === 'custom' ? 'TRAVEL' + Math.round((1-fN2)*100)
-    : 'TRAVEL';
+  // Uniform O2/He format for travel gas label
+  const _trvO2 = mix === 'air' ? 21 : mix === 'ean32' ? 32 : mix === 'ean36' ? 36
+    : mix === 'custom' ? Math.round((1-fN2)*100) : 21;
+  const label = _trvO2 === 21 ? 'Air' : _trvO2 >= 99 ? '100%' : `${_trvO2}/00`;
 
   const mode = document.getElementById('travelGasSwitchMode')?.value || 'auto';
   const ppO2Bot = parseFloat(document.getElementById('ppo2Bottom')?.value) || 1.4;
@@ -7496,6 +7640,7 @@ function runDecoSchedule() {
       ['cylBot_size','cylBot_pres'],
       ['cylDg1_size','cylDg1_pres'],
       ['cylDg2_size','cylDg2_pres'],
+      ['cylTravelGas_size','cylTravelGas_pres'],
     ];
     const cylCapacity = {}; // gas label → available litres
     gasLabels.forEach((label, idx) => {
@@ -7520,6 +7665,7 @@ function runDecoSchedule() {
       const pct      = hasInfo ? Math.min(100, Math.round((litres / avail) * 100)) : null;
       const over     = hasInfo && litres > avail;
       const col      = over ? 'var(--red)' : pct > 80 ? 'var(--yellow)' : 'var(--green)';
+      const volUnitV = units === 'imperial' ? 'cu ft' : 'L';
 
       html += `<div class="stat">
         <div class="stat-val" style="font-size:18px;color:${over?'var(--red)':'var(--text)'};">${Math.round(litres)} L</div>
@@ -9155,17 +9301,8 @@ function calcBestMix() {
   const actualPPO2 = ((o2clamped / 100) * ata).toFixed(2);
   const col = o2clamped > 40 ? 'var(--yellow)' : 'var(--accent)';
 
-  // Gas name
-  let name = 'Custom';
-  if (o2clamped === 21)       name = 'AIR';
-  else if (o2clamped === 32)  name = 'EAN 32';
-  else if (o2clamped === 36)  name = 'EAN 36';
-  else if (o2clamped === 40)  name = 'EAN 40';
-  else if (o2clamped === 50)  name = 'EAN 50';
-  else if (o2clamped === 80)  name = 'EAN 80';
-  else if (o2clamped === 100) name = 'O₂';
-  else if (o2clamped >= 22 && o2clamped <= 40) name = 'EAN ' + o2clamped;
-  else name = o2clamped + '% O₂';
+  // Gas name — uniform format: "100%" for pure O2, "O2/He" for everything else
+  const name = o2clamped >= 99 ? '100%' : o2clamped === 21 ? 'Air' : o2clamped + '/00';
 
   document.getElementById('bestMixResult').textContent    = o2clamped + '%';
   document.getElementById('bestMixResult').style.color    = col;
@@ -9191,7 +9328,7 @@ function calcMaxDepth() {
 
 // Init tools on tab open
 function switchTool(name, btn) {
-  ['mod','bestmix','maxdepth','avgdepth','converter'].forEach(t => {
+  ['mod','bestmix','maxdepth','avgdepth','converter','knowledge'].forEach(t => {
     document.getElementById('tool-panel-' + t).style.display = t === name ? 'block' : 'none';
     document.getElementById('tool-' + t).classList.toggle('active', t === name);
   });
@@ -9473,16 +9610,16 @@ function buildExportText(mode) {
     const lastStop    = document.getElementById('lastDecoStop')?.value || '-';
     const decoStep    = document.getElementById('decoStep')?.value    || '-';
 
-    // ── helper: shorten mix names for table ──
+    // ── helper: shorten mix names for table (trimix-aware) ──
     const shortMix = m => {
       const s = (m||'').trim();
-      if (!s || /air/i.test(s) || s.includes('21%')) return 'AIR';
-      if (s.includes('100%') || /^100/i.test(s) || s === '100% O2' || s === '100% O₂') return '100% O2';
-      // EAN 50 → 50%, EAN50 → 50%, 50% → 50%
-      const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/);
-      if (ean) return ean[1] + '%';
-      const pct = s.match(/(\d+)%/);
-      if (pct) return pct[1] + '%';
+      if (!s) return '-';
+      if (/^\d+\/\d+$/.test(s)) return s; // O2/He format already
+      if (s === '100%') return '100%';          // pure O2
+      if (/air/i.test(s)) return 'Air';
+      if (/^100/i.test(s)) return '100%';       // legacy '100% O2' fallback
+      const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/); if (ean) return ean[1] + '/00';
+      const pct = s.match(/(\d+)%/); if (pct) return pct[1] + '/00';
       return s;
     };
 
@@ -9549,17 +9686,51 @@ function buildExportText(mode) {
       : decoModelSel === 'VPMB'
         ? `Conservatism +${consVal}`
         : `GF Hi ${gfHigh}  Conservatism +${consVal}`;
+    // ── bottom gas: read fractions directly for accurate trimix label ──
+    const _expBotFracs = getBottomGasFractions();
+    const _expBotLabel = getGasLabel(_expBotFracs.fO2, _expBotFracs.fHe);
+    const _expBotO2    = Math.round(_expBotFracs.fO2 * 100);
+    const _expBotHe    = Math.round((_expBotFracs.fHe || 0) * 100);
+    const _expBotN2    = Math.round(_expBotFracs.fN2 * 100);
+    const _expIsTrimix = _expBotHe > 0;
+    const _expBotDetail = _expIsTrimix
+      ? `${_expBotLabel}  (O2:${_expBotO2}% He:${_expBotHe}% N2:${_expBotN2}%)`
+      : _expBotLabel;
+
+    // ── He half-time mode (VPM only) ──
+    const _heHtMode = document.getElementById('heHalfTimeMode')?.value || 'buhlmann2003';
+    const _heHtLabel = _heHtMode === 'baker' ? 'Baker 1.88 min' : 'Buhlmann 2003 1.51 min';
+
+    // ── VPM altitude radii factor ──
+    const _expSurfP = 1.01325 * Math.exp(-(altM) / 8434);
+    const _expAltFactor = Math.pow(1.01325 / _expSurfP, 1/3);
+    const _expAltRadii = isVPMExport && altM > 0
+      ? `  Radii factor: x${_expAltFactor.toFixed(3)}`
+      : '';
+
+    // ── VPM repetitive dive state ──
+    const _vpmRepEl = document.getElementById('vpmRepMode');
+    const _vpmRepActive = isVPMExport && _vpmRepEl && _vpmRepEl.checked && typeof _lastVPMResult !== 'undefined' && _lastVPMResult;
+    const _vpmSI = _vpmRepActive ? (parseFloat(document.getElementById('vpmSurfaceInterval')?.value || '60')) : null;
+
     lines.push(`Algorithm   : ${algoNameExp}  (${algoSettings})`);
+    if (isVPMExport) lines.push(`He Half-Time: ${_heHtLabel}`);
     lines.push(`Depth       : ${depth}${du}    BT: ${bt} min`);
-    lines.push(`Bottom Gas  : ${shortMix(gas)}    Water: ${density}`);
+    lines.push(`Bottom Gas  : ${_expBotDetail}    Water: ${density}`);
     lines.push(`Descent     : ${descentRate}${du}/min  Ascent: ${ascentRate}${du}/min  Deco: ${decoAscentRate}${du}/min  Surface: ${surfAscentRate}${du}/min`);
     lines.push(`Last Stop   : ${lastStop}${du}  Step: ${decoStep}${du}`);
     const rndTxt = (document.getElementById('stopRounding')?.value||'fractional')==='wholeminute'?'Yes':'No';
     const wvTxt  = parseFloat(document.getElementById('waterVapor')?.value||'0.0627');
     const wvLblTxt = wvTxt<=0.058?'M':'B';
     lines.push(`Stop Rounding: ${rndTxt}  WV: ${wvTxt}(${wvLblTxt})`);
-    lines.push(`Altitude     : ${altLabel}  Acclimatized: ${acclLabel}`);
-    gswInfos.forEach((g, i) => lines.push(`Deco Gas ${i+1}  : ${g.gas} (switch @ ${g.depth})`));
+    lines.push(`Altitude     : ${altLabel}  Acclimatized: ${acclLabel}${_expAltRadii}`);
+    if (_vpmRepActive) lines.push(`Repetitive   : Yes  Surface Interval: ${_vpmSI} min  (bubble state + tissue loading carried)`);
+    gswInfos.forEach((g, i) => {
+      // Re-read deco gas labels properly via getDecoCardFractions for trimix accuracy
+      const _dgCard = getDecoCardFractions ? getDecoCardFractions(i) : null;
+      const _dgLabel = _dgCard ? getGasLabel(_dgCard.fO2, _dgCard.fHe) : g.gas;
+      lines.push(`Deco Gas ${i+1}  : ${_dgLabel} (switch @ ${g.depth})`);
+    });
     lines.push(`Deco Time   : ${decoTimeVal}  Run Time: ${runTimeVal}  CNS: ${cnsExpVal}  OTU: ${otuExpVal}  PrT: ${prtExpVal}`);
     lines.push('');
 
@@ -9640,12 +9811,13 @@ function buildExportText(mode) {
     const bt    = document.getElementById('decoBT')?.value    || '-';
     const shortMix = m => {
       const s = (m||'').trim();
-      if (!s || /air/i.test(s) || s.includes('21%')) return 'AIR';
-      if (s.includes('100%') || /^100/i.test(s)) return '100% O2';
-      const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/);
-      if (ean) return 'EAN' + ean[1];
-      const pct = s.match(/(\d+)%/);
-      if (pct) return pct[1] + '%';
+      if (!s) return '-';
+      if (/^\d+\/\d+$/.test(s)) return s; // O2/He format already
+      if (s === '100%') return '100%';          // pure O2
+      if (/air/i.test(s)) return 'Air';
+      if (/^100/i.test(s)) return '100%';       // legacy '100% O2' fallback
+      const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/); if (ean) return ean[1] + '/00';
+      const pct = s.match(/(\d+)%/); if (pct) return pct[1] + '/00';
       return s;
     };
 
@@ -9673,12 +9845,13 @@ function buildExportText(mode) {
     // shortMix matching main deco export style (number+%)
     const eShortMix = m => {
       const s = (m||'').trim();
-      if (!s || /air/i.test(s) || s.includes('21%')) return 'AIR';
-      if (s.includes('100%') || /^100/i.test(s) || s === '100% O2' || s === '100% O₂') return '100% O2';
-      const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/);
-      if (ean) return ean[1] + '%';
-      const pct = s.match(/(\d+)%/);
-      if (pct) return pct[1] + '%';
+      if (!s) return '-';
+      if (/^\d+\/\d+$/.test(s)) return s; // O2/He format already
+      if (s === '100%') return '100%';          // pure O2
+      if (/air/i.test(s)) return 'Air';
+      if (/^100/i.test(s)) return '100%';       // legacy '100% O2' fallback
+      const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/); if (ean) return ean[1] + '/00';
+      const pct = s.match(/(\d+)%/); if (pct) return pct[1] + '/00';
       return s;
     };
     lines.push(`Scenario    : ${c.label}`);
@@ -9877,9 +10050,12 @@ function buildMessengerText(mode) {
     const du    = units === 'metric' ? 'm' : 'ft';
     const shortMix = m => {
       const s = (m||'').trim().replace(/[📋⚠️🤿]/g,'').trim();
-      if (!s || /air/i.test(s)) return 'AIR';
-      if (/100/.test(s)) return 'O2';
-      const ean = s.match(/(\d+)%/); if (ean) return 'EAN' + ean[1];
+      if (!s) return '-';
+      if (/^\d+\/\d+$/.test(s)) return s; // O2/He format already
+      if (s === '100%') return '100%';          // pure O2
+      if (/air/i.test(s)) return 'Air';
+      if (/^100/i.test(s)) return '100%';       // legacy fallback
+      const ean = s.match(/(\d+)%/); if (ean) return ean[1] + '/00';
       return s;
     };
     const clean = t => t.replace(/[📋⚠️🤿✓⚡🔵🔴🟢🚨⏱ℹ⇄↓↑]/g,'').replace(/\s*·\s*/g,' - ').replace(/ppO₂/g,'ppO2').replace(/O₂/g,'O2').replace(/[—–]/g,'-').replace(/Bühlmann/g,'Buhlmann').replace(/(\d)\s+(m|ft)\b/g,'$1$2').replace(/\s*→\s*/g,'>').replace(/\s+/g,' ').trim();
@@ -9940,12 +10116,13 @@ function buildMessengerText(mode) {
 
   const shortMix = m => {
     const s = (m||'').trim();
-    if (!s || /air/i.test(s) || s.includes('21%')) return 'AIR';
-    if (s.includes('100%') || /^100/i.test(s)) return 'O2';
-    const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/);
-    if (ean) return 'EAN' + ean[1];
-    const pct = s.match(/(\d+)%/);
-    if (pct) return 'EAN' + pct[1];
+    if (!s) return '-';
+    if (/^\d+\/\d+$/.test(s)) return s; // O2/He format already
+    if (s === '100%') return '100%';          // pure O2
+    if (/air/i.test(s)) return 'Air';
+    if (/^100/i.test(s)) return '100%';       // legacy fallback
+    const ean = s.match(/[Ee][Aa][Nn]\s*(\d+)/); if (ean) return ean[1] + '/00';
+    const pct = s.match(/(\d+)%/); if (pct) return pct[1] + '/00';
     return s;
   };
   const clean = t => t
@@ -9960,6 +10137,14 @@ function buildMessengerText(mode) {
     .replace(/\s*→\s*/g, '>')
     .replace(/\s+/g, ' ').trim();
 
+  // ── bottom gas header for messenger (trimix-aware) ──
+  const _msgBotFracs = getBottomGasFractions();
+  const _msgBotLabel = getGasLabel(_msgBotFracs.fO2, _msgBotFracs.fHe);
+  const _msgBotHe    = Math.round((_msgBotFracs.fHe || 0) * 100);
+  const _msgBotDetail = _msgBotHe > 0
+    ? `${_msgBotLabel} (O2:${Math.round(_msgBotFracs.fO2*100)}% He:${_msgBotHe}% N2:${Math.round(_msgBotFracs.fN2*100)}%)`
+    : _msgBotLabel;
+
   const result = [];
   // Algorithm + settings line
   const _algoSel = document.getElementById('algorithmSelect')?.value || 'ZHLC_GF';
@@ -9972,6 +10157,7 @@ function buildMessengerText(mode) {
       ? `${_algoShort} C+${_cons}`
       : `${_algoShort} GFHi${gfH} C+${_cons}`;
   result.push(`${depth}${du} / ${bt}min / ${_algoStr}`);
+  result.push(`Bottom Gas  : ${_msgBotDetail}`);
   const rndVal = (document.getElementById('stopRounding')?.value||'fractional')==='wholeminute'?'Yes':'No';
   const wvVal  = parseFloat(document.getElementById('waterVapor')?.value||'0.0627');
   const wvLbl  = wvVal<=0.058?'M':'B';
@@ -9979,7 +10165,18 @@ function buildMessengerText(mode) {
   const _mAltM   = (typeof altitudeM !== 'undefined') ? altitudeM : 0;
   const _mAltLbl = _mAltM === 0 ? 'Sea level' : `${_mAltM}m`;
   const _mAccl   = (typeof altAcclimatized !== 'undefined') ? altAcclimatized : true;
-  result.push(`Altitude    : ${_mAltLbl}  Acclimatized: ${_mAccl ? 'Yes' : 'No'}`);
+  const _mIsVPM  = _algoSel === 'VPMB' || _algoSel === 'VPMB_GFS';
+  const _mAltSurfP = 1.01325 * Math.exp(-_mAltM / 8434);
+  const _mAltRadii = _mIsVPM && _mAltM > 0
+    ? `  Radii x${Math.pow(1.01325 / _mAltSurfP, 1/3).toFixed(3)}`
+    : '';
+  result.push(`Altitude    : ${_mAltLbl}  Acclimatized: ${_mAccl ? 'Yes' : 'No'}${_mAltRadii}`);
+  // VPM repetitive dive
+  const _mRepEl = document.getElementById('vpmRepMode');
+  if (_mIsVPM && _mRepEl && _mRepEl.checked && typeof _lastVPMResult !== 'undefined' && _lastVPMResult) {
+    const _mSI = parseFloat(document.getElementById('vpmSurfaceInterval')?.value || '60');
+    result.push(`Repetitive  : SI ${_mSI} min (bubble state + tissue carried)`);
+  }
   const _lastStop2    = document.getElementById('lastDecoStop')?.value || '-';
   const _decoStep2    = document.getElementById('decoStep')?.value    || '-';
   const _ascentRate2     = document.getElementById('ascentRate')?.value      || '-';
@@ -11793,6 +11990,11 @@ var appSettings = {
     'botTrimixO2', 'botTrimixHe',
     'dg1TrimixO2', 'dg1TrimixHe', 'dg2TrimixO2', 'dg2TrimixHe',
     'vpmRepMode', 'vpmSurfaceInterval',
+    'sacBottom', 'sacDeco',
+    'cylBot_size', 'cylBot_pres',
+    'cylDg1_size', 'cylDg1_pres',
+    'cylDg2_size', 'cylDg2_pres',
+    'cylTravelGas_size', 'cylTravelGas_pres',
   ],
   
   REC_FIELDS: ['ndlRange', 'ndlUImp', 'ndlUMet'],
