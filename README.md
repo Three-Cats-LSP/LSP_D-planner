@@ -1,6 +1,6 @@
 # LSP D-Planner
 
-**Version 2.6**
+**Version 2.7**
 
 A technical dive decompression planner for mixed-gas deco diving. Runs entirely in the browser — no install, no build step, no server.
 
@@ -153,7 +153,7 @@ To deploy a new version: replace `index.html` on `main`.
 
 ## Changelog
 
-### 2.6 (current)
+### 2.7 (current)
 
 **Post-milestone bug fixes:**
 - **VPM-B/GFS GF UI** — selecting VPM-B/GF hybrid now shows only GF High (not Low+High like Bühlmann); GF Low is irrelevant — VPM-B bubble mechanics determine deep stop depth. Preset dropdown rebuilt with Hi-only values; Custom option shows only GF High input. Switching back to Bühlmann restores full Low+High UI correctly.
@@ -162,7 +162,7 @@ To deploy a new version: replace `index.html` on `main`.
 - **`volUnitV` ReferenceError in Bühlmann loop** — variable was declared only inside the VPM path; Bühlmann gas card render would throw `ReferenceError` every time in any mode. Fixed: declaration added inside the Bühlmann `for...of` loop.
 - **SAC footer unit label** — "Bottom SAC: X L/min" footer in gas cards now switches to `cu ft/min` in imperial mode for both Bühlmann and VPM paths.
 
-**Milestone additions (v2.6):**
+**Milestone additions (v2.7):**
 - **Helium / Trimix support** — full O₂/He/N₂ entry for bottom gas and all deco gases; He half-time selector (Bühlmann 2003 1.51 min / Baker 1.88 min); END display throughout profile
 - **VPM-B altitude-adjusted critical radii** — initial bubble nuclei radii scaled by `(P_SL / P_alt)^(1/3)` at altitude; sea-level dives unchanged
 - **VPM-B repetitive dive bubble state carry** — carries both tissue loading and per-compartment bubble radii between dives with surface-interval regeneration
