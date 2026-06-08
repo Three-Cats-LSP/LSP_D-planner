@@ -2554,6 +2554,19 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
 </div>
 
 <!-- ══════════════════════════════════════
+     CONFIRM MODAL
+══════════════════════════════════════ -->
+<div id="confirmModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9600;background:rgba(0,0,0,0.72);padding:20px;align-items:center;justify-content:center;">
+  <div style="max-width:340px;width:100%;background:var(--surface);border:1px solid var(--accent);border-radius:10px;padding:22px 20px;position:relative;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+    <div id="confirmModalMsg" style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:var(--text);margin-bottom:20px;text-align:center;line-height:1.5;"></div>
+    <div style="display:flex;gap:10px;">
+      <button id="confirmModalCancel" onclick="closeConfirmModal(false)" style="flex:1;padding:9px;background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.5px;">CANCEL</button>
+      <button id="confirmModalOk" onclick="closeConfirmModal(true)" style="flex:1;padding:9px;background:var(--accent);border:1px solid var(--accent);border-radius:6px;cursor:pointer;color:#fff;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.5px;">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
      SETTINGS HELP MODAL
 ══════════════════════════════════════ -->
 <div id="settingsHelpModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9000;background:rgba(0,0,0,0.75);overflow-y:auto;padding:20px;" onclick="if(event.target===this)this.style.display='none'">
@@ -4386,8 +4399,27 @@ function getBottomGasFractions() {
 // "Best" = lowest fN2 (highest O₂) whose floored ppO₂ at curDepthM is within
 // that gas's own ppO2 limit (determined by O2 fraction band via getPPO2Limit).
 // Switch depths are exact meters so gas switches happen precisely at the right ppO₂.
+
+let _confirmCallback = null;
+function showConfirm(message, callback) {
+  _confirmCallback = callback || null;
+  document.getElementById('confirmModalMsg').textContent = message;
+  const modal = document.getElementById('confirmModal');
+  modal.style.display = 'flex';
+}
+function closeConfirmModal(ok) {
+  document.getElementById('confirmModal').style.display = 'none';
+  if (ok && typeof _confirmCallback === 'function') {
+    _confirmCallback();
+  }
+  _confirmCallback = null;
+}
+
 function resetToDefaults() {
-  if (!confirm('Reset all settings to defaults?')) return;
+  showConfirm('Reset all settings to defaults?', () => { _doResetToDefaults(); });
+}
+
+function _doResetToDefaults() {
 
   // ApexDeco-matched defaults
   const defaults = {
