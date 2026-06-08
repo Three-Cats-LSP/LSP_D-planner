@@ -3783,7 +3783,7 @@ function setUnits(u) {
     convertNumericInput(id, v => (v * CUFT_PER_L).toFixed(1).replace(/\.0$/, ''), v => Math.round(v / CUFT_PER_L), 50, 1766);
   });
 
-  // ── SAC conversion (L/min ↔ cu ft/min) ──
+  // SAC conversion (L/min ↔ cu ft/min)
   convertNumericInput('sacBottom', v => (v * CUFT_PER_L).toFixed(2).replace(/\.0+$/, ''), v => Math.round(v / CUFT_PER_L), 60, 2.12);
   convertNumericInput('sacDeco',   v => (v * CUFT_PER_L).toFixed(2).replace(/\.0+$/, ''), v => Math.round(v / CUFT_PER_L), 40, 1.41);
 
@@ -4843,16 +4843,17 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
     let ghtml = `<div class="card" style="margin-top:8px;"><div class="card-title">Gas Consumption</div><div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-top:0;">`;
     let gwarn = '';
     for (const [gas, litres] of Object.entries(gasConsVPM)) {
+      const volUnitV = units === 'imperial' ? 'cu ft' : 'L';
       const avail = cylCapVPM[gas];
       const hasInfo = avail > 0;
       const pct = hasInfo ? Math.min(100, Math.round((litres / avail) * 100)) : null;
       const over = hasInfo && litres > avail;
       const col = over ? 'var(--red)' : pct > 80 ? 'var(--yellow)' : 'var(--green)';
-      const volUnitV = units === 'imperial' ? 'cu ft' : 'L';
       ghtml += `<div class="stat"><div class="stat-val" style="font-size:18px;color:${over?'var(--red)':'var(--text)'};">${Math.round(litres)} ${volUnitV}</div><div class="stat-lbl">${gas.toUpperCase()}</div>${hasInfo?`<div style="margin-top:4px;background:var(--bg-alt);border-radius:3px;height:6px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${col};border-radius:3px;"></div></div><div style="font-size:10px;color:${col};margin-top:2px;font-family:'JetBrains Mono',monospace;">${over?'⚠ SHORT':'✓'} ${Math.round(avail)} ${volUnitV} avail</div>`:''}</div>`;
-      if (over) gwarn += `<div class="alert dang" style="margin-top:6px;"><span>⚠</span><div><strong>${gas.toUpperCase()} runs out</strong> — need ${Math.round(litres)} L, have ${Math.round(avail)} L. Short by <strong>${Math.round(litres-avail)} L</strong>. Reduce BT or add more gas.</div></div>`;
+      if (over) gwarn += `<div class="alert dang" style="margin-top:6px;"><span>⚠</span><div><strong>${gas.toUpperCase()} runs out</strong> — need ${Math.round(litres)} ${volUnitV}, have ${Math.round(avail)} ${volUnitV}. Short by <strong>${Math.round(litres-avail)} ${volUnitV}</strong>. Reduce BT or add more gas.</div></div>`;
     }
-    ghtml += `</div>${gwarn}<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;letter-spacing:1px;">Bottom SAC: ${sacBotVPM} L/min · Deco SAC: ${sacDecoVPM} L/min</div></div>`;
+    const sacUnitVPM = units === 'imperial' ? 'cu ft/min' : 'L/min';
+    ghtml += `</div>${gwarn}<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;letter-spacing:1px;">Bottom SAC: ${sacBotVPM} ${sacUnitVPM} · Deco SAC: ${sacDecoVPM} ${sacUnitVPM}</div></div>`;
     gasElVPM.innerHTML = ghtml;
     gasElVPM.style.display = 'block';
   }
@@ -7659,32 +7660,33 @@ function runDecoSchedule() {
     html += '<div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-top:0;">';
 
     for (const [gas, litres] of Object.entries(gasConsumed)) {
+      const volUnitV = units === 'imperial' ? 'cu ft' : 'L';
       const avail    = cylCapacity[gas];
       const hasInfo  = avail > 0;
       const barUsed  = hasInfo ? Math.round(litres / (cylCapacity[gas] / (parseFloat(document.getElementById(cylIds[Object.keys(gasConsumed).indexOf(gas)]?.[0])?.value) || 1))) : null;
       const pct      = hasInfo ? Math.min(100, Math.round((litres / avail) * 100)) : null;
       const over     = hasInfo && litres > avail;
       const col      = over ? 'var(--red)' : pct > 80 ? 'var(--yellow)' : 'var(--green)';
-      const volUnitV = units === 'imperial' ? 'cu ft' : 'L';
 
       html += `<div class="stat">
-        <div class="stat-val" style="font-size:18px;color:${over?'var(--red)':'var(--text)'};">${Math.round(litres)} L</div>
+        <div class="stat-val" style="font-size:18px;color:${over?'var(--red)':'var(--text)'};">${Math.round(litres)} ${volUnitV}</div>
         <div class="stat-lbl">${gas.toUpperCase()}</div>
         ${hasInfo ? `<div style="margin-top:4px;background:var(--bg-alt);border-radius:3px;height:6px;overflow:hidden;">
           <div style="width:${pct}%;height:100%;background:${col};border-radius:3px;"></div>
         </div>
-        <div style="font-size:10px;color:${col};margin-top:2px;font-family:'JetBrains Mono',monospace;">${over?'⚠ SHORT':'✓'} ${Math.round(avail)} L avail</div>` : ''}
+        <div style="font-size:10px;color:${col};margin-top:2px;font-family:'JetBrains Mono',monospace;">${over?'⚠ SHORT':'✓'} ${Math.round(avail)} ${volUnitV} avail</div>` : ''}
       </div>`;
 
       if (over) {
         const short = Math.round(litres - avail);
-        warnings += `<div class="alert dang" style="margin-top:6px;"><span>⚠</span><div><strong>${gas.toUpperCase()} runs out</strong> — need ${Math.round(litres)} L, have ${Math.round(avail)} L. Short by <strong>${short} L</strong>. Reduce BT or add more gas.</div></div>`;
+        warnings += `<div class="alert dang" style="margin-top:6px;"><span>⚠</span><div><strong>${gas.toUpperCase()} runs out</strong> — need ${Math.round(litres)} ${volUnitV}, have ${Math.round(avail)} ${volUnitV}. Short by <strong>${short} ${volUnitV}</strong>. Reduce BT or add more gas.</div></div>`;
       }
     }
 
     html += `</div>`;
     if (warnings) html += warnings;
-    html += `<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;letter-spacing:1px;">Bottom SAC: ${sacBottom} L/min · Deco SAC: ${sacDeco} L/min</div></div>`;
+    const sacUnitBHL = units === 'imperial' ? 'cu ft/min' : 'L/min';
+    html += `<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;letter-spacing:1px;">Bottom SAC: ${sacBottom} ${sacUnitBHL} · Deco SAC: ${sacDeco} ${sacUnitBHL}</div></div>`;
     gasEl.innerHTML = html;
     gasEl.style.display = 'block';
   }
