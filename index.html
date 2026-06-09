@@ -4463,7 +4463,7 @@ function updateMinDecoLabels(isMetric) {
  * @param {boolean} isMetric
  * @returns {Array} steps with minimum enforced
  */
-function enforceMinDecoProfile(steps, enabled, min9m, min6m, isMetric) {
+function enforceMinDecoProfile(steps, enabled, min9m, min6m, isMetric, fallbackGas, fallbackFN2, fallbackFHe) {
   if (!enabled || (!min9m && !min6m)) return steps;
   // Target depths in metres (always compare in metres; display follows units)
   const depth9 = 9;  // 9 m / 30 ft
@@ -4511,15 +4511,15 @@ function enforceMinDecoProfile(steps, enabled, min9m, min6m, isMetric) {
     // Pick gas from the step just ABOVE (deeper side) the insertion point
     // — that's the gas the diver is actually breathing at this depth
     // Walk backward, skipping steps with empty/null gas
-    let gas = '';
-    let fN2 = null;
-    let fHe = null;
+    let gas = fallbackGas || '';
+    let fN2 = fallbackFN2 ?? null;
+    let fHe = fallbackFHe ?? 0;
     for (let i = insertIdx - 1; i >= 0; i--) {
       const sg = result[i].gas;
       if (sg && sg.trim() !== '') {
         gas = sg;
-        fN2 = result[i].fN2 ?? null;
-        fHe = result[i].fHe ?? null;
+        fN2 = result[i].fN2 ?? fallbackFN2 ?? null;
+        fHe = result[i].fHe ?? fallbackFHe ?? 0;
         break;
       }
     }
@@ -5049,7 +5049,9 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
   const _vmdp6m       = parseFloat(document.getElementById('minDeco6m')?.value) || 3;
   const _vmdpIsMetric = document.getElementById('unitSel')?.value !== 'imperial';
   let _vpmRawStops    = result.stops?.map(s => ({ type: 'deco', depth: s.depth, dur: s.time, gas: s.gas })) || [];
-  _vpmRawStops        = enforceMinDecoProfile(_vpmRawStops, _vmdpEnabled, _vmdp9m, _vmdp6m, _vmdpIsMetric);
+  const _vmdpBotFracs  = getBottomGasFractions ? getBottomGasFractions() : { fN2: 0.79, fHe: 0 };
+  const _vmdpBotLabel  = getGasLabel ? getGasLabel(_vmdpBotFracs.fO2, _vmdpBotFracs.fHe) : '';
+  _vpmRawStops        = enforceMinDecoProfile(_vpmRawStops, _vmdpEnabled, _vmdp9m, _vmdp6m, _vmdpIsMetric, _vmdpBotLabel, _vmdpBotFracs.fN2, _vmdpBotFracs.fHe || 0);
 
   window._lastPlan = {
     rt,
@@ -7351,7 +7353,7 @@ function runDecoSchedule() {
   const _mdp9m        = parseFloat(document.getElementById('minDeco9m')?.value) || 1;
   const _mdp6m        = parseFloat(document.getElementById('minDeco6m')?.value) || 3;
   const _mdpIsMetric  = document.getElementById('unitSel')?.value !== 'imperial';
-  const collapsedMDP  = enforceMinDecoProfile(collapsed, _mdpEnabled, _mdp9m, _mdp6m, _mdpIsMetric);
+  const collapsedMDP  = enforceMinDecoProfile(collapsed, _mdpEnabled, _mdp9m, _mdp6m, _mdpIsMetric, bottomMixLabel, bottomFN2, bottomFHe);
 
   const decoStops = collapsedMDP.filter(s => s.type === 'deco');
   const decoTime  = Math.round(decoStops.reduce((a, s) => a + s.dur, 0) * 60) / 60;
