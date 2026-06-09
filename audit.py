@@ -901,6 +901,200 @@ if gfs_call_idx > 0:
 else:
     fail("applyGFSurfacing call site not found")
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 20 — GAS CONSUMPTION: unit correctness
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 20.1 SAC fields have convertNumericInput in setUnits (L/min ↔ cu ft/min)
+set_units_fn = re.search(r"function setUnits\(.*?(?=\nfunction )", js, re.DOTALL)
+if set_units_fn:
+    set_units_body = set_units_fn.group(0)
+    if "convertNumericInput('sacBottom'" in set_units_body:
+        ok("setUnits converts sacBottom value (L/min ↔ cu ft/min)")
+    else:
+        fail("setUnits missing convertNumericInput for sacBottom — SAC value stays at metric default in imperial mode")
+    if "convertNumericInput('sacDeco'" in set_units_body:
+        ok("setUnits converts sacDeco value (L/min ↔ cu ft/min)")
+    else:
+        fail("setUnits missing convertNumericInput for sacDeco — SAC value stays at metric default in imperial mode")
+else:
+    fail("setUnits function not found for SAC conversion check")
+
+# 20.2 Gas consumption display uses correct unit label (not hardcoded 'L')
+# Both Buhlmann and VPM paths must use a units-aware variable
+buh_display = js[js.find("for (const [gas, litres] of Object.entries(gasConsumed))"):
+                  js.find("for (const [gas, litres] of Object.entries(gasConsumed))") + 600]
+if "volUnitV" in buh_display or "volUnit" in buh_display:
+    ok("Buhlmann gas consumption display uses units-aware volume label (L / cu ft)")
+else:
+    fail("Buhlmann gas consumption display hardcodes 'L' — wrong unit shown in imperial mode")
+
+vpm_display_start = js.find("for (const [gas, litres] of Object.entries(gasConsVPM))")
+vpm_display = js[vpm_display_start:vpm_display_start + 600] if vpm_display_start > 0 else ""
+if "volUnitV" in vpm_display or "volUnit" in vpm_display:
+    ok("VPM gas consumption display uses units-aware volume label (L / cu ft)")
+else:
+    fail("VPM gas consumption display hardcodes 'L' — wrong unit shown in imperial mode")
+
+# 20.3 volUnitV is declared in the Buhlmann forEach scope (not just VPM scope)
+# volUnitV must be const-declared INSIDE the Buhlmann for-of loop body
+buh_loop_start = js.find("for (const [gas, litres] of Object.entries(gasConsumed))")
+buh_loop_body = js[buh_loop_start:buh_loop_start + 600] if buh_loop_start > 0 else ""
+if "const volUnitV" in buh_loop_body:
+    ok("volUnitV declared inside Buhlmann gas loop scope (no ReferenceError)")
+else:
+    fail("volUnitV not declared in Buhlmann gas loop — ReferenceError when gas consumption renders")
+
+# 20.4 PSI_PER_BAR and CUFT_PER_L constants defined with correct values
+psi_m = re.search(r"PSI_PER_BAR\s*=\s*([\d.]+)", js)
+cuft_m = re.search(r"CUFT_PER_L\s*=\s*([\d.]+)", js)
+if psi_m and abs(float(psi_m.group(1)) - 14.5038) < 0.01:
+    ok(f"PSI_PER_BAR = {psi_m.group(1)} (correct)")
+else:
+    fail(f"PSI_PER_BAR = {psi_m.group(1) if psi_m else 'NOT FOUND'} (expected 14.5038)")
+if cuft_m and abs(float(cuft_m.group(1)) - 0.0353147) < 0.000001:
+    ok(f"CUFT_PER_L = {cuft_m.group(1)} (correct)")
+else:
+    fail(f"CUFT_PER_L = {cuft_m.group(1) if cuft_m else 'NOT FOUND'} (expected 0.0353147)")
+
+# 20.5 Cylinder pressure inputs converted in setUnits (bar ↔ psi)
+if set_units_fn:
+    body = set_units_fn.group(0)
+    if "allCylPres" in body and "PSI_PER_BAR" in body:
+        ok("setUnits converts all cylinder pressure fields (bar ↔ psi)")
+    else:
+        fail("setUnits missing cylinder pressure conversion — fields stay in metric units when switching to imperial")
+    if "allCylSize" in body and "CUFT_PER_L" in body:
+        ok("setUnits converts all cylinder size fields (L ↔ cu ft)")
+    else:
+        fail("setUnits missing cylinder size conversion — size fields stay in metric units when switching")
+
+# 20.6 Dynamic cylinder pressure fields covered by allCylPres (querySelectorAll)
+if "querySelectorAll" in js and 'cylDg' in js and '_pres' in js:
+    ok("allCylPres uses querySelectorAll to include dynamic deco gas cylinder fields")
+else:
+    fail("allCylPres missing querySelectorAll — dynamically added deco gas cylinder fields not converted")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 21 — FEATURE: Minimum Decompression Profile
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 21.1 enforceMinDecoProfile function exists
+if "function enforceMinDecoProfile(" in js:
+    ok("enforceMinDecoProfile() function present")
+else:
+    fail("enforceMinDecoProfile() missing — minimum deco profile feature not implemented")
+
+# 21.2 Called in Buhlmann path
+if "enforceMinDecoProfile(collapsed," in js:
+    ok("enforceMinDecoProfile called in Buhlmann path")
+else:
+    fail("enforceMinDecoProfile not called in Buhlmann path — min deco profile ignored for ZHL")
+
+# 21.3 Called in VPM path
+if "enforceMinDecoProfile(_vpmRawStops," in js:
+    ok("enforceMinDecoProfile called in VPM path")
+else:
+    fail("enforceMinDecoProfile not called in VPM path — min deco profile ignored for VPM-B")
+
+# 21.4 UI fields present
+for eid, desc in [
+    ("minDecoProfileEnable", "enable/disable select"),
+    ("minDeco9m",            "9m stop minimum minutes"),
+    ("minDeco6m",            "6m stop minimum minutes"),
+    ("minDecoProfileFields", "fields container (shown/hidden)"),
+]:
+    if f'id="{eid}"' in html:
+        ok(f'Min deco UI: id="{eid}" ({desc}) present')
+    else:
+        fail(f'Min deco UI: id="{eid}" ({desc}) missing')
+
+# 21.5 Fields in DECO_FIELDS (persistence)
+deco_fields_idx4 = html.find("DECO_FIELDS:")
+deco_block4 = html[deco_fields_idx4:deco_fields_idx4+1600] if deco_fields_idx4 > 0 else ""
+for field_id, desc in [
+    ("minDecoProfileEnable", "enable select"),
+    ("minDeco9m",            "9m minimum"),
+    ("minDeco6m",            "6m minimum"),
+]:
+    if field_id in deco_block4:
+        ok(f"DECO_FIELDS includes {field_id} ({desc})")
+    else:
+        fail(f"DECO_FIELDS missing '{field_id}' ({desc}) — value lost on page reload")
+
+# 21.6 Fields in _doResetToDefaults
+reset_fn = re.search(r"function _doResetToDefaults\(.*?(?=\nfunction )", js, re.DOTALL)
+if reset_fn:
+    reset_body = reset_fn.group(0)
+    for field_id, default, desc in [
+        ("minDecoProfileEnable", "'no'",       "min deco enable"),
+        ("minDeco9m",            "'1'",         "9m default"),
+        ("minDeco6m",            "'3'",         "6m default"),
+        ("cylTravelGas_size",    "'11'",        "travel cylinder size"),
+        ("cylTravelGas_pres",    "'200'",       "travel cylinder pressure"),
+        ("heHalfTimeMode",       "'buhl2003'",  "He HT default"),
+    ]:
+        if field_id in reset_body:
+            ok(f"_doResetToDefaults includes {field_id} (default {default})")
+        else:
+            fail(f"_doResetToDefaults missing '{field_id}' — Reset button leaves it unchanged")
+else:
+    fail("_doResetToDefaults function not found")
+
+# 21.7 Label update on unit switch
+set_units_fn2 = re.search(r"function setUnits\(.*?(?=\nfunction )", js, re.DOTALL)
+if set_units_fn2 and "updateMinDecoLabels" in set_units_fn2.group(0):
+    ok("setUnits calls updateMinDecoLabels (9m/30ft labels update on unit switch)")
+elif "updateMinDecoLabels" in js:
+    # Check if it's called somewhere in setUnits section
+    su_idx = js.find("function setUnits(")
+    su_end = js.find("\nfunction ", su_idx+1)
+    if "updateMinDecoLabels" in js[su_idx:su_end]:
+        ok("setUnits calls updateMinDecoLabels (9m/30ft labels update on unit switch)")
+    else:
+        fail("setUnits does not call updateMinDecoLabels — depth labels stay metric when switching to imperial")
+else:
+    fail("updateMinDecoLabels missing — depth labels do not update on unit switch")
+
+# 21.8 pO2: null in injected stops is handled (falls through to ppO2Check)
+if "pO2 != null ? parseFloat(s.pO2) : parseFloat(ppO2Check(" in js:
+    ok("Injected stop pO2:null handled — ppO2Check recalculates ppO2 for min deco stops")
+else:
+    fail("pO2:null injected stops may not get ppO2 recalculated — check stop row rendering")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 22 — RESET TO DEFAULTS (completeness)
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 22.1 confirmModal present (used by resetToDefaults)
+if 'id="confirmModal"' in html and 'id="confirmModalMsg"' in html:
+    ok("confirmModal and confirmModalMsg present (reset confirmation dialog)")
+else:
+    fail("confirmModal/confirmModalMsg missing — reset confirmation dialog broken")
+
+# 22.2 showConfirm / closeConfirmModal functions present
+for fn_name in ["showConfirm", "closeConfirmModal"]:
+    if f"function {fn_name}(" in js:
+        ok(f"{fn_name}() present")
+    else:
+        fail(f"{fn_name}() missing — reset confirmation broken")
+
+# 22.3 resetToDefaults uses showConfirm (not direct reset)
+reset_fn2 = re.search(r"function resetToDefaults\(\).*?\}", js, re.DOTALL)
+if reset_fn2 and "showConfirm" in reset_fn2.group(0):
+    ok("resetToDefaults uses showConfirm (user confirmation before reset)")
+elif "function resetToDefaults()" in js:
+    idx_r = js.find("function resetToDefaults()")
+    body_r = js[idx_r:idx_r+200]
+    if "showConfirm" in body_r:
+        ok("resetToDefaults uses showConfirm (user confirmation before reset)")
+    else:
+        fail("resetToDefaults does not use showConfirm — reset happens immediately without confirmation")
+else:
+    fail("resetToDefaults function not found")
+
 # ══════════════════════════════════════════════════════════════════════════════
 # PRINT RESULTS
 # ══════════════════════════════════════════════════════════════════════════════
