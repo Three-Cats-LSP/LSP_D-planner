@@ -84,5 +84,7 @@ jobs:
           git config user.name "Three Cats LSP"
           git add "Android Apk/LSP_D-planner.apk"
           git commit -m "build(android): update LSP_D-planner.apk v${{ steps.version.outputs.VERSION }} [skip ci]" --allow-empty
+          # build.gradle was patched in-tree but must not be committed back
+          git checkout -- android/app/build.gradle
           git pull --rebase origin main
           git push
