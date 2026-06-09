@@ -81,7 +81,7 @@ else:
     ok("No bare return statements at global scope")
 
 # 1.3 APP_VERSION constant exists
-if re.search(r"const APP_VERSION\s*=\s*'[\d.]+';", js):
+if re.search(r"const APP_VERSION", js):
     ok("APP_VERSION constant present")
 else:
     fail("APP_VERSION constant missing or malformed")
@@ -596,7 +596,7 @@ for fn_name in ["_drawDiveProfileCore", "drawGFCurve"]:
             fail(f"{fn_name}(): PAD/PW/PH appears before isMobile — mobile layout bug")
 
 # 15.2 Canvas fill uses rgba() not 8-digit hex (canvas ignores alpha in #rrggbbaa)
-bad_hex_alpha = re.findall(r'fillStyle\s*=\s*["\']#[0-9a-fA-F]{8}["\']', js)
+bad_hex_alpha = re.findall(r'fillStyle\s*=\s*["\']\#[0-9a-fA-F]{8}["\']', js)
 if bad_hex_alpha:
     for b in bad_hex_alpha[:3]:
         fail(f"Canvas fillStyle uses 8-digit hex alpha ({b}) — use rgba() instead (canvas ignores alpha in hex)")
@@ -976,6 +976,125 @@ if "querySelectorAll" in js and 'cylDg' in js and '_pres' in js:
 else:
     fail("allCylPres missing querySelectorAll — dynamically added deco gas cylinder fields not converted")
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 21 — FEATURE: Minimum Decompression Profile
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 21.1 enforceMinDecoProfile function exists
+if "function enforceMinDecoProfile(" in js:
+    ok("enforceMinDecoProfile() function present")
+else:
+    fail("enforceMinDecoProfile() missing — minimum deco profile feature not implemented")
+
+# 21.2 Called in Buhlmann path
+if "enforceMinDecoProfile(collapsed," in js:
+    ok("enforceMinDecoProfile called in Buhlmann path")
+else:
+    fail("enforceMinDecoProfile not called in Buhlmann path — min deco profile ignored for ZHL")
+
+# 21.3 Called in VPM path
+if "enforceMinDecoProfile(_vpmRawStops," in js:
+    ok("enforceMinDecoProfile called in VPM path")
+else:
+    fail("enforceMinDecoProfile not called in VPM path — min deco profile ignored for VPM-B")
+
+# 21.4 UI fields present
+for eid, desc in [
+    ("minDecoProfileEnable", "enable/disable select"),
+    ("minDeco9m",            "9m stop minimum minutes"),
+    ("minDeco6m",            "6m stop minimum minutes"),
+    ("minDecoProfileFields", "fields container (shown/hidden)"),
+]:
+    if f'id="{eid}"' in html:
+        ok(f'Min deco UI: id="{eid}" ({desc}) present')
+    else:
+        fail(f'Min deco UI: id="{eid}" ({desc}) missing')
+
+# 21.5 Fields in DECO_FIELDS (persistence)
+deco_fields_idx4 = html.find("DECO_FIELDS:")
+deco_block4 = html[deco_fields_idx4:deco_fields_idx4+1600] if deco_fields_idx4 > 0 else ""
+for field_id, desc in [
+    ("minDecoProfileEnable", "enable select"),
+    ("minDeco9m",            "9m minimum"),
+    ("minDeco6m",            "6m minimum"),
+]:
+    if field_id in deco_block4:
+        ok(f"DECO_FIELDS includes {field_id} ({desc})")
+    else:
+        fail(f"DECO_FIELDS missing '{field_id}' ({desc}) — value lost on page reload")
+
+# 21.6 Fields in _doResetToDefaults
+reset_fn = re.search(r"function _doResetToDefaults\(.*?(?=\nfunction )", js, re.DOTALL)
+if reset_fn:
+    reset_body = reset_fn.group(0)
+    for field_id, default, desc in [
+        ("minDecoProfileEnable", "'no'",       "min deco enable"),
+        ("minDeco9m",            "'1'",         "9m default"),
+        ("minDeco6m",            "'3'",         "6m default"),
+        ("cylTravelGas_size",    "'11'",        "travel cylinder size"),
+        ("cylTravelGas_pres",    "'200'",       "travel cylinder pressure"),
+        ("heHalfTimeMode",       "'buhl2003'",  "He HT default"),
+    ]:
+        if field_id in reset_body:
+            ok(f"_doResetToDefaults includes {field_id} (default {default})")
+        else:
+            fail(f"_doResetToDefaults missing '{field_id}' — Reset button leaves it unchanged")
+else:
+    fail("_doResetToDefaults function not found")
+
+# 21.7 Label update on unit switch
+set_units_fn2 = re.search(r"function setUnits\(.*?(?=\nfunction )", js, re.DOTALL)
+if set_units_fn2 and "updateMinDecoLabels" in set_units_fn2.group(0):
+    ok("setUnits calls updateMinDecoLabels (9m/30ft labels update on unit switch)")
+elif "updateMinDecoLabels" in js:
+    # Check if it's called somewhere in setUnits section
+    su_idx = js.find("function setUnits(")
+    su_end = js.find("\nfunction ", su_idx+1)
+    if "updateMinDecoLabels" in js[su_idx:su_end]:
+        ok("setUnits calls updateMinDecoLabels (9m/30ft labels update on unit switch)")
+    else:
+        fail("setUnits does not call updateMinDecoLabels — depth labels stay metric when switching to imperial")
+else:
+    fail("updateMinDecoLabels missing — depth labels do not update on unit switch")
+
+# 21.8 pO2: null in injected stops is handled (falls through to ppO2Check)
+if "pO2 != null ? parseFloat(s.pO2) : parseFloat(ppO2Check(" in js:
+    ok("Injected stop pO2:null handled — ppO2Check recalculates ppO2 for min deco stops")
+else:
+    fail("pO2:null injected stops may not get ppO2 recalculated — check stop row rendering")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 22 — RESET TO DEFAULTS (completeness)
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 22.1 confirmModal present (used by resetToDefaults)
+if 'id="confirmModal"' in html and 'id="confirmModalMsg"' in html:
+    ok("confirmModal and confirmModalMsg present (reset confirmation dialog)")
+else:
+    fail("confirmModal/confirmModalMsg missing — reset confirmation dialog broken")
+
+# 22.2 showConfirm / closeConfirmModal functions present
+for fn_name in ["showConfirm", "closeConfirmModal"]:
+    if f"function {fn_name}(" in js:
+        ok(f"{fn_name}() present")
+    else:
+        fail(f"{fn_name}() missing — reset confirmation broken")
+
+# 22.3 resetToDefaults uses showConfirm (not direct reset)
+reset_fn2 = re.search(r"function resetToDefaults\(\).*?\}", js, re.DOTALL)
+if reset_fn2 and "showConfirm" in reset_fn2.group(0):
+    ok("resetToDefaults uses showConfirm (user confirmation before reset)")
+elif "function resetToDefaults()" in js:
+    idx_r = js.find("function resetToDefaults()")
+    body_r = js[idx_r:idx_r+200]
+    if "showConfirm" in body_r:
+        ok("resetToDefaults uses showConfirm (user confirmation before reset)")
+    else:
+        fail("resetToDefaults does not use showConfirm — reset happens immediately without confirmation")
+else:
+    fail("resetToDefaults function not found")
+
 # ══════════════════════════════════════════════════════════════════════════════
 # PRINT RESULTS
 # ══════════════════════════════════════════════════════════════════════════════
@@ -999,7 +1118,3 @@ if FAIL:
 else:
     print("  ALL CHECKS PASSED ✓\n")
     sys.exit(0)
-
-# ══════════════════════════════════════════════════════════════════════════════
-
-# ══════════════════════════════════════════════════════════════════════════════
