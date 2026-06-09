@@ -4465,25 +4465,23 @@ function updateMinDecoLabels(isMetric) {
  */
 function enforceMinDecoProfile(steps, enabled, min9m, min6m, isMetric, fallbackGas, fallbackFN2, fallbackFHe) {
   if (!enabled || (!min9m && !min6m)) return steps;
-  // Target depths in metres (always compare in metres; display follows units)
   const depth9 = 9;  // 9 m / 30 ft
-  const depth6 = 6;  // 6 m / 20 ft (also covers 3 m last stop region — only exact match)
+  const depth6 = 6;  // 6 m / 20 ft
 
+  // ── Pass 1: build result, extending existing stops if present ──
   const result = [];
   const enforced = { 9: false, 6: false };
 
   for (const s of steps) {
-    if (s.type === 'deco') {
+    if (s.type === 'deco' || s.type === 'safety') {
       const depthM = isMetric ? s.depth : Math.round(s.depth / 3.28084);
       if (depthM === depth9 && min9m > 0) {
-        const newDur = Math.max(s.dur, min9m);
-        result.push({ ...s, dur: newDur });
+        result.push({ ...s, type: 'deco', dur: Math.max(s.dur, min9m) });
         enforced[9] = true;
         continue;
       }
       if (depthM === depth6 && min6m > 0) {
-        const newDur = Math.max(s.dur, min6m);
-        result.push({ ...s, dur: newDur });
+        result.push({ ...s, type: 'deco', dur: Math.max(s.dur, min6m) });
         enforced[6] = true;
         continue;
       }
@@ -4491,49 +4489,58 @@ function enforceMinDecoProfile(steps, enabled, min9m, min6m, isMetric, fallbackG
     result.push({ ...s });
   }
 
-  // If no stop existed at those depths yet, inject them
-  // Find insertion points in result array (after deeper stops, before shallower)
-  function injectStop(targetDepthM, minDur, gasAtShallow) {
+  // ── Pass 2: resolve active gas at any depth by scanning the step sequence ──
+  // Build a list of gas-change events: { fromDepthM, gas, fN2, fHe }
+  // Steps are ordered deepest-first on ascent; gas switches happen as depth decreases.
+  function resolveGasAtDepth(targetDepthM) {
+    // Walk through steps in order. Track current active gas.
+    // A gas change occurs when s.gas differs from the previous step's gas.
+    // The active gas at targetDepthM is the gas being breathed when depth <= s.depth (or s.to).
+    let activeGas = fallbackGas || '';
+    let activeFN2 = fallbackFN2 ?? null;
+    let activeFHe = fallbackFHe ?? 0;
+    for (const s of steps) {
+      if (!s.gas || s.gas.trim() === '') continue;
+      // Determine the depth range this step covers
+      const stepDepthM = isMetric
+        ? (s.depth ?? s.from ?? s.to)
+        : Math.round((s.depth ?? s.from ?? s.to) / 3.28084);
+      if (stepDepthM == null) continue;
+      // Update active gas for steps at or deeper than target
+      if (stepDepthM >= targetDepthM) {
+        activeGas = s.gas;
+        activeFN2 = s.fN2 ?? activeFN2;
+        activeFHe = s.fHe ?? activeFHe ?? 0;
+      }
+    }
+    return { gas: activeGas, fN2: activeFN2, fHe: activeFHe ?? 0 };
+  }
+
+  // ── Pass 3: inject missing stops in correct position ──
+  function injectStop(targetDepthM, minDur) {
     const targetDisplay = isMetric ? targetDepthM : Math.round(targetDepthM * 3.28084);
-    // Find the first stop/ascent step that is shallower than targetDepthM
-    // Consider deco, safety, and ascent steps — not just deco
+    // Find insertion point: first ascent-phase step shallower than targetDepthM
     let insertIdx = result.length;
     for (let i = 0; i < result.length; i++) {
       const s = result[i];
-      // Skip descent and bottom phases — only look at ascent phase steps
       if (s.type === 'descent' || s.type === 'bottom') continue;
-      // Get the depth of this step (ascent steps use 'to', stop steps use 'depth')
       const rawD = s.type === 'ascent' ? (s.to ?? s.depth) : s.depth;
       if (rawD == null) continue;
       const d = isMetric ? rawD : Math.round(rawD / 3.28084);
       if (d < targetDepthM) { insertIdx = i; break; }
     }
-    // Pick gas from the step just ABOVE (deeper side) the insertion point
-    // — that's the gas the diver is actually breathing at this depth
-    // Walk backward, skipping steps with empty/null gas
-    let gas = fallbackGas || '';
-    let fN2 = fallbackFN2 ?? null;
-    let fHe = fallbackFHe ?? 0;
-    for (let i = insertIdx - 1; i >= 0; i--) {
-      const sg = result[i].gas;
-      if (sg && sg.trim() !== '') {
-        gas = sg;
-        fN2 = result[i].fN2 ?? fallbackFN2 ?? null;
-        fHe = result[i].fHe ?? fallbackFHe ?? 0;
-        break;
-      }
-    }
-    const newStop = {
+    // Resolve the gas the diver is breathing at this depth
+    const { gas, fN2, fHe } = resolveGasAtDepth(targetDepthM);
+    result.splice(insertIdx, 0, {
       type: 'deco',
       depth: targetDisplay,
       to: targetDisplay,
       dur: minDur,
-      gas: gas || '',
-      fN2: fN2,
-      fHe: fHe ?? 0,
+      gas,
+      fN2,
+      fHe,
       pO2: null,
-    };
-    result.splice(insertIdx, 0, newStop);
+    });
   }
 
   if (!enforced[9] && min9m > 0) injectStop(depth9, min9m);
