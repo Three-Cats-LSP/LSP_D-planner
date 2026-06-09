@@ -7286,8 +7286,9 @@ function runDecoSchedule() {
       const isDecoNeeded = steps.some(s => s.type === 'deco');
       const stopType = isDecoNeeded ? 'deco' : 'safety';
       let stopT = 0;
+      let transitToLastStop = 0;
       if (isDecoNeeded) {
-        const transitToLastStop = (stopDepths.length > 1) ? (stopDepths[stopDepths.length - 2] - lastStop) / decoRate : 0;
+        transitToLastStop = (stopDepths.length > 1) ? (stopDepths[stopDepths.length - 2] - lastStop) / decoRate : 0;
         while (ceiling(tissues, gfAt(0)) > 0.01 && stopT < 180) {
           tissues = saturate(tissues, cur, minStopT, stopFN2, stopFHe);
           stopT += minStopT; rt += minStopT;
