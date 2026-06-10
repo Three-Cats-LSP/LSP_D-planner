@@ -8503,6 +8503,12 @@ function runDecoSchedule() {
   const tbody = document.getElementById('decoTableBody');
   const descentTimeMin = Math.round((depthM / descentRate) * 10) / 10;
 
+  // ── Headless mode early return: skip all DOM rendering ─────────────────
+  // Set window._zhlHeadless = true before calling runDecoSchedule() to
+  // skip all DOM/innerHTML writes. _lastPlan is already populated above.
+  // CNS/OTU are approximated in ZHLEngine.calculate() from the steps data.
+  if (window._zhlHeadless) return;
+
   tbody.innerHTML = '';
   let prevGas = bottomMixLabel;
   let rowRT = 0;
@@ -9006,10 +9012,12 @@ const ZHLEngine = (() => {
     const needUnits = s.metric === false ? 'imperial' : 'metric';
     if (units !== needUnits) setUnits(needUnits);
 
-    // ── Algorithm: force ZHLC_GF ─────────────────────────────────────────────
+    // ── Algorithm: force ZHLC_GF (no DOM event — headless mode skips UI update) ─
     const algoEl = document.getElementById('algorithmSelect');
     const prevAlgo = algoEl ? algoEl.value : 'ZHLC_GF';
-    if (algoEl) { algoEl.value = 'ZHLC_GF'; algoEl.dispatchEvent(new Event('change', {bubbles:true})); }
+    if (algoEl) algoEl.value = 'ZHLC_GF';
+    // Don't dispatchEvent — setDecoAlgorithm() triggers heavy UI updates.
+    // runDecoSchedule reads algorithmSelect.value directly, so just setting .value is enough.
 
     // ── Bottom gas (first level's o2/he) ────────────────────────────────────
     const fO2bot = level.o2 / 100;
@@ -9052,23 +9060,50 @@ const ZHLEngine = (() => {
       else { mixEl.value = 'custom'; setEl(`dg${n}CustomO2`, o2pct); setEl(`dg${n}CustomHe`, g.he || 0); }
     });
 
-    // ── Run the Bühlmann engine ───────────────────────────────────────────────
+    // ── Run the Bühlmann engine (headless — skip DOM rendering) ─────────────
+    window._zhlHeadless = true;
+    window._lastPlan = null;
     try {
       runDecoSchedule();
     } catch(e) {
-      // restore state before returning error
+      window._zhlHeadless = false;
       mGF.low = prevGF.low; mGF.high = prevGF.high;
-      setUnits(prevUnits);
+      if (units !== prevUnits) setUnits(prevUnits);
       if (algoEl) algoEl.value = prevAlgo;
       return { error: e.message, stops: [], plan: [], totalRuntime: 0 };
     }
+    window._zhlHeadless = false;
 
     const lp = window._lastPlan;
+
+    // ── Compute CNS/OTU from steps (not available from DOM-skipped render) ──
+    if (lp && lp.totalCNS == null) {
+      let hCNSfrac = 0, hOTU = 0;
+      const hAltP = altSurfaceP || 1.01325;
+      const hBAR  = BAR_PER_METRE || 0.1;
+      (lp.steps || []).forEach(seg => {
+        const d   = seg.depth != null ? seg.depth : (seg.type === 'ascent' ? (seg.from + seg.to) / 2 : 0);
+        const fO2s = seg.fN2 !== undefined ? Math.max(0, 1 - seg.fN2 - (seg.fHe || 0)) : fO2bot;
+        const pAmb = hAltP + d * hBAR;
+        const ppO2 = fO2s * pAmb;
+        const dur  = seg.dur || 0;
+        if (ppO2 > 0.5 && dur > 0) {
+          hOTU += dur * Math.pow((ppO2 - 0.5) / 0.5, 0.833);
+          const lims = {6:720,7:570,8:450,9:360,10:300,11:240,12:210,13:180,14:150,15:120,16:45};
+          const lo = Math.floor(ppO2 * 10), hi = lo + 1;
+          const lim = (lims[lo] || 0) + ((lims[hi] || 0) - (lims[lo] || 0)) * (ppO2 * 10 - lo);
+          if (lim > 0) hCNSfrac += dur / lim;
+        }
+      });
+      lp.totalCNS = parseFloat((hCNSfrac * 100).toFixed(1));
+      lp.totalOTU = Math.round(hOTU);
+    }
 
     // ── Restore DOM state ─────────────────────────────────────────────────────
     mGF.low = prevGF.low; mGF.high = prevGF.high;
     if (units !== prevUnits) setUnits(prevUnits);
-    if (algoEl) { algoEl.value = prevAlgo; algoEl.dispatchEvent(new Event('change', {bubbles:true})); }
+    if (algoEl) algoEl.value = prevAlgo;
+    // Don't fire change event on restore — avoids unnecessary UI repaint after each test call.
     if (decoGasEl) decoGasEl.value = prevDecoGasVal;
     prevDGVals.forEach(({ id, val }) => { const el = document.getElementById(id); if (el) el.value = val; });
 
@@ -9088,10 +9123,26 @@ const ZHLEngine = (() => {
       he:    Math.round((s.fHe || 0) * 100)
     }));
     // Inject descent and bottom segments at front if missing
-    if (plan.length > 0 && plan[0].type !== 'descent') {
-      plan.unshift({ type: 'bottom', depth: level.depth, time: level.time, run: null, gas: plan[0].gas || 'bottom' });
-      plan.unshift({ type: 'descent', depth: level.depth, time: level.depth / (s.descentRate||20), run: null, gas: plan[0].gas || 'bottom' });
+    // (Bühlmann steps array only has ascent/deco/safety — descent and bottom are
+    // rendered directly to DOM, not stored in steps. Add them so assertIntegrity passes.)
+    if (plan.length === 0 || plan[0].type !== 'descent') {
+      const descentTime = level.depth / (s.descentRate || 20);
+      const bottomGasLabel = plan.length > 0 ? (plan[0].gas || 'bottom') : 'bottom';
+      const bottomSeg = { type: 'bottom', depth: level.depth, time: level.time, run: descentTime + level.time, gas: bottomGasLabel, o2: level.o2, he: level.he || 0 };
+      const descentSeg = { type: 'descent', depth: level.depth, time: descentTime, run: descentTime, gas: bottomGasLabel, o2: level.o2, he: level.he || 0 };
+      plan.unshift(bottomSeg);   // goes to index 0 first
+      plan.unshift(descentSeg);  // then pushed to index 0, bottomSeg moves to 1
     }
+    // Patch run times into remaining segments (needed by assertIntegrity run-time monotonicity check)
+    let runAccum = 0;
+    plan.forEach(seg => {
+      if (seg.run == null) {
+        runAccum += (seg.time || 0);
+        seg.run = Math.round(runAccum * 10) / 10;
+      } else {
+        runAccum = seg.run;
+      }
+    });
 
     return {
       plan,
