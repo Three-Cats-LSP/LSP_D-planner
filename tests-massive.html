@@ -1237,13 +1237,15 @@ function getDoc() { return WIN && WIN.document; }
 // then restores original values. Prevents mobile browser hang from heavy engine
 // calls on the default 40m/30min deco profile.
 function fastRDS() {
+  // Uses 20m/15min — guaranteed NDL (no deco stops) on all 3 algorithms,
+  // giving the fastest possible engine run on mobile.
   const d = getDoc();
   const dEl  = d && d.getElementById('decoDepth');
   const btEl = d && d.getElementById('decoBT');
   const origD  = dEl  ? dEl.value  : null;
   const origBT = btEl ? btEl.value : null;
-  if (dEl)  dEl.value  = '30';
-  if (btEl) btEl.value = '25';
+  if (dEl)  dEl.value  = '20';
+  if (btEl) btEl.value = '15';
   WIN.runDecoSchedule();
   if (dEl  && origD  !== null) dEl.value  = origD;
   if (btEl && origBT !== null) btEl.value = origBT;
