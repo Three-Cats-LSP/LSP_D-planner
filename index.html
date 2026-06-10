@@ -971,12 +971,13 @@ body.light-theme .ok   { background:#f0fff4; border-color:#116622; color:#116622
 .deco-table th:first-child, .deco-table td:first-child { text-align:center; width:36px; }
 /* Gas Plan table — standalone, no deco-table inheritance */
 .gas-plan-table { table-layout:fixed; width:100%; border-collapse:collapse; font-family:'JetBrains Mono',monospace; font-size:12px; margin-top:10px; }
-.gas-plan-table col:nth-child(1) { width:14%; }
-.gas-plan-table col:nth-child(2) { width:13%; }
-.gas-plan-table col:nth-child(3) { width:17%; }
-.gas-plan-table col:nth-child(4) { width:13%; }
-.gas-plan-table col:nth-child(5) { width:11%; }
-.gas-plan-table col:nth-child(6) { width:32%; }
+.gas-plan-table col:nth-child(1) { width:13%; }
+.gas-plan-table col:nth-child(2) { width:12%; }
+.gas-plan-table col:nth-child(3) { width:15%; }
+.gas-plan-table col:nth-child(4) { width:12%; }
+.gas-plan-table col:nth-child(5) { width:10%; }
+.gas-plan-table col:nth-child(6) { width:22%; }
+.gas-plan-table col:nth-child(7) { width:16%; }
 .gas-plan-table th { padding:8px 10px; text-align:left; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--accent); border-bottom:1px solid var(--border-hi); background:rgba(0,200,255,0.05); vertical-align:middle; white-space:nowrap; overflow:hidden; }
 .gas-plan-table td { padding:7px 10px; text-align:left; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; overflow:hidden; }
 /* Right-align numeric columns: Depth(2), Stop(3), Run(4), EAD(6), END(7), PPO2(8), CNS%(9) */
@@ -1696,15 +1697,10 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
       <table class="gas-plan-table">
         <colgroup>
-          <col style="width:14%">
-          <col style="width:14%">
-          <col style="width:18%">
-          <col style="width:14%">
-          <col style="width:12%">
-          <col style="width:28%">
+          <col style="width:13%"><col style="width:12%"><col style="width:15%"><col style="width:12%"><col style="width:10%"><col style="width:22%"><col style="width:16%">
         </colgroup>
         <thead><tr>
-          <th>GAS</th><th>TOTAL VOL</th><th>THIRDS</th><th>TURN PRESS</th><th>RESERVE</th><th>SUFFICIENT</th>
+          <th>GAS</th><th>TOTAL VOL</th><th>THIRDS</th><th>TURN PRESS</th><th>RESERVE</th><th>SUFFICIENT</th><th>MARGIN</th>
         </tr></thead>
         <tbody id="gpResultBody"></tbody>
       </table>
@@ -5680,7 +5676,7 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
       </div>
       <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
         <table class="gas-plan-table" style="margin-top:0;">
-          <colgroup><col style="width:14%"><col style="width:13%"><col style="width:17%"><col style="width:13%"><col style="width:11%"><col style="width:32%"></colgroup>
+          <colgroup><col style="width:13%"><col style="width:12%"><col style="width:15%"><col style="width:12%"><col style="width:10%"><col style="width:22%"><col style="width:16%"></colgroup>
           <thead><tr>
             <th>GAS</th>
             <th>TOTAL VOL</th>
@@ -5688,6 +5684,7 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
             <th>TURN PRESS</th>
             <th>RESERVE</th>
             <th>SUFFICIENT</th>
+            <th>MARGIN</th>
           </tr></thead>
           <tbody>${gpBodyVPM ? gpBodyVPM.innerHTML : ''}</tbody>
         </table>
@@ -8560,7 +8557,7 @@ function runDecoSchedule() {
         </div>
         <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
           <table class="gas-plan-table" style="margin-top:0;">
-            <colgroup><col style="width:14%"><col style="width:13%"><col style="width:17%"><col style="width:13%"><col style="width:11%"><col style="width:32%"></colgroup>
+            <colgroup><col style="width:13%"><col style="width:12%"><col style="width:15%"><col style="width:12%"><col style="width:10%"><col style="width:22%"><col style="width:16%"></colgroup>
             <thead><tr>
               <th>GAS</th>
               <th>TOTAL VOL</th>
@@ -8568,6 +8565,7 @@ function runDecoSchedule() {
               <th>TURN PRESS</th>
               <th>RESERVE</th>
               <th>SUFFICIENT</th>
+              <th>MARGIN</th>
             </tr></thead>
             <tbody>${gpBody ? gpBody.innerHTML : ''}</tbody>
           </table>
@@ -10925,15 +10923,18 @@ function calcGasPlan() {
             <td style="color:var(--muted);font-size:10px;">${gpVolDisp(r.portionL||0)} ${volU} <span style="color:var(--muted);">(${ruleTxt})</span></td>
             <td style="color:var(--muted);">—</td>
             <td>${gpPresDisp(r.reserveBar)} ${presU}</td>
-            <td><span style="color:var(--red) !important;font-weight:700;">✗ short ${gpVolDisp(r.shortL)} ${volU}</span><br><span style="color:var(--muted);font-size:10px;">need ${gpVolDisp(r.reqL)} ${volU}</span></td>
+            <td><span style="color:var(--red) !important;font-weight:700;">✗ short</span><br><span style="color:var(--muted);font-size:10px;">need ${gpVolDisp(r.reqL)} ${volU}</span></td>
+            <td style="color:var(--red) !important;font-weight:700;">−${gpVolDisp(r.shortL)} ${volU}</td>
           </tr>`;
-          if (btSuggest) html += `<tr class="gas-bt-row"><td colspan="6" class="gas-bt-cell">⚠ ${btSuggest} — or use a larger cylinder.</td></tr>`;
+          if (btSuggest) html += `<tr class="gas-bt-row"><td colspan="7" class="gas-bt-cell">⚠ ${btSuggest} — or use a larger cylinder.</td></tr>`;
         } else {
           // Sufficient — normal turn pressure row with plan check
           const suffNote = r.reqL != null
             ? `<br><span style="color:var(--green) !important;font-size:10px;">✓ ${gpVolDisp(r.reqL)} ${volU} needed</span>`
             : '';
           const botVolColor = r.reqL != null ? 'color:var(--green) !important;font-weight:700;' : '';
+          const botMargin = r.reqL != null ? gpVolDisp(r.totalL - r.reqL) + ' ' + volU : '—';
+          const botMarginCol = r.reqL != null ? 'color:var(--green) !important;font-weight:700;' : 'color:var(--muted);';
           html += `<tr>
             <td style="white-space:nowrap;">${r.label}</td>
             <td style="${botVolColor}">${gpVolDisp(r.totalL)} ${volU}</td>
@@ -10941,6 +10942,7 @@ function calcGasPlan() {
             <td style="color:var(--accent) !important;font-weight:700;">${gpPresDisp(r.turnBar)} ${presU}</td>
             <td>${gpPresDisp(r.reserveBar)} ${presU}</td>
             <td><span style="color:var(--accent) !important;font-weight:700;">⟳ turn</span>${suffNote}</td>
+            <td style="${botMarginCol}">${botMargin}</td>
           </tr>`;
         }
       } else {
@@ -10959,6 +10961,9 @@ function calcGasPlan() {
           statusCol = 'var(--red)';
         }
         const isTight = r.reqL != null && r.totalL >= r.reqL && r.totalL < r.reqL * 1.10;
+        const marginL = r.reqL != null ? r.totalL - r.reqL : null;
+        const marginDisp = marginL != null ? (marginL >= 0 ? '+' : '−') + gpVolDisp(Math.abs(marginL)) + ' ' + volU : '—';
+        const marginCol = marginL == null ? 'var(--muted)' : marginL < 0 ? 'var(--red)' : isTight ? '#FF4433' : 'var(--green)';
         html += `<tr class="${isTight ? 'gas-tight-row' : ''}">
           <td style="white-space:nowrap;">${r.label}</td>
           <td style="${isTight ? '' : 'color:' + statusCol + ' !important;'}font-weight:700;">${gpVolDisp(r.totalL)} ${volU}</td>
@@ -10966,10 +10971,11 @@ function calcGasPlan() {
           <td style="color:var(--muted);">one-way</td>
           <td>${gpPresDisp(r.reserveBar)} ${presU}</td>
           <td>${suffCell}</td>
+          <td style="color:${marginCol} !important;font-weight:700;">${marginDisp}</td>
         </tr>`;
       }
     });
-    if (!html) html = `<tr><td colspan="6" style="color:var(--muted);text-align:center;">Configure a bottom gas cylinder.</td></tr>`;
+    if (!html) html = `<tr><td colspan="7" style="color:var(--muted);text-align:center;">Configure a bottom gas cylinder.</td></tr>`;
     body.innerHTML = html;
   }
 
