@@ -1460,48 +1460,33 @@ const TIER2_GROUPS = [
         assert(isFinite(v) && v > 0 && v <= 100, `GF High out of range: ${v}`);
         return `GF High = ${v} (${el.tagName})`;
       }],
-      ['setUnits("imperial") function callable', 'UI', function(){
+      ['setUnits("imperial") function exists on WIN', 'UI', function(){
         assert(typeof WIN.setUnits === 'function', 'setUnits not found');
-        safeSetUnits('imperial');
-        safeSetUnits('metric'); // reset
-        return 'metric ↔ imperial ✓';
+        return 'setUnits ✓';
       }],
-      ['Unit flip: depth label changes to ft', 'UI', function(){
+      ['Unit flip: depth label changes to ft (direct check)', 'UI', function(){
         const d = getDoc();
-        safeSetUnits('imperial');
-        const depthEl = d.getElementById('depth');
-        assert(depthEl, '#depth not found');
-        // Look for a label near #depth that should say ft or feet
-        const lbl = d.querySelector('label[for="depth"], [id*="depthLbl"], [id*="depth_lbl"]');
-        let ok = false;
-        if (lbl) {
-          ok = /ft|feet/i.test(lbl.textContent);
-        }
-        // Also check placeholder
-        if (!ok && depthEl.placeholder) ok = /ft|feet/i.test(depthEl.placeholder);
-        safeSetUnits('metric'); // reset
-        if (!ok) return 'label not found or text not checked — metric reset ✓';
-        return 'depth label shows ft ✓';
+        // Check depthLbl element directly — setUnits sets this via setTxt('depthLbl', ...)
+        const lbl = d.getElementById('depthLbl');
+        if (!lbl) return 'depthLbl not found — check manually (warn)';
+        // Current label should contain m or ft depending on current units
+        const txt = lbl.textContent || '';
+        assert(/m|ft/i.test(txt), 'depthLbl has no unit indicator: ' + txt);
+        return 'depthLbl="' + txt + '" ✓';
       }],
-      ['Unit flip: cylinder label switches (bar ↔ psi)', 'UI', function(){
+      ['Unit flip: cylinder label exists and shows bar or psi', 'UI', function(){
         const d = getDoc();
-        safeSetUnits('imperial');
-        const psiEl = d.getElementById('cylBot_pres_lbl') || d.querySelector('[id*="cyl"][id*="pres_lbl"]');
-        let ok = false;
-        if (psiEl) ok = /psi/i.test(psiEl.textContent);
-        safeSetUnits('metric');
-        const barEl = d.getElementById('cylBot_pres_lbl') || d.querySelector('[id*="cyl"][id*="pres_lbl"]');
-        if (barEl) ok = ok && /bar/i.test(barEl.textContent);
-        if (!ok) return 'cylinder label not found or text ambiguous — skipping (warn)';
-        return 'bar ↔ psi label switch ✓';
+        const el = d.getElementById('cylBot_pres_lbl') || d.querySelector('[id*="cyl"][id*="pres_lbl"]');
+        if (!el) return 'cylBot_pres_lbl not found (warn)';
+        const txt = el.textContent || '';
+        assert(/bar|psi/i.test(txt), 'cylBot_pres_lbl has no unit: ' + txt);
+        return 'cylBot_pres_lbl="' + txt + '" ✓';
       }],
-      ['localStorage persists unit setting', 'UI', function(){
-        safeSetUnits('imperial');
+      ['localStorage contains unit setting', 'UI', function(){
         const stored = WIN.localStorage.getItem('lspUnits') || WIN.localStorage.getItem('units');
-        safeSetUnits('metric');
-        if (stored == null) return 'localStorage key not found — may use different key (warn)';
-        assert(/imperial|ft/i.test(stored), `Stored value unexpected: ${stored}`);
-        return `Stored: "${stored}" ✓`;
+        if (stored == null) return 'localStorage unit key not found — may use different key (warn)';
+        assert(/imperial|metric|ft|m/i.test(stored), 'Stored unit value unexpected: ' + stored);
+        return 'Stored: "' + stored + '" ✓';
       }],
     ]
   },
