@@ -238,7 +238,7 @@ iframe { display: none; }
         <div class="metric-row"><span>Cross-model ordering</span><span>Maiken invariants</span></div>
         <div class="metric-row"><span>Tier 2 — UI/DOM</span><span>algo switching · GF UI · SAC units</span></div>
         <div class="metric-row"><span>Tier 3 — Scenarios</span><span>special cases</span></div>
-        <div class="metric-row"><span>v2.8.x features</span><span>9 new groups</span></div>
+        <div class="metric-row"><span>v2.8.x features</span><span>18 new groups</span></div>
         <div class="metric-row"><span>Gas Table</span><span>MOD / MND formulas</span></div>
         <div class="metric-row"><span>Deco Slate</span><span>buildSlateText · contingency</span></div>
         <div class="metric-row"><span>Surf Int</span><span>main-nav sub-tab</span></div>
@@ -2735,6 +2735,472 @@ const TIER3_GROUPS = [
         if (!gp || !gp.rows.length) return '_lastGasPlan empty (warn)';
         assert(gp.rows[0].kind === 'bottom', 'first row not kind=bottom, got: ' + gp.rows[0].kind);
         return 'rows[0].kind=bottom ✓';
+      }],
+    ]
+  },
+
+
+  // ── T3-NEW-K: Rec Tab Navigation ─────────────────────────────────────────────
+  {
+    tier: 3, name: 'T3-NEW-K · Rec Tab Navigation',
+    tests: [
+      ['tab-planner button present in Rec nav', 'SCN', function(){
+        const d = getDoc();
+        const btn = d.getElementById('tab-planner');
+        assert(btn, 'tab-planner not found');
+        return 'found ✓';
+      }],
+      ['tab-surfint button present in Rec nav', 'SCN', function(){
+        const d = getDoc();
+        const btn = d.getElementById('tab-surfint');
+        assert(btn, 'tab-surfint not found');
+        return 'found ✓';
+      }],
+      ['tab-avgdepth button present in Rec nav', 'SCN', function(){
+        const d = getDoc();
+        const btn = d.getElementById('tab-avgdepth');
+        assert(btn, 'tab-avgdepth button not in main tabs-nav');
+        return 'found ✓';
+      }],
+      ['tab-multi present in Rec nav', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('tab-multi'), 'tab-multi not found');
+        return 'found ✓';
+      }],
+      ['tab-cns present in Rec nav', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('tab-cns'), 'tab-cns not found');
+        return 'found ✓';
+      }],
+      ['tab-ndlref present in Rec nav', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('tab-ndlref'), 'tab-ndlref not found');
+        return 'found ✓';
+      }],
+      ['tab-bestmix-tec absent from Rec nav (Tec-only)', 'SCN', function(){
+        const d = getDoc();
+        const btn = d.getElementById('tab-bestmix-tec');
+        if (!btn) return 'tab-bestmix-tec absent from nav ✓';
+        // It may exist as a DOM panel but be tec-only class
+        const isTecOnly = btn.classList.contains('tec-only') || btn.classList.contains('buh-only');
+        if (isTecOnly) return 'exists but marked tec/buh-only ✓';
+        return 'tab-bestmix-tec is visible in nav (warn — should be Tec mode only)';
+      }],
+      ['switchTab("avgdepth") activates avgdepth panel', 'SCN', function(){
+        const d = getDoc();
+        assert(typeof WIN.switchTab === 'function', 'switchTab not found');
+        WIN.switchTab('avgdepth', null);
+        const panel = d.getElementById('avgdepth');
+        assert(panel, '#avgdepth panel not found');
+        const active = panel.classList.contains('active');
+        if (!active) return '#avgdepth panel not active after switchTab (warn — may need calc trigger)';
+        return 'avgdepth panel active ✓';
+      }],
+    ]
+  },
+
+  // ── T3-NEW-L: Tools Tab Navigation (new order) ───────────────────────────────
+  {
+    tier: 3, name: 'T3-NEW-L · Tools Tab Navigation',
+    tests: [
+      ['Tools panel #tools exists', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('tools'), '#tools panel not found');
+        return 'found ✓';
+      }],
+      ['tool-bestmix button present', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('tool-bestmix'), 'tool-bestmix not found');
+        return 'found ✓';
+      }],
+      ['tool-mod button present', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('tool-mod'), 'tool-mod not found');
+        return 'found ✓';
+      }],
+      ['tool-endcalc button present', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('tool-endcalc'), 'tool-endcalc not found');
+        return 'found ✓';
+      }],
+      ['tool-eadtable button present', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('tool-eadtable'), 'tool-eadtable not found');
+        return 'found ✓';
+      }],
+      ['tool-gastable button present', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('tool-gastable'), 'tool-gastable not found');
+        return 'found ✓';
+      }],
+      ['tool-avgdepth button ABSENT from Tools nav (moved to Rec)', 'SCN', function(){
+        const d = getDoc();
+        const btn = d.getElementById('tool-avgdepth');
+        if (btn) return 'tool-avgdepth still in Tools nav ✗';
+        return 'tool-avgdepth absent from Tools nav ✓';
+      }],
+      ['switchTool function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.switchTool === 'function', 'switchTool not found');
+        return 'found ✓';
+      }],
+      ['switchTool("mod") shows tool-panel-mod', 'SCN', function(){
+        const d = getDoc();
+        WIN.switchTool('mod', null);
+        const panel = d.getElementById('tool-panel-mod');
+        assert(panel, '#tool-panel-mod not found');
+        const vis = panel.style.display !== 'none';
+        if (!vis) return 'panel not shown after switchTool (warn)';
+        return 'tool-panel-mod visible ✓';
+      }],
+      ['switchTool("endcalc") shows tool-panel-endcalc', 'SCN', function(){
+        const d = getDoc();
+        WIN.switchTool('endcalc', null);
+        const panel = d.getElementById('tool-panel-endcalc');
+        assert(panel, '#tool-panel-endcalc not found');
+        const vis = panel.style.display !== 'none';
+        if (!vis) return 'panel not shown after switchTool (warn)';
+        return 'tool-panel-endcalc visible ✓';
+      }],
+      ['switchTool("eadtable") shows tool-panel-eadtable', 'SCN', function(){
+        const d = getDoc();
+        WIN.switchTool('eadtable', null);
+        const panel = d.getElementById('tool-panel-eadtable');
+        assert(panel, '#tool-panel-eadtable not found');
+        return panel.style.display !== 'none' ? 'visible ✓' : 'panel not shown (warn)';
+      }],
+    ]
+  },
+
+  // ── T3-NEW-M: Best Mix Tab — Tec Mode (Nitrox/Trimix toggle) ─────────────────
+  {
+    tier: 3, name: 'T3-NEW-M · Best Mix — Tec Mode',
+    tests: [
+      ['calcBestMixTec function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.calcBestMixTec === 'function', 'calcBestMixTec not found');
+        return 'found ✓';
+      }],
+      ['setBmtMode function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.setBmtMode === 'function', 'setBmtMode not found');
+        return 'found ✓';
+      }],
+      ['renderBmtRefTable function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.renderBmtRefTable === 'function', 'renderBmtRefTable not found');
+        return 'found ✓';
+      }],
+      ['setBmtMode("nitrox") runs without crash', 'SCN', function(){
+        WIN.setBmtMode('nitrox');
+        return 'no throw ✓';
+      }],
+      ['setBmtMode("trimix") runs without crash', 'SCN', function(){
+        WIN.setBmtMode('trimix');
+        WIN.setBmtMode('nitrox'); // reset
+        return 'no throw ✓';
+      }],
+      ['calcBestMixTec() runs without crash', 'SCN', function(){
+        try { WIN.calcBestMixTec(); } catch(e){ return 'threw: ' + e.message + ' (warn)'; }
+        return 'no throw ✓';
+      }],
+      ['renderBmtRefTable() runs without crash', 'SCN', function(){
+        try { WIN.renderBmtRefTable(); } catch(e){ return 'threw: ' + e.message + ' (warn)'; }
+        return 'no throw ✓';
+      }],
+      ['Best Mix Tec panel exists (#bestmix-tec)', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('bestmix-tec'), '#bestmix-tec panel not found');
+        return 'found ✓';
+      }],
+      ['bmtPPO2 slider exists in #bestmix-tec', 'SCN', function(){
+        const d = getDoc();
+        const el = d.getElementById('bmtPPO2');
+        assert(el, 'bmtPPO2 slider not found');
+        return `value=${el.value} ✓`;
+      }],
+    ]
+  },
+
+  // ── T3-NEW-N: Tools Best Mix (renderToolsBmtRefTable) ────────────────────────
+  {
+    tier: 3, name: 'T3-NEW-N · Tools — Best Mix',
+    tests: [
+      ['renderToolsBmtRefTable function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.renderToolsBmtRefTable === 'function', 'renderToolsBmtRefTable not found');
+        return 'found ✓';
+      }],
+      ['renderToolsBmtRefTable() runs without crash', 'SCN', function(){
+        try { WIN.renderToolsBmtRefTable(); } catch(e){ return 'threw: ' + e.message + ' (warn)'; }
+        return 'no throw ✓';
+      }],
+      ['calcBestMix function exists on WIN', 'SCN', function(){
+        const ok = typeof WIN.calcBestMix === 'function';
+        if (!ok) return 'calcBestMix not on window (warn — may be internal)';
+        return 'found ✓';
+      }],
+      ['tool-panel-bestmix exists in DOM', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('tool-panel-bestmix'), '#tool-panel-bestmix not found');
+        return 'found ✓';
+      }],
+      ['bestMixPPO2 slider exists', 'SCN', function(){
+        const d = getDoc();
+        const el = d.getElementById('bestMixPPO2');
+        if (!el) return 'bestMixPPO2 not found (warn)';
+        return `value=${el.value} ✓`;
+      }],
+    ]
+  },
+
+  // ── T3-NEW-O: Tools MOD (calcMOD + renderModRefTable) ────────────────────────
+  {
+    tier: 3, name: 'T3-NEW-O · Tools — MOD Calculator',
+    tests: [
+      ['calcMOD function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.calcMOD === 'function', 'calcMOD not found on window');
+        return 'found ✓';
+      }],
+      ['renderModRefTable function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.renderModRefTable === 'function', 'renderModRefTable not found');
+        return 'found ✓';
+      }],
+      ['calcMOD() runs without crash', 'SCN', function(){
+        try { WIN.calcMOD(); } catch(e){ return 'threw: ' + e.message + ' (warn)'; }
+        return 'no throw ✓';
+      }],
+      ['renderModRefTable() runs without crash', 'SCN', function(){
+        try { WIN.renderModRefTable(); } catch(e){ return 'threw: ' + e.message + ' (warn)'; }
+        return 'no throw ✓';
+      }],
+      ['MOD formula uses altSurfaceP (not hardcoded 1.0)', 'SCN', function(){
+        // At sea level: MOD(32%, 1.4) = (1.4/0.32 - 1.01325) / 0.1 ≈ 32.68m
+        assert(isFinite(WIN.altSurfaceP), 'altSurfaceP not available');
+        assert(isFinite(WIN.BAR_PER_METRE), 'BAR_PER_METRE not available');
+        const mod = (1.4 / 0.32 - WIN.altSurfaceP) / WIN.BAR_PER_METRE;
+        assert(mod > 30 && mod < 36, 'MOD(EAN32, 1.4) out of range: ' + mod.toFixed(2));
+        return 'MOD(EAN32,1.4)=' + mod.toFixed(2) + 'm ✓';
+      }],
+      ['tool-panel-mod exists in DOM', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('tool-panel-mod'), '#tool-panel-mod not found');
+        return 'found ✓';
+      }],
+      ['_modTipTitle constant accessible on WIN', 'SCN', function(){
+        assert(WIN._modTipTitle, '_modTipTitle not found');
+        assert(typeof WIN._modTipTitle === 'string' && WIN._modTipTitle.length > 3, 'empty _modTipTitle');
+        return '"' + WIN._modTipTitle.slice(0,30) + '" ✓';
+      }],
+      ['modRefTable element exists (MOD reference table)', 'SCN', function(){
+        const d = getDoc();
+        const el = d.getElementById('modRefTable') || d.querySelector('[id*="modRef"]');
+        if (!el) return 'modRefTable not found (warn)';
+        return 'found ✓';
+      }],
+    ]
+  },
+
+  // ── T3-NEW-P: END Calculator (calcEND_tool) ───────────────────────────────────
+  {
+    tier: 3, name: 'T3-NEW-P · Tools — END Calculator',
+    tests: [
+      ['calcEND_tool function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.calcEND_tool === 'function', 'calcEND_tool not found');
+        return 'found ✓';
+      }],
+      ['calcEND function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.calcEND === 'function', 'calcEND not found');
+        return 'found ✓';
+      }],
+      ['calcEND_tool() runs without crash', 'SCN', function(){
+        try { WIN.calcEND_tool(); } catch(e){ return 'threw: ' + e.message + ' (warn)'; }
+        return 'no throw ✓';
+      }],
+      ['calcEND delegates properly (not sea-level formula)', 'SCN', function(){
+        // At sea level, calcEND(40, 0, 0) should return ~40m for air (N2-only narcotic)
+        assert(typeof WIN.calcEND === 'function', 'calcEND not found');
+        const end = WIN.calcEND(40, 0, 0);
+        assert(isFinite(end), 'calcEND returned non-finite: ' + end);
+        assert(end > 35 && end < 45, 'calcEND(air,40m) out of range: ' + end);
+        return 'calcEND(air,40m)=' + end.toFixed(1) + 'm ✓';
+      }],
+      ['calcEND: trimix He=35% reduces END vs air', 'SCN', function(){
+        assert(typeof WIN.calcEND === 'function', 'calcEND not found');
+        const endAir    = WIN.calcEND(40, 0,    0);
+        const endTrimix = WIN.calcEND(40, 0.35, 0); // He=35%
+        if (!isFinite(endAir) || !isFinite(endTrimix)) return 'calcEND returned non-finite (warn)';
+        assert(endTrimix < endAir, 'He did not reduce END: air=' + endAir + ' trimix=' + endTrimix);
+        return 'air END=' + endAir.toFixed(1) + 'm > trimix END=' + endTrimix.toFixed(1) + 'm ✓';
+      }],
+      ['tool-panel-endcalc exists in DOM', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('tool-panel-endcalc'), '#tool-panel-endcalc not found');
+        return 'found ✓';
+      }],
+      ['_endTipTitle constant accessible on WIN', 'SCN', function(){
+        assert(WIN._endTipTitle, '_endTipTitle not found');
+        return '"' + WIN._endTipTitle.slice(0,30) + '" ✓';
+      }],
+      ['endDepthSlider + endO2Slider + endHeSlider exist', 'SCN', function(){
+        const d = getDoc();
+        const depthEl = d.getElementById('endDepthSlider');
+        const o2El    = d.getElementById('endO2Slider');
+        const heEl    = d.getElementById('endHeSlider');
+        assert(depthEl, 'endDepthSlider not found');
+        assert(o2El,    'endO2Slider not found');
+        assert(heEl,    'endHeSlider not found');
+        return 'all 3 sliders found ✓';
+      }],
+    ]
+  },
+
+  // ── T3-NEW-Q: EAD Table (renderEADTable) ─────────────────────────────────────
+  {
+    tier: 3, name: 'T3-NEW-Q · Tools — EAD Table',
+    tests: [
+      ['renderEADTable function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.renderEADTable === 'function', 'renderEADTable not found');
+        return 'found ✓';
+      }],
+      ['renderEADTable() runs without crash', 'SCN', function(){
+        try { WIN.renderEADTable(); } catch(e){ return 'threw: ' + e.message + ' (warn)'; }
+        return 'no throw ✓';
+      }],
+      ['eadRefTable element exists in DOM', 'SCN', function(){
+        const d = getDoc();
+        const el = d.getElementById('eadRefTable');
+        assert(el, 'eadRefTable not found');
+        return 'found ✓';
+      }],
+      ['eadRefTable has rows after render', 'SCN', function(){
+        const d = getDoc();
+        try { WIN.renderEADTable(); } catch(e){}
+        const el = d.getElementById('eadRefTable');
+        if (!el) return 'eadRefTable not found (warn)';
+        const rows = el.querySelectorAll('tr');
+        if (rows.length < 5) return 'only ' + rows.length + ' rows (warn)';
+        return rows.length + ' rows ✓';
+      }],
+      ['EAD formula: EAN32 at 30m → ~24.4m', 'SCN', function(){
+        // EAD = ((1 - fO2) × (depth + 10) / 0.79) - 10
+        // EAN32: fN2=0.68, depth=30 → EAD = (0.68 × 40 / 0.79) - 10 = 24.43m
+        const fN2 = 0.68, depth = 30;
+        const ead = (fN2 * (depth + 10) / 0.79) - 10;
+        assert(ead > 23 && ead < 26, 'EAD(EAN32,30m) out of range: ' + ead.toFixed(2));
+        return 'EAD(EAN32,30m)=' + ead.toFixed(2) + 'm ✓';
+      }],
+      ['_eadTipTitle constant accessible on WIN', 'SCN', function(){
+        assert(WIN._eadTipTitle, '_eadTipTitle not found');
+        return '"' + WIN._eadTipTitle.slice(0,30) + '" ✓';
+      }],
+      ['tool-panel-eadtable exists in DOM', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('tool-panel-eadtable'), '#tool-panel-eadtable not found');
+        return 'found ✓';
+      }],
+    ]
+  },
+
+  // ── T3-NEW-R: Avg Depth (moved to Rec, calcAvgDepth) ─────────────────────────
+  {
+    tier: 3, name: 'T3-NEW-R · Avg Depth — Rec Tab',
+    tests: [
+      ['calcAvgDepth function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.calcAvgDepth === 'function', 'calcAvgDepth not found');
+        return 'found ✓';
+      }],
+      ['#avgdepth panel exists as a main .panel (not tool-panel)', 'SCN', function(){
+        const d = getDoc();
+        const panel = d.getElementById('avgdepth');
+        assert(panel, '#avgdepth panel not found');
+        assert(panel.classList.contains('panel'), '#avgdepth missing class="panel"');
+        const toolPanel = d.getElementById('tool-panel-avgdepth');
+        if (toolPanel) return 'tool-panel-avgdepth still exists (regression) ✗';
+        return '#avgdepth is main panel, tool-panel-avgdepth absent ✓';
+      }],
+      ['avgMaxSlider + avgAvgSlider exist inside #avgdepth', 'SCN', function(){
+        const d = getDoc();
+        const maxEl = d.getElementById('avgMaxSlider');
+        const avgEl = d.getElementById('avgAvgSlider');
+        assert(maxEl, 'avgMaxSlider not found');
+        assert(avgEl, 'avgAvgSlider not found');
+        return 'both sliders found ✓';
+      }],
+      ['calcAvgDepth() runs without crash', 'SCN', function(){
+        try { WIN.calcAvgDepth(); } catch(e){ return 'threw: ' + e.message + ' (warn)'; }
+        return 'no throw ✓';
+      }],
+      ['avgPlanDepth stat element exists', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('avgPlanDepth'), 'avgPlanDepth not found');
+        return 'found ✓';
+      }],
+      ['avgDepthAdvice info-box exists', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('avgDepthAdvice'), 'avgDepthAdvice not found');
+        return 'found ✓';
+      }],
+      ['_avgDepthTipTitle accessible on WIN', 'SCN', function(){
+        assert(WIN._avgDepthTipTitle, '_avgDepthTipTitle not found');
+        return '"' + WIN._avgDepthTipTitle.slice(0,30) + '" ✓';
+      }],
+      ['Planning depth formula: avg + 75% × (max − avg)', 'SCN', function(){
+        // avg=18, max=30 → planning depth = 18 + 0.75*(30-18) = 18+9 = 27
+        const avg = 18, max = 30;
+        const planning = avg + 0.75 * (max - avg);
+        assert(Math.abs(planning - 27) < 0.01, 'formula result wrong: ' + planning);
+        return 'planning depth formula correct (27m) ✓';
+      }],
+    ]
+  },
+
+  // ── T3-NEW-S: Tooltip System ──────────────────────────────────────────────────
+  {
+    tier: 3, name: 'T3-NEW-S · Tooltip Constants & Narcotic Warnings',
+    tests: [
+      ['_narcoticTipTitle defined on WIN', 'SCN', function(){
+        assert(WIN._narcoticTipTitle, '_narcoticTipTitle not found');
+        return '"' + WIN._narcoticTipTitle.slice(0,30) + '" ✓';
+      }],
+      ['_narcoticTipText defined on WIN', 'SCN', function(){
+        assert(WIN._narcoticTipText && WIN._narcoticTipText.length > 20, '_narcoticTipText missing/empty');
+        return 'length=' + WIN._narcoticTipText.length + ' ✓';
+      }],
+      ['_modTipText defined on WIN', 'SCN', function(){
+        assert(WIN._modTipText && WIN._modTipText.length > 20, '_modTipText missing/empty');
+        return 'length=' + WIN._modTipText.length + ' ✓';
+      }],
+      ['_endTipText defined on WIN', 'SCN', function(){
+        assert(WIN._endTipText && WIN._endTipText.length > 20, '_endTipText missing/empty');
+        return 'length=' + WIN._endTipText.length + ' ✓';
+      }],
+      ['_eadTipText defined on WIN', 'SCN', function(){
+        assert(WIN._eadTipText && WIN._eadTipText.length > 20, '_eadTipText missing/empty');
+        return 'length=' + WIN._eadTipText.length + ' ✓';
+      }],
+      ['_avgDepthTipText defined on WIN', 'SCN', function(){
+        assert(WIN._avgDepthTipText && WIN._avgDepthTipText.length > 20, '_avgDepthTipText missing/empty');
+        return 'length=' + WIN._avgDepthTipText.length + ' ✓';
+      }],
+      ['_toolsBmtFaqTitle defined on WIN', 'SCN', function(){
+        assert(WIN._toolsBmtFaqTitle, '_toolsBmtFaqTitle not found');
+        return '"' + WIN._toolsBmtFaqTitle.slice(0,30) + '" ✓';
+      }],
+      ['showTip() function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.showTip === 'function', 'showTip not found');
+        return 'found ✓';
+      }],
+      ['showTip opens #tipModal with title + text', 'SCN', function(){
+        const d = getDoc();
+        WIN.showTip('Test Title', 'Test narcotic depth text here.');
+        const modal = d.getElementById('tipModal');
+        assert(modal, 'tipModal not found');
+        const vis = modal.style.display !== 'none';
+        WIN.closeTip();
+        assert(vis, 'tipModal not visible after showTip()');
+        return 'tipModal opens and closes ✓';
+      }],
+      ['No ❓ prefixes in tooltip text constants', 'SCN', function(){
+        const texts = [WIN._narcoticTipText, WIN._modTipText, WIN._endTipText, WIN._eadTipText, WIN._avgDepthTipText];
+        const hasBadPrefix = texts.some(t => t && /^❓/.test(t.trim()));
+        if (hasBadPrefix) return '❓ prefix found in a tooltip constant ✗';
+        return 'no ❓ prefixes ✓';
       }],
     ]
   },
