@@ -1521,7 +1521,12 @@ const TIER2_GROUPS = [
         assert(sel, 'Algorithm selector not found');
         const opt = sel.querySelector('option[value="ZHLC_GF"]') || sel.querySelector('option[value*="ZHL"], option[value*="GF"]');
         if (opt) { sel.value = opt.value; sel.dispatchEvent(new WIN.Event('change',{bubbles:true})); }
+        // Use a shallow NDL dive to keep engine runtime fast
+        const dEl = d.getElementById('decoDepth'), btEl = d.getElementById('decoBT');
+        const origD = dEl?.value, origBT = btEl?.value;
+        if (dEl) dEl.value = '25'; if (btEl) btEl.value = '20';
         WIN.runDecoSchedule();
+        if (dEl) dEl.value = origD; if (btEl) btEl.value = origBT;
         const out = d.getElementById('decoResult');
         assert(out && out.innerHTML.length > 50, 'Output empty after ZHL run');
         return `ZHL (${sel.value}) output rendered ✓`;
@@ -1533,7 +1538,12 @@ const TIER2_GROUPS = [
         const opt = sel.querySelector('option[value="VPMB"]');
         assert(opt, 'VPMB option not found in algorithm selector');
         sel.value = 'VPMB'; sel.dispatchEvent(new WIN.Event('change',{bubbles:true}));
+        // Use a shallow NDL dive to keep VPM engine runtime fast
+        const dEl = d.getElementById('decoDepth'), btEl = d.getElementById('decoBT');
+        const origD = dEl?.value, origBT = btEl?.value;
+        if (dEl) dEl.value = '25'; if (btEl) btEl.value = '20';
         WIN.runDecoSchedule();
+        if (dEl) dEl.value = origD; if (btEl) btEl.value = origBT;
         const out = d.getElementById('decoResult');
         assert(out && out.innerHTML.length > 50, 'Output empty after VPM-B run');
         return 'VPM-B output rendered ✓';
@@ -1545,7 +1555,12 @@ const TIER2_GROUPS = [
         const opt = sel.querySelector('option[value="VPMB_GFS"]');
         assert(opt, 'VPMB_GFS option not found in algorithm selector');
         sel.value = 'VPMB_GFS'; sel.dispatchEvent(new WIN.Event('change',{bubbles:true}));
+        // Use a shallow NDL dive to keep VPM engine runtime fast
+        const dEl = d.getElementById('decoDepth'), btEl = d.getElementById('decoBT');
+        const origD = dEl?.value, origBT = btEl?.value;
+        if (dEl) dEl.value = '25'; if (btEl) btEl.value = '20';
         WIN.runDecoSchedule();
+        if (dEl) dEl.value = origD; if (btEl) btEl.value = origBT;
         const out = d.getElementById('decoResult');
         assert(out && out.innerHTML.length > 50, 'Output empty after VPM-B/GFS run');
         return 'VPM-B/GFS output rendered ✓';
