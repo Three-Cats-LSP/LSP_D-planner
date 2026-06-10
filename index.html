@@ -3372,6 +3372,21 @@ let BAR_PER_METRE = 1/10.078; // ApexDeco init default (= 0.09922); updated by s
 let narcoticN2 = true;   // N₂ always narcotic by default
 let narcoticO2 = true;   // O₂ narcotic by default (NOAA/IANTD standard)
 
+// Shared narcotic depth tooltip content
+const _narcoticTipTitle = 'Narcotic Depth (END)';
+const _narcoticTipText  =
+`Equivalent Narcotic Depth (END) measures the narcotic effect of a gas mix by comparing it to the depth at which breathing air would produce the same narcotic partial pressure.
+
+Why 30 m?
+Most technical training agencies (PADI TecRec, IANTD, TDI) recommend keeping END ≤ 30 m (100 ft) as a practical working limit. At this depth on air, narcosis is typically mild and manageable for trained divers. Beyond 30 m equivalent, cognitive impairment, delayed reaction times and poor decision-making become increasingly likely.
+
+Why 40 m?
+40 m is often cited as the absolute recreational air diving limit, where narcotic effects are significant for most divers. An END above 40 m on a technical dive is considered high-risk.
+
+Helium is non-narcotic. Adding helium to a mix displaces nitrogen and reduces the narcotic partial pressure, lowering END. For example, a 21/35 trimix at 60 m has an END of roughly 35 m — equivalent to an air dive to 35 m.
+
+N₂ narcotic setting: whether O₂ counts toward END is configurable on the Deco Schedule tab (N₂ Narcotic / O₂ Narcotic toggles). NOAA/IANTD count both; some agencies exclude O₂.`;
+
 function setNarcosis(gas, isNarc) {
   if (gas === 'n2') {
     narcoticN2 = isNarc;
@@ -5909,7 +5924,7 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
       ${hasDeco
         ? '<div class="alert deco" style="margin-top:10px;background:#ffffff;border-color:#cc0000;border-width:1px;color:#111111;"><span>🔴</span><div><strong>DECOMPRESSION DIVE.</strong> Do not skip mandatory stops. Switch gas at optimal depth shown above. Verify ppO₂ before each switch.</div></div>'
         : '<div class="alert ok" style="margin-top:10px;"><span>✓</span><div><strong>NO-DECO DIVE.</strong></div></div>'}
-      ${endMvpm > 40 ? '<div class="alert" style="margin-top:8px;background:#FF4433;border-color:#111111;border-width:1px;color:#fff;font-weight:700;"><span>⚠</span><div><strong>HIGH NARCOTIC DEPTH.</strong> END exceeds 40 m equivalent. Consider a less narcotic gas mix.</div></div>' : endMvpm > 30 ? '<div class="alert" style="margin-top:8px;background:#FF4433;border-color:#111111;border-width:1px;color:#fff;font-weight:700;"><span>⚠</span><div><strong>NARCOTIC DEPTH WARNING.</strong> END exceeds 30 m equivalent. Consider a less narcotic gas mix.</div></div>' : ''}`;
+      ${endMvpm > 40 ? '<div class="alert" style="margin-top:8px;background:#FF4433;border-color:#111111;border-width:1px;color:#fff;font-weight:700;"><span>⚠</span><div><strong>HIGH NARCOTIC DEPTH.</strong> END exceeds 40 m equivalent. Consider a less narcotic gas mix.<span onclick="showTip(_narcoticTipTitle,_narcoticTipText)" style="cursor:pointer;margin-left:6px;font-size:11px;opacity:0.85;border:1px solid rgba(255,255,255,0.5);border-radius:50%;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;">ⓘ</span></div></div>' : endMvpm > 30 ? '<div class="alert" style="margin-top:8px;background:#FF4433;border-color:#111111;border-width:1px;color:#fff;font-weight:700;"><span>⚠</span><div><strong>NARCOTIC DEPTH WARNING.</strong> END exceeds 30 m equivalent. Consider a less narcotic gas mix.<span onclick="showTip(_narcoticTipTitle,_narcoticTipText)" style="cursor:pointer;margin-left:6px;font-size:11px;opacity:0.85;border:1px solid rgba(255,255,255,0.5);border-radius:50%;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;">ⓘ</span></div></div>' : ''}`;
 
     // CNS warning goes to decoAlerts (after table) — handled by alertsContainer below
   }
@@ -8267,7 +8282,7 @@ function runDecoSchedule() {
     ${hasDeco
       ? '<div class="alert deco" style="margin-top:10px;background:#ffffff;border-color:#cc0000;border-width:1px;color:#111111;"><span>🔴</span><div><strong>DECOMPRESSION DIVE.</strong> Do not skip mandatory stops. Switch gas at optimal depth shown above. Verify ppO₂ before each switch.</div></div>'
       : '<div class="alert ok" style="margin-top:10px;"><span>✓</span><div><strong>NO-DECO DIVE.</strong> 3 min safety stop at 3 m included.</div></div>'}
-    ${endM > 40 ? '<div class="alert" style="margin-top:8px;background:#FF4433;border-color:#111111;border-width:1px;color:#fff;font-weight:700;"><span>⚠</span><div><strong>HIGH NARCOTIC DEPTH.</strong> END exceeds 40 m equivalent. Consider a less narcotic gas mix.</div></div>' : endM > 30 ? '<div class="alert" style="margin-top:8px;background:#FF4433;border-color:#111111;border-width:1px;color:#fff;font-weight:700;"><span>⚠</span><div><strong>NARCOTIC DEPTH WARNING.</strong> END exceeds 30 m equivalent. Consider a less narcotic gas mix.</div></div>' : ''}`;
+    ${endM > 40 ? '<div class="alert" style="margin-top:8px;background:#FF4433;border-color:#111111;border-width:1px;color:#fff;font-weight:700;"><span>⚠</span><div><strong>HIGH NARCOTIC DEPTH.</strong> END exceeds 40 m equivalent. Consider a less narcotic gas mix.<span onclick="showTip(_narcoticTipTitle,_narcoticTipText)" style="cursor:pointer;margin-left:6px;font-size:11px;opacity:0.85;border:1px solid rgba(255,255,255,0.5);border-radius:50%;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;">ⓘ</span></div></div>' : endM > 30 ? '<div class="alert" style="margin-top:8px;background:#FF4433;border-color:#111111;border-width:1px;color:#fff;font-weight:700;"><span>⚠</span><div><strong>NARCOTIC DEPTH WARNING.</strong> END exceeds 30 m equivalent. Consider a less narcotic gas mix.<span onclick="showTip(_narcoticTipTitle,_narcoticTipText)" style="cursor:pointer;margin-left:6px;font-size:11px;opacity:0.85;border:1px solid rgba(255,255,255,0.5);border-radius:50%;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;">ⓘ</span></div></div>' : ''}`;
 
   const tbody = document.getElementById('decoTableBody');
   const descentTimeMin = Math.round((depthM / descentRate) * 10) / 10;
@@ -10343,10 +10358,10 @@ function calcBestMixTec() {
     const alertEl = document.getElementById('bmtENDAlert');
     if (currentEND > 40) {
       alertEl.style.display = 'block';
-      alertEl.innerHTML = `<div class="alert" style="background:#FF4433;border-color:#111;border-width:1px;color:#fff;font-weight:700;"><span>⚠</span><div><strong>HIGH NARCOTIC DEPTH.</strong> END ${endDisp} ${dUnit} exceeds 40 m equivalent. Add helium to reduce narcosis.</div></div>`;
+      alertEl.innerHTML = `<div class="alert" style="background:#FF4433;border-color:#111;border-width:1px;color:#fff;font-weight:700;"><span>⚠</span><div><strong>HIGH NARCOTIC DEPTH.</strong> END ${endDisp} ${dUnit} exceeds 40 m equivalent. Add helium to reduce narcosis.<span onclick="showTip(_narcoticTipTitle,_narcoticTipText)" style="cursor:pointer;margin-left:6px;font-size:11px;opacity:0.85;border:1px solid rgba(255,255,255,0.5);border-radius:50%;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;">ⓘ</span></div></div>`;
     } else if (currentEND > 30) {
       alertEl.style.display = 'block';
-      alertEl.innerHTML = `<div class="alert" style="background:#FF4433;border-color:#111;border-width:1px;color:#fff;font-weight:700;"><span>⚠</span><div><strong>NARCOTIC DEPTH WARNING.</strong> END ${endDisp} ${dUnit} exceeds 30 m equivalent. Consider adding helium.</div></div>`;
+      alertEl.innerHTML = `<div class="alert" style="background:#FF4433;border-color:#111;border-width:1px;color:#fff;font-weight:700;"><span>⚠</span><div><strong>NARCOTIC DEPTH WARNING.</strong> END ${endDisp} ${dUnit} exceeds 30 m equivalent. Consider adding helium.<span onclick="showTip(_narcoticTipTitle,_narcoticTipText)" style="cursor:pointer;margin-left:6px;font-size:11px;opacity:0.85;border:1px solid rgba(255,255,255,0.5);border-radius:50%;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;">ⓘ</span></div></div>`;
     } else {
       alertEl.style.display = 'none';
     }
