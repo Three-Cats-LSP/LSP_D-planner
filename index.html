@@ -969,8 +969,22 @@ body.light-theme .ok   { background:#f0fff4; border-color:#116622; color:#116622
 .deco-table th { padding:8px 10px; text-align:left; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--accent); border-bottom:1px solid var(--border-hi); background:rgba(0,200,255,0.05); vertical-align:middle; }
 .deco-table td { padding:7px 10px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
 .deco-table th:first-child, .deco-table td:first-child { text-align:center; width:36px; }
-.gas-plan-table th, .gas-plan-table td { text-align:left !important; width:auto !important; }
-.gas-plan-table th:nth-child(n), .gas-plan-table td:nth-child(n) { text-align:left !important; }
+/* Gas Plan table — override all deco-table column rules */
+.gas-plan-table { table-layout:fixed; width:100%; }
+.gas-plan-table colgroup col:nth-child(1) { width:14%; }
+.gas-plan-table colgroup col:nth-child(2) { width:13%; }
+.gas-plan-table colgroup col:nth-child(3) { width:17%; }
+.gas-plan-table colgroup col:nth-child(4) { width:13%; }
+.gas-plan-table colgroup col:nth-child(5) { width:11%; }
+.gas-plan-table colgroup col:nth-child(6) { width:32%; }
+.gas-plan-table th, .gas-plan-table td,
+.gas-plan-table th:first-child, .gas-plan-table td:first-child,
+.gas-plan-table th:nth-child(1), .gas-plan-table td:nth-child(1),
+.gas-plan-table th:nth-child(2), .gas-plan-table td:nth-child(2),
+.gas-plan-table th:nth-child(3), .gas-plan-table td:nth-child(3),
+.gas-plan-table th:nth-child(4), .gas-plan-table td:nth-child(4),
+.gas-plan-table th:nth-child(5), .gas-plan-table td:nth-child(5),
+.gas-plan-table th:nth-child(6), .gas-plan-table td:nth-child(6) { text-align:left !important; width:auto !important; }
 /* Right-align numeric columns: Depth(2), Stop(3), Run(4), EAD(6), END(7), PPO2(8), CNS%(9) */
 .deco-table th:nth-child(2), .deco-table td:nth-child(2),
 .deco-table th:nth-child(3), .deco-table td:nth-child(3),
@@ -1111,6 +1125,9 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
   .deco-table.table-view td::before { display:none !important; }
   .deco-table.table-view th { display:table-cell !important; padding:5px 6px !important; font-size:8px !important; }
   .deco-table.table-view thead tr { display:table-row !important; background:none !important; }
+  /* Gas plan table — override first-child width inside media query */
+  .gas-plan-table td:first-child, .gas-plan-table th:first-child { width:auto !important; text-align:left !important; padding:5px 6px !important; }
+  .gas-plan-table td, .gas-plan-table th { width:auto !important; text-align:left !important; }
 
   /* BT banner + tight warning rows — must come AFTER background:none rules above to win */
   .gas-bt-cell { background:#FF4433 !important; color:#fff !important; }
