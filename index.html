@@ -11078,9 +11078,9 @@ function renderGasTable() {
     const mndCol = (mnd >= 0 && mnd < 30) ? 'var(--yellow)' : 'var(--muted)';
     body.innerHTML += `<tr data-phase="gas">
       <td style="text-align:left;font-weight:700;">${label}</td>
-      <td style="color:${col1};">${fmtDepth(m1)}</td>
-      <td style="color:${col16};">${fmtDepth(m16)}</td>
-      <td style="color:${mndCol};">${fmtDepth(mnd)}</td>
+      <td data-label="MOD @ ${selPpo2.toFixed(1)}" style="color:${col1};">${fmtDepth(m1)}</td>
+      <td data-label="MOD @ 1.6" style="color:${col16};">${fmtDepth(m16)}</td>
+      <td data-label="MND" style="color:${mndCol};">${fmtDepth(mnd)}</td>
     </tr>`;
   });
 }
