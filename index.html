@@ -10939,7 +10939,8 @@ function buildGasPlanText() {
   gp.rows.forEach(r => {
     if (r.kind === 'bottom') {
       const ruleTxt = gp.rule === 'half' ? '1/2' : '1/3';
-      L.push(`BOTTOM (${r.label})`);
+      const botLblTxt = r.label.includes('(+Travel)') ? r.label.replace('(+Travel)', '+ Travel cyl') : r.label;
+      L.push(`BOTTOM GAS: ${botLblTxt}`);
       L.push(`  Usable: ${gpVolDisp(r.totalL)}${volU}  Reserve: ${gpPresDisp(r.reserveBar)}${presU}`);
       if (r.shortL != null && r.shortL > 0) {
         L.push(`  ! INSUFFICIENT: need ${gpVolDisp(r.reqL)}${volU}, have ${gpVolDisp(r.totalL)}${volU} (short ${gpVolDisp(r.shortL)}${volU})`);
@@ -11053,14 +11054,26 @@ async function buildGasPlanPDF() {
     let cells;
     if(r.kind==='bottom'){
       const ruleTxt = gp.rule === 'half' ? '1/2' : '1/3';
+      const isShort = r.shortL != null && r.shortL > 0;
       cells=[
         r.label,
         `${gpVolDisp(r.totalL)} ${volU}`,
-        `${gpVolDisp(r.portionL)} ${volU} (${ruleTxt})`,
-        `${gpPresDisp(r.turnBar)} ${presU}`,
+        isShort ? `need ${gpVolDisp(r.reqL)} ${volU}` : `${gpVolDisp(r.portionL)} ${volU} (${ruleTxt})`,
+        isShort ? `(${ruleTxt} rule)` : `${gpPresDisp(r.turnBar)} ${presU}`,
         `${gpPresDisp(r.reserveBar)} ${presU}`,
-        'TURN',
+        isShort ? `SHORT ${gpVolDisp(r.shortL)} ${volU}` : 'TURN',
       ];
+      // Extra BT suggestion row if short
+      if(isShort && r.maxBTmin != null){
+        cells.forEach((c,i)=>{ doc.text(cleanPDF(c),colX[i]+colW[i]/2,y+3.6,{align:'center'}); });
+        y+=5.5; checkY(5.5);
+        doc.setFillColor(255,68,51); doc.rect(ML,y,CW,5.5,'F');
+        doc.setTextColor(255,255,255); doc.setFont('NotoSans','bold');
+        doc.text(cleanPDF(`BT suggestion: max ${r.maxBTmin} min, turn at ${gpPresDisp(r.maxTurnBar)} ${presU} -- or use a larger cylinder`), ML+2, y+3.6);
+        doc.setFont('NotoSans','normal'); doc.setTextColor(0,0,0);
+        y+=5.5;
+        return; // already wrote the row manually
+      }
     } else {
       let status;
       if(r.reqL==null) status='RUN PLAN';
