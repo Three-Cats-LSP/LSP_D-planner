@@ -922,29 +922,56 @@ else:
     fail("setUnits function not found for SAC conversion check")
 
 # 20.2 Gas consumption display uses correct unit label (not hardcoded 'L')
-# Both Buhlmann and VPM paths must use a units-aware variable
-buh_display = js[js.find("for (const [gas, litres] of Object.entries(gasConsumed))"):
-                  js.find("for (const [gas, litres] of Object.entries(gasConsumed))") + 600]
-if "volUnitV" in buh_display or "volUnit" in buh_display:
+# Buhlmann path: normal plan uses calcGasPlan() (volU declared inside),
+# emergency path uses inline Object.entries forEach with volUnitV2.
+# VPM path: uses for..of loop over gasConsVPM entries with volUnitV.
+buh_block_start = js.find("if (gasEl && Object.keys(gasConsumed).length)")
+buh_block = js[buh_block_start:buh_block_start + 3000] if buh_block_start > 0 else ""
+if ("volUnitV" in buh_block or "calcGasPlan()" in buh_block):
     ok("Buhlmann gas consumption display uses units-aware volume label (L / cu ft)")
 else:
     fail("Buhlmann gas consumption display hardcodes 'L' — wrong unit shown in imperial mode")
 
-vpm_display_start = js.find("for (const [gas, litres] of Object.entries(gasConsVPM))")
-vpm_display = js[vpm_display_start:vpm_display_start + 600] if vpm_display_start > 0 else ""
-if "volUnitV" in vpm_display or "volUnit" in vpm_display:
+vpm_block_start = js.find("if (gasElVPM && Object.keys(gasConsVPM).length)")
+vpm_block = js[vpm_block_start:vpm_block_start + 3000] if vpm_block_start > 0 else ""
+if "volUnitV" in vpm_block or "volUnit" in vpm_block:
     ok("VPM gas consumption display uses units-aware volume label (L / cu ft)")
 else:
     fail("VPM gas consumption display hardcodes 'L' — wrong unit shown in imperial mode")
 
-# 20.3 volUnitV is declared in the Buhlmann forEach scope (not just VPM scope)
-# volUnitV must be const-declared INSIDE the Buhlmann for-of loop body
-buh_loop_start = js.find("for (const [gas, litres] of Object.entries(gasConsumed))")
-buh_loop_body = js[buh_loop_start:buh_loop_start + 600] if buh_loop_start > 0 else ""
-if "const volUnitV" in buh_loop_body:
-    ok("volUnitV declared inside Buhlmann gas loop scope (no ReferenceError)")
+# 20.3 Buhlmann gas plan renders via calcGasPlan() or declares volUnitV before use
+# (Buhlmann refactored to use calcGasPlan() for normal path + volUnitV2 for emergency path)
+calc_gas_plan_fn = js.find("function calcGasPlan()")
+calc_gas_plan_units = js[calc_gas_plan_fn:calc_gas_plan_fn + 200] if calc_gas_plan_fn > 0 else ""
+if ("const volU" in calc_gas_plan_units or "volUnit" in calc_gas_plan_units):
+    ok("calcGasPlan() declares unit-aware volume label — no ReferenceError in Buhlmann gas render")
 else:
     fail("volUnitV not declared in Buhlmann gas loop — ReferenceError when gas consumption renders")
+
+# 20.3b calcEND_tool uses calcEND() — not simplified sea-level formula
+# Bug: was using pNarc * 10 - 10 (wrong at altitude, ignored narcotic toggles)
+end_tool_fn = js[js.find("function calcEND_tool()"):js.find("function calcEND_tool()") + 1500]
+if "calcEND(dM" in end_tool_fn or "calcEND(depthM" in end_tool_fn:
+    ok("calcEND_tool() delegates to calcEND() — altitude-correct, respects narcotic toggles")
+else:
+    fail("calcEND_tool() uses simplified formula — wrong at altitude, ignores narcoticN2/narcoticO2 settings")
+
+# 20.3c calcMOD() in Tools panel uses altSurfaceP (not hardcoded sea-level formula)
+mod_fn_start = js.find("function calcMOD() {")
+mod_fn = js[mod_fn_start:mod_fn_start + 400] if mod_fn_start > 0 else ""
+if "altSurfaceP" in mod_fn and "BAR_PER_METRE" in mod_fn:
+    ok("calcMOD() (Tools tab) uses altSurfaceP + BAR_PER_METRE — altitude-correct")
+else:
+    fail("calcMOD() (Tools tab) uses hardcoded sea-level formula — wrong at altitude")
+
+# 20.3d setUnits() refreshes Tools panels (END Calc, Best Mix, MOD, EAD, Gas Table, Surface Int)
+set_units_end = js[js.find("function setUnits("):js.find("function setUnits(") + 14000]
+required_refreshes = ["calcEND_tool", "calcBestMix", "renderEADTable", "renderGasTable", "calcSurfInt", "calcAvgDepth"]
+missing = [f for f in required_refreshes if f not in set_units_end]
+if not missing:
+    ok("setUnits() refreshes all Tools panels — no stale displays on metric/imperial toggle")
+else:
+    fail(f"setUnits() missing Tools panel refresh calls: {', '.join(missing)}")
 
 # 20.4 PSI_PER_BAR and CUFT_PER_L constants defined with correct values
 psi_m = re.search(r"PSI_PER_BAR\s*=\s*([\d.]+)", js)
