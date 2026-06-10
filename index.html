@@ -8996,8 +8996,10 @@ const ZHLEngine = (() => {
     mGF.high = s.gfHi  || s.gfHigh || 85;
 
     // ── Units ─────────────────────────────────────────────────────────────────
+    // Only call setUnits if we actually need to switch — avoids heavy DOM walk on every call
     const prevUnits = units;
-    if (s.metric === false) setUnits('imperial'); else setUnits('metric');
+    const needUnits = s.metric === false ? 'imperial' : 'metric';
+    if (units !== needUnits) setUnits(needUnits);
 
     // ── Algorithm: force ZHLC_GF ─────────────────────────────────────────────
     const algoEl = document.getElementById('algorithmSelect');
@@ -9060,7 +9062,7 @@ const ZHLEngine = (() => {
 
     // ── Restore DOM state ─────────────────────────────────────────────────────
     mGF.low = prevGF.low; mGF.high = prevGF.high;
-    setUnits(prevUnits);
+    if (units !== prevUnits) setUnits(prevUnits);
     if (algoEl) { algoEl.value = prevAlgo; algoEl.dispatchEvent(new Event('change', {bubbles:true})); }
     if (decoGasEl) decoGasEl.value = prevDecoGasVal;
     prevDGVals.forEach(({ id, val }) => { const el = document.getElementById(id); if (el) el.value = val; });

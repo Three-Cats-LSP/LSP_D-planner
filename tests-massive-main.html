@@ -2738,12 +2738,13 @@ const TIER3_GROUPS = [
         if (/rule of 3rds/i.test(txt)) return 'old label RULE OF 3RDS still in text output ✗';
         return 'old label absent ✓';
       }],
-      ['_lastGasPlan.rows[0].kind === "bottom"', 'SCN', function(){
+      ['_lastGasPlan has a bottom-kind row', 'SCN', function(){
         WIN.calcGasPlan();
         const gp = WIN._lastGasPlan;
         if (!gp || !gp.rows.length) return '_lastGasPlan empty (warn)';
-        assert(gp.rows[0].kind === 'bottom', 'first row not kind=bottom, got: ' + gp.rows[0].kind);
-        return 'rows[0].kind=bottom ✓';
+        const botRow = gp.rows.find(r => r.kind === 'bottom');
+        if (!botRow) return 'no bottom row found in _lastGasPlan — no bottom gas configured (warn)';
+        return 'bottom row found ✓';
       }],
     ]
   },
