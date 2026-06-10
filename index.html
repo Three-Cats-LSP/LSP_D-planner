@@ -969,6 +969,8 @@ body.light-theme .ok   { background:#f0fff4; border-color:#116622; color:#116622
 .deco-table th { padding:8px 10px; text-align:left; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--accent); border-bottom:1px solid var(--border-hi); background:rgba(0,200,255,0.05); vertical-align:middle; }
 .deco-table td { padding:7px 10px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
 .deco-table th:first-child, .deco-table td:first-child { text-align:center; width:36px; }
+.gas-plan-table th, .gas-plan-table td { text-align:left !important; width:auto !important; }
+.gas-plan-table th:nth-child(n), .gas-plan-table td:nth-child(n) { text-align:left !important; }
 /* Right-align numeric columns: Depth(2), Stop(3), Run(4), EAD(6), END(7), PPO2(8), CNS%(9) */
 .deco-table th:nth-child(2), .deco-table td:nth-child(2),
 .deco-table th:nth-child(3), .deco-table td:nth-child(3),
@@ -1680,9 +1682,17 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
   <div class="card">
     <div class="card-title" id="gpResultTitle">Gas Plan Results</div>
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-      <table class="deco-table table-view">
+      <table class="deco-table table-view gas-plan-table">
+        <colgroup>
+          <col style="width:14%">
+          <col style="width:14%">
+          <col style="width:18%">
+          <col style="width:14%">
+          <col style="width:12%">
+          <col style="width:28%">
+        </colgroup>
         <thead><tr>
-          <th style="min-width:110px;white-space:nowrap;">GAS</th><th>TOTAL VOL</th><th>THIRDS</th><th>TURN PRESS</th><th>RESERVE</th><th>SUFFICIENT</th>
+          <th>GAS</th><th>TOTAL VOL</th><th>THIRDS</th><th>TURN PRESS</th><th>RESERVE</th><th>SUFFICIENT</th>
         </tr></thead>
         <tbody id="gpResultBody"></tbody>
       </table>
