@@ -1249,6 +1249,29 @@ function fastRDS() {
   if (btEl && origBT !== null) btEl.value = origBT;
 }
 // ─────────────────────────────────────────────────────────────────────────────
+// safeSetUnits: calls WIN.setUnits() but suppresses heavy recalcs that would
+// freeze the JS thread on mobile (renderNDLTable, buildUnifiedPlan, runPlanner).
+function safeSetUnits(u) {
+  const d = getDoc();
+  // Blank output containers so setUnits'conditional recalcs don't fire
+  const decoEl    = d && d.getElementById('decoResult');
+  const plannerEl = d && d.getElementById('plannerResult');
+  const origDeco    = decoEl    ? decoEl.innerHTML    : null;
+  const origPlanner = plannerEl ? plannerEl.innerHTML : null;
+  if (decoEl)    decoEl.innerHTML    = '';
+  if (plannerEl) plannerEl.innerHTML = '';
+  // Suppress renderNDLTable (heavy synchronous table build) during unit flip
+  const origNDL = WIN.renderNDLTable;
+  WIN.renderNDLTable = function(){};
+  try {
+    WIN.setUnits(u);
+  } finally {
+    WIN.renderNDLTable = origNDL;
+    if (decoEl    && origDeco    !== null) decoEl.innerHTML    = origDeco;
+    if (plannerEl && origPlanner !== null) plannerEl.innerHTML = origPlanner;
+  }
+}
+
 
 
 function setVal(id, val) {
@@ -1436,13 +1459,13 @@ const TIER2_GROUPS = [
       }],
       ['setUnits("imperial") function callable', 'UI', function(){
         assert(typeof WIN.setUnits === 'function', 'setUnits not found');
-        WIN.setUnits('imperial');
-        WIN.setUnits('metric'); // reset
+        safeSetUnits('imperial');
+        safeSetUnits('metric'); // reset
         return 'metric ↔ imperial ✓';
       }],
       ['Unit flip: depth label changes to ft', 'UI', function(){
         const d = getDoc();
-        WIN.setUnits('imperial');
+        safeSetUnits('imperial');
         const depthEl = d.getElementById('depth');
         assert(depthEl, '#depth not found');
         // Look for a label near #depth that should say ft or feet
@@ -1453,26 +1476,26 @@ const TIER2_GROUPS = [
         }
         // Also check placeholder
         if (!ok && depthEl.placeholder) ok = /ft|feet/i.test(depthEl.placeholder);
-        WIN.setUnits('metric'); // reset
+        safeSetUnits('metric'); // reset
         if (!ok) return 'label not found or text not checked — metric reset ✓';
         return 'depth label shows ft ✓';
       }],
       ['Unit flip: cylinder label switches (bar ↔ psi)', 'UI', function(){
         const d = getDoc();
-        WIN.setUnits('imperial');
+        safeSetUnits('imperial');
         const psiEl = d.getElementById('cylBot_pres_lbl') || d.querySelector('[id*="cyl"][id*="pres_lbl"]');
         let ok = false;
         if (psiEl) ok = /psi/i.test(psiEl.textContent);
-        WIN.setUnits('metric');
+        safeSetUnits('metric');
         const barEl = d.getElementById('cylBot_pres_lbl') || d.querySelector('[id*="cyl"][id*="pres_lbl"]');
         if (barEl) ok = ok && /bar/i.test(barEl.textContent);
         if (!ok) return 'cylinder label not found or text ambiguous — skipping (warn)';
         return 'bar ↔ psi label switch ✓';
       }],
       ['localStorage persists unit setting', 'UI', function(){
-        WIN.setUnits('imperial');
+        safeSetUnits('imperial');
         const stored = WIN.localStorage.getItem('lspUnits') || WIN.localStorage.getItem('units');
-        WIN.setUnits('metric');
+        safeSetUnits('metric');
         if (stored == null) return 'localStorage key not found — may use different key (warn)';
         assert(/imperial|ft/i.test(stored), `Stored value unexpected: ${stored}`);
         return `Stored: "${stored}" ✓`;
@@ -2061,12 +2084,12 @@ const TIER3_GROUPS = [
       }],
       ['Travel gas unit switch works (metric→imperial)', 'SCN', function(){
         WIN.addTravelGas();
-        WIN.setUnits('imperial');
+        safeSetUnits('imperial');
         const d = getDoc();
         const el = d.getElementById('travelGasManualDepth');
         // label should change
         const lbl = d.querySelector('label[for="travelGasManualDepth"]');
-        WIN.setUnits('metric');
+        safeSetUnits('metric');
         return lbl ? `label: "${lbl.textContent.trim()}" (reset to metric) ✓` : 'label not found — unit switch ran without crash ✓';
       }],
     ]
