@@ -165,6 +165,12 @@ body.light-theme .text, body.light-theme p, body.light-theme span, body.light-th
   color: #1a1a1a !important;
 }
 
+/* Restore alert colors overridden by broad div rule above */
+body.light-theme .dang, body.light-theme .dang * { color:#cc0000 !important; }
+body.light-theme .warn, body.light-theme .warn * { color:#884400 !important; }
+body.light-theme .ok,   body.light-theme .ok *   { color:#116622 !important; }
+body.light-theme .info, body.light-theme .info *  { color:#0077aa !important; }
+
 /* Keep algo-label bright cyan in light theme */
 body.light-theme .algo-label {
   color: #00d9ff !important;
@@ -823,7 +829,7 @@ body.algo-buh .buh-only { display: flex !important; }
 .alert span { flex-shrink: 0; }
 .ok    { background:rgba(38,208,124,0.07);  border-color:rgba(38,208,124,0.22); color:#70f0aa; }
 .warn  { background:rgba(255,183,3,0.07);   border-color:rgba(255,183,3,0.22);  color:#ffcc40; }
-.dang  { background:#fff0f0; border:1px solid #cc0000; color:#cc0000; font-weight:600; }
+.dang  { background:#fff0f0; border:1px solid #cc0000; color:#cc0000 !important; font-weight:600; }
 .info  { background:rgba(0,200,255,0.06);   border-color:rgba(0,200,255,0.2);   color:#60d8ff; }
 .deco  { background:#ffffff; border:1px solid #cc0000; color:#111111; }
 
@@ -14182,6 +14188,7 @@ window.addEventListener('load', function() {
 </script>
 </body>
 </html>
+
 
 
 
