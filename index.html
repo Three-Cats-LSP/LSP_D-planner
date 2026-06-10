@@ -5679,14 +5679,15 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
         </div>
       </div>
       <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-        <table class="deco-table table-view" style="margin-top:0;">
+        <table class="gas-plan-table" style="margin-top:0;">
+          <colgroup><col style="width:14%"><col style="width:13%"><col style="width:17%"><col style="width:13%"><col style="width:11%"><col style="width:32%"></colgroup>
           <thead><tr>
-            <th style="text-align:left;">GAS</th>
-            <th style="text-align:left;">TOTAL VOL</th>
-            <th style="text-align:left;">${ruleLblVPM}</th>
-            <th style="text-align:left;">TURN PRESS</th>
-            <th style="text-align:left;">RESERVE</th>
-            <th style="text-align:left;">SUFFICIENT</th>
+            <th>GAS</th>
+            <th>TOTAL VOL</th>
+            <th>${ruleLblVPM}</th>
+            <th>TURN PRESS</th>
+            <th>RESERVE</th>
+            <th>SUFFICIENT</th>
           </tr></thead>
           <tbody>${gpBodyVPM ? gpBodyVPM.innerHTML : ''}</tbody>
         </table>
@@ -8558,14 +8559,15 @@ function runDecoSchedule() {
           </div>
         </div>
         <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-          <table class="deco-table table-view" style="margin-top:0;">
+          <table class="gas-plan-table" style="margin-top:0;">
+            <colgroup><col style="width:14%"><col style="width:13%"><col style="width:17%"><col style="width:13%"><col style="width:11%"><col style="width:32%"></colgroup>
             <thead><tr>
-              <th style="text-align:left;">GAS</th>
-              <th style="text-align:left;">TOTAL VOL</th>
-              <th style="text-align:left;">${ruleLblCard}</th>
-              <th style="text-align:left;">TURN PRESS</th>
-              <th style="text-align:left;">RESERVE</th>
-              <th style="text-align:left;">SUFFICIENT</th>
+              <th>GAS</th>
+              <th>TOTAL VOL</th>
+              <th>${ruleLblCard}</th>
+              <th>TURN PRESS</th>
+              <th>RESERVE</th>
+              <th>SUFFICIENT</th>
             </tr></thead>
             <tbody>${gpBody ? gpBody.innerHTML : ''}</tbody>
           </table>
