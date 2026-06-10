@@ -1529,12 +1529,12 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
   <button class="tab-btn buh-only active" id="tab-deco" onclick="switchTab('deco',this)">Deco Schedule</button>
   <button class="tab-btn" id="tab-bestmix-tec" onclick="switchTab('bestmix-tec',this)">Best Mix</button>
 
-  <button class="tab-btn" id="tab-surfint" onclick="switchTab('surfint',this)">Surf Int</button>
   <button class="tab-btn" id="tab-planner" onclick="switchTab('planner',this)">Dive Planner</button>
+  <button class="tab-btn" id="tab-surfint" onclick="switchTab('surfint',this)">Surf Int</button>
+  <button class="tab-btn" id="tab-avgdepth" onclick="switchTab('avgdepth',this)">Avg Depth</button>
   <button class="tab-btn" id="tab-multi" onclick="switchTab('multi',this)">Multi Dive</button>
   <button class="tab-btn" id="tab-cns" onclick="switchTab('cns',this)">CNS O₂</button>
   <button class="tab-btn" id="tab-ndlref" onclick="switchTab('ndlref',this)">NDL Tables</button>
-  <button class="tab-btn" id="tab-avgdepth" onclick="switchTab('avgdepth',this)">Avg Depth</button>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -1640,7 +1640,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
 
 <div class="panel" id="avgdepth">
   <div class="card">
-    <div class="card-title">Average Depth — Planning Converter</div>
+    <div class="card-title" style="display:flex;align-items:center;gap:8px;">Average Depth — Planning Converter<span class="tip-icon" onclick="showTip(_avgDepthTipTitle,_avgDepthTipText)"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></div>
     <div class="info-box">
       <strong>Can you use average depth to plan a dive?</strong> Yes — with caveats.
       RDP tables assume a square profile (max depth the whole dive), so average depth gives you <em>more</em> credit than you actually used — safer for planning a single dive.
@@ -1681,13 +1681,6 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
 
     <div id="avgDepthAdvice" class="info-box" style="margin-top:16px;border-left:3px solid var(--accent);"></div>
 
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Why not just use max depth?</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.7;">
-        Using max depth for every dive is conservative but over-penalises multi-level dives — e.g. a 40m dive that spent 3 min at depth and the rest at 15m. The RDP penalises you as if you spent the full dive at 40m, which can make surface intervals seem unnecessarily long.<br><br>
-        The <strong>planning depth formula: avg + 75% × (max − avg)</strong> is a widely used approximation. It acknowledges the brief time at max depth while not ignoring it. Always validate against your dive computer's actual tissue loading.
-      </div>
-    </div>
   </div>
   </div>
 
@@ -10992,6 +10985,19 @@ EAD = (0.68 × 40 / 0.79) − 10 = 24.4 m
 
 Limits
 EAD only addresses nitrogen narcosis and NDL. You must still respect the ppO₂ MOD for your mix — nitrox does not reduce oxygen toxicity risk.`;
+
+const _avgDepthTipTitle = 'Why Not Just Use Max Depth?';
+const _avgDepthTipText =
+`Using max depth is conservative but over-penalises multi-level dives.
+
+Example: a 40 m dive where you spent only 3 min at depth and the rest at 15 m. RDP tables penalise you as if you stayed at 40 m the entire dive — making surface intervals unnecessarily long.
+
+Planning Depth Formula
+avg + 75% × (max − avg)
+
+This widely used approximation acknowledges the brief time at max depth without ignoring it. It gives a planning depth between your average and max, weighted toward the max.
+
+Always validate against your dive computer's actual tissue loading — especially for repetitive dives, where fast compartments are driven by your actual maximum depth, not the average.`;
 
 function renderEADTable() {
   const table = document.getElementById('eadRefTable');
