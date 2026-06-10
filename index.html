@@ -2512,6 +2512,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     <button class="tab-btn active" id="tool-mod"       onclick="switchTool('mod',this)">MOD</button>
     <button class="tab-btn"        id="tool-bestmix"   onclick="switchTool('bestmix',this)">Best Mix</button>
     <button class="tab-btn"        id="tool-avgdepth"  onclick="switchTool('avgdepth',this)">Avg Depth</button>
+    <button class="tab-btn"        id="tool-endcalc"   onclick="switchTool('endcalc',this)">END Calc</button>
     <button class="tab-btn"        id="tool-eadtable"  onclick="switchTool('eadtable',this)">EAD Table</button>
     <button class="tab-btn"        id="tool-gastable"  onclick="switchTool('gastable',this)">Gas Table</button>
     <button class="tab-btn"        id="tool-converter" onclick="switchTool('converter',this)">Unit Converter</button>
@@ -2884,6 +2885,89 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     </div>
   </div>
   <!-- ════════════════ END KNOWLEDGE PANEL ════════════════════ -->
+
+  <!-- ── END Calculator ── -->
+  <div id="tool-panel-endcalc" style="display:none;">
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
+      <div class="card-title" style="margin-bottom:0;">END — Equivalent Narcotic Depth</div>
+      <span class="tip-icon" onclick="showTip(_endTipTitle,_endTipText)"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span>
+    </div>
+
+    <!-- Inputs -->
+    <div style="display:flex;flex-wrap:wrap;gap:18px;margin-bottom:20px;">
+
+      <!-- Depth -->
+      <div style="flex:1;min-width:160px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">Depth</label>
+          <span id="endDepthDisplay" style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);line-height:1;">30 m</span>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="endDepth" class="lsp-slider" min="1" max="100" value="30" step="1"
+            oninput="updateSliderFill(this);document.getElementById('endDepthDisplay').textContent=this.value+(units==='metric'?' m':' ft');calcEND_tool()">
+          <div class="slider-ticks"><span>1</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+        </div>
+      </div>
+
+      <!-- O2 % -->
+      <div style="flex:1;min-width:160px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">O₂ %</label>
+          <span id="endO2Display" style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);line-height:1;">21%</span>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="endO2" class="lsp-slider" min="1" max="100" value="21" step="1"
+            oninput="updateSliderFill(this);document.getElementById('endO2Display').textContent=this.value+'%';calcEND_tool()">
+          <div class="slider-ticks-abs">
+            <span style="left:0%">1%</span><span style="left:20.2%">21%</span><span style="left:39.4%">40%</span><span style="left:79.8%">80%</span><span style="left:100%">100%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- He % -->
+      <div style="flex:1;min-width:160px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+          <label style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">He % <span style="font-size:9px;color:var(--muted);">(0 = nitrox)</span></label>
+          <span id="endHeDisplay" style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);line-height:1;">0%</span>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="endHe" class="lsp-slider" min="0" max="99" value="0" step="1"
+            oninput="updateSliderFill(this);document.getElementById('endHeDisplay').textContent=this.value+'%';calcEND_tool()">
+          <div class="slider-ticks"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>99%</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Mix validity warning -->
+    <div id="endMixWarn" style="display:none;margin-bottom:12px;"></div>
+
+    <!-- Results -->
+    <div id="endResults">
+      <!-- Row 1: END + Risk -->
+      <div class="stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;">
+        <div class="stat"><div class="stat-val" id="endResult" style="color:var(--green);">—</div><div class="stat-lbl">END</div></div>
+        <div class="stat"><div class="stat-val" id="endRisk" style="font-size:14px;">—</div><div class="stat-lbl">Narcosis Risk</div></div>
+        <div class="stat"><div class="stat-val" id="endNarcLoad" style="color:var(--muted);">—</div><div class="stat-lbl">Narcotic ppressure</div></div>
+      </div>
+      <!-- Row 2: pressure breakdown -->
+      <div class="stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:12px;">
+        <div class="stat"><div class="stat-val" id="endAbsP" style="color:var(--muted);">—</div><div class="stat-lbl">Abs. Pressure</div></div>
+        <div class="stat"><div class="stat-val" id="endPPN2" style="color:var(--muted);">—</div><div class="stat-lbl">ppN₂</div></div>
+        <div class="stat"><div class="stat-val" id="endPPO2" style="color:var(--muted);">—</div><div class="stat-lbl">ppO₂</div></div>
+        <div class="stat"><div class="stat-val" id="endPPHe" style="color:var(--muted);">—</div><div class="stat-lbl">ppHe</div></div>
+      </div>
+      <!-- Row 3: MOD + mix name -->
+      <div class="stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:4px;">
+        <div class="stat"><div class="stat-val" id="endMixName" style="color:var(--accent);font-size:16px;">—</div><div class="stat-lbl">Mix</div></div>
+        <div class="stat"><div class="stat-val" id="endMOD14" style="color:var(--green);">—</div><div class="stat-lbl">MOD @ 1.4</div></div>
+        <div class="stat"><div class="stat-val" id="endMOD16" style="color:var(--muted);">—</div><div class="stat-lbl">MOD @ 1.6</div></div>
+      </div>
+      <div id="endAlert" style="margin-top:10px;"></div>
+    </div>
+  </div>
+  </div>
 
   <!-- ── EAD Table ── -->
   <div id="tool-panel-eadtable" style="display:none;">
@@ -10752,6 +10836,114 @@ function calcMaxDepth() {
 // ═══════════════════════════════════════════════
 // GAS TABLE — MOD / MND reference for common mixes
 // ═══════════════════════════════════════════════
+const _endTipTitle = 'Equivalent Narcotic Depth (END)';
+const _endTipText  =
+`What is END?
+END (Equivalent Narcotic Depth) expresses the narcotic effect of a breathing gas as the depth at which breathing air would feel equally narcotic. A lower END means less impairment at the same actual depth.
+
+What causes narcosis?
+Nitrogen is narcotic at partial pressures above ~3 bar (roughly 20 m on air). Oxygen is also considered narcotic by most models. Helium is NOT narcotic — adding He to a mix reduces narcosis proportionally.
+
+Formula (N₂ + O₂ narcotic model)
+pNarc = ppN₂ + ppO₂ at depth
+END = (pNarc / pNarc_air_surface) × 10 − 10
+
+Narcosis risk levels
+≤ 30 m END → Low  — mild, manageable for most divers
+31–40 m END → Moderate — noticeable impairment, increased caution
+41–50 m END → High — significant impairment, trimix recommended
+> 50 m END → Severe — professional tec divers with helium only
+
+Practical guidance
+Most recreational agencies recommend keeping END ≤ 30 m. Technical divers typically plan for END ≤ 30–35 m even on deep trimix dives. Exertion, cold, stress, and CO₂ build-up can all worsen narcosis beyond what END predicts.`;
+
+function calcEND_tool() {
+  const du     = units === 'metric';
+  const dUnit  = du ? 'm' : 'ft';
+  const dRaw   = parseFloat(document.getElementById('endDepth')?.value) || 30;
+  const dM     = du ? dRaw : dRaw / 3.28084;
+  const o2Pct  = parseFloat(document.getElementById('endO2')?.value) || 21;
+  const hePct  = parseFloat(document.getElementById('endHe')?.value) || 0;
+  const n2Pct  = 100 - o2Pct - hePct;
+
+  // Mix validity
+  const warnEl = document.getElementById('endMixWarn');
+  if (n2Pct < 0) {
+    warnEl.style.display = 'block';
+    warnEl.innerHTML = '<div class="alert dang"><span>\u26a0</span><div>O\u2082% + He% exceeds 100%. Adjust mix.</div></div>';
+    document.getElementById('endResults').style.opacity = '0.3';
+    return;
+  }
+  warnEl.style.display = 'none';
+  document.getElementById('endResults').style.opacity = '1';
+
+  const fO2  = o2Pct / 100;
+  const fHe  = hePct / 100;
+  const fN2  = n2Pct / 100;
+
+  const pAmb = (altSurfaceP || 1.0) + dM * (BAR_PER_METRE || 0.1);
+  const ppN2 = fN2 * pAmb;
+  const ppO2 = fO2 * pAmb;
+  const ppHe = fHe * pAmb;
+
+  // Narcotic partial pressure (N2 + O2, He excluded)
+  const pNarc = ppN2 + ppO2;
+  // END: depth where air has same narcotic ppressure
+  // pNarc_air(d) = 0.79*(d+10)/10 + 0.21*(d+10)/10 = (d+10)/10
+  const endM  = Math.max(0, pNarc * 10 - 10);
+  const endDisp = du ? Math.round(endM) + ' m' : Math.round(endM * 3.28084) + ' ft';
+
+  // Risk level
+  let riskLabel, riskCol;
+  if (endM <= 30)      { riskLabel = 'Low';      riskCol = 'var(--green)'; }
+  else if (endM <= 40) { riskLabel = 'Moderate'; riskCol = 'var(--yellow)'; }
+  else if (endM <= 50) { riskLabel = 'High';     riskCol = 'var(--orange)'; }
+  else                 { riskLabel = 'Severe';   riskCol = 'var(--red)'; }
+
+  // MOD
+  const mod14M = fO2 > 0 ? Math.floor((1.4 / fO2 - (altSurfaceP||1.0)) / (BAR_PER_METRE||0.1)) : null;
+  const mod16M = fO2 > 0 ? Math.floor((1.6 / fO2 - (altSurfaceP||1.0)) / (BAR_PER_METRE||0.1)) : null;
+  const mod14d = mod14M != null ? (du ? mod14M + ' m' : Math.round(mod14M * 3.28084) + ' ft') : '\u2014';
+  const mod16d = mod16M != null ? (du ? mod16M + ' m' : Math.round(mod16M * 3.28084) + ' ft') : '\u2014';
+
+  // Mix name
+  const mixName = hePct > 0
+    ? o2Pct + '/' + hePct
+    : (o2Pct === 21 ? 'Air' : 'EAN' + o2Pct);
+
+  // Depth display label sync
+  document.getElementById('endDepthDisplay').textContent = (du ? dRaw : dRaw) + (du ? ' m' : ' ft');
+
+  // Update UI
+  document.getElementById('endResult').textContent    = endDisp;
+  document.getElementById('endResult').style.color    = riskCol;
+  document.getElementById('endRisk').textContent      = riskLabel;
+  document.getElementById('endRisk').style.color      = riskCol;
+  document.getElementById('endNarcLoad').textContent  = pNarc.toFixed(2) + ' bar';
+  document.getElementById('endAbsP').textContent      = pAmb.toFixed(2) + ' bar';
+  document.getElementById('endPPN2').textContent      = ppN2.toFixed(2) + ' bar';
+  document.getElementById('endPPO2').textContent      = ppO2.toFixed(2) + ' bar';
+  document.getElementById('endPPHe').textContent      = ppHe.toFixed(2) + ' bar';
+  document.getElementById('endMixName').textContent   = mixName;
+  document.getElementById('endMOD14').textContent     = mod14d;
+  document.getElementById('endMOD16').textContent     = mod16d;
+
+  // Alert banner
+  const alertEl = document.getElementById('endAlert');
+  let alertHtml = '';
+  if (endM > 50) {
+    alertHtml = `<div class="alert" style="background:#FF4433;border-color:#111;border-width:1px;color:#fff;font-weight:700;"><span>\u26a0</span><div><strong>SEVERE NARCOSIS.</strong> END ${endDisp} \u2014 consider adding helium.</div></div>`;
+  } else if (endM > 40) {
+    alertHtml = `<div class="alert" style="background:#FF4433;border-color:#111;border-width:1px;color:#fff;font-weight:700;"><span>\u26a0</span><div><strong>HIGH NARCOTIC DEPTH.</strong> END ${endDisp} exceeds 40 m equivalent.</div></div>`;
+  } else if (endM > 30) {
+    alertHtml = `<div class="alert" style="background:#FF4433;border-color:#111;border-width:1px;color:#fff;font-weight:700;"><span>\u26a0</span><div><strong>NARCOTIC DEPTH WARNING.</strong> END ${endDisp} exceeds 30 m equivalent.</div></div>`;
+  }
+  if (mod14M != null && dM > mod14M) {
+    alertHtml += `<div class="alert dang" style="margin-top:6px;"><span>\u26a0</span><div><strong>EXCEEDS MOD.</strong> Depth ${du ? Math.round(dM)+' m' : Math.round(dM*3.28084)+' ft'} is deeper than MOD ${mod14d} at ppO\u2082 1.4.</div></div>`;
+  }
+  alertEl.innerHTML = alertHtml;
+}
+
 const _eadTipTitle = 'Equivalent Air Depth (EAD)';
 const _eadTipText  =
 `What is EAD?
@@ -11066,7 +11258,7 @@ function toggleSurfIntPanel(prefix) {
 
 // Init tools on tab open
 function switchTool(name, btn) {
-  ['mod','bestmix','avgdepth','eadtable','gastable','converter','knowledge'].forEach(t => {
+  ['mod','bestmix','avgdepth','endcalc','eadtable','gastable','converter','knowledge'].forEach(t => {
     document.getElementById('tool-panel-' + t).style.display = t === name ? 'block' : 'none';
     document.getElementById('tool-' + t).classList.toggle('active', t === name);
   });
@@ -11074,6 +11266,7 @@ function switchTool(name, btn) {
   if (name === 'mod')       { calcMOD(); renderModRefTable(); }
   if (name === 'bestmix')   { calcBestMix(); renderToolsBmtRefTable(); }
   if (name === 'avgdepth')  calcAvgDepth();
+  if (name === 'endcalc')   calcEND_tool();
   if (name === 'eadtable')  renderEADTable();
   if (name === 'gastable')  renderGasTable();
   if (name === 'converter') initConverter();
