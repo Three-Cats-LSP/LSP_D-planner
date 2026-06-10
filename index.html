@@ -5478,7 +5478,7 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
         <td style="padding:5px 6px;font-family:'JetBrains Mono',monospace;color:${reqColorV};font-weight:${short?'700':'400'};">${reqDisp} ${volUnitV}</td>
         <td style="padding:5px 6px;font-family:'JetBrains Mono',monospace;color:${availColorV};font-weight:${(!short&&hasCyl)?'700':'400'};">${availDisp != null ? availDisp+' '+volUnitV : '—'}</td>
         ${turnCell}
-        <td style="padding:5px 6px;"><span style="color:${sufCol};font-weight:700;">${sufIcon}</span> <span style="font-size:11px;color:${sufCol};">${sufTxt}</span></td>
+        <td style="padding:5px 6px;color:${sufCol};font-weight:700;">${sufIcon} ${sufTxt}</td>
       </tr>`;
 
       if (short) {
@@ -8399,7 +8399,7 @@ function runDecoSchedule() {
         <td style="padding:5px 6px;font-family:'JetBrains Mono',monospace;color:${reqColor};font-weight:${short?'700':'400'};">${Math.round(reqL)} ${volUnitV}</td>
         <td style="padding:5px 6px;font-family:'JetBrains Mono',monospace;color:${availColor};font-weight:${(!short&&hasCyl)?'700':'400'};">${usableL != null ? Math.round(usableL)+' '+volUnitV : '—'}</td>
         ${turnCell}
-        <td style="padding:5px 6px;"><span style="color:${sufCol};font-weight:700;">${sufIcon}</span> <span style="font-size:11px;color:${sufCol};">${sufTxt}</span></td>
+        <td style="padding:5px 6px;color:${sufCol};font-weight:700;">${sufIcon} ${sufTxt}</td>
       </tr>`;
       if (short) {
         const bt = parseFloat(document.getElementById('decoBT')?.value) || 0;
