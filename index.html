@@ -587,6 +587,8 @@ body.algo-tools .algo-switcher > div:last-child .header-warn {
 .btn-export:focus { outline: none; }
 .btn-export:active { background: var(--accent); color: var(--bg); opacity: 1; }
 .btn-export:hover { background: rgba(0,200,255,0.12); }
+.btn-export.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.btn-export.active:hover { background: var(--accent2,var(--accent)); opacity: 0.9; }
 .btn-export svg { display:block; }
 
 /* Reset button — vivid red in both themes */
@@ -1593,8 +1595,8 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     <div class="ctrl-row" style="margin-bottom:16px;">
       <span class="ctrl-label" style="margin-left:0;">Gas Rule:</span>
       <div class="seg">
-        <button class="seg-btn active" id="gpRuleThirds" onclick="setGasRule('thirds')">Rule of Thirds</button>
-        <button class="seg-btn" id="gpRuleHalf" onclick="setGasRule('half')">Half Tank</button>
+        <button class="seg-btn active" id="gpRuleThirds" onclick="setGasRule('thirds')">Thirds</button>
+        <button class="seg-btn" id="gpRuleHalf" onclick="setGasRule('half')">Half</button>
       </div>
     </div>
 
@@ -5518,7 +5520,7 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
             <th style="text-align:left;padding:4px 6px;">GAS</th>
             <th style="text-align:left;padding:4px 6px;">REQUIRED</th>
             <th style="text-align:left;padding:4px 6px;">AVAILABLE</th>
-            <th style="text-align:left;padding:4px 6px;">${_gasRule==='half'?'HALF TURN':'⅓ TURN'}</th>
+            <th style="text-align:left;padding:4px 6px;">${_gasRule==='half'?'HALF':'THIRDS'}</th>
             <th style="text-align:left;padding:4px 6px;">STATUS</th>
           </tr></thead>
           <tbody style="font-size:12px;">${tableRows}</tbody>
@@ -8364,7 +8366,7 @@ function runDecoSchedule() {
     const presUnitV = units === 'imperial' ? 'psi' : 'bar';
     const sacUnitBHL = units === 'imperial' ? 'cu ft/min' : 'L/min';
     const fracBHL   = (_gasRule === 'half') ? 0.5 : (1/3);
-    const ruleLblBHL = (_gasRule === 'half') ? 'Half' : '⅓';
+    const ruleLblBHL = (_gasRule === 'half') ? 'HALF' : 'THIRDS';
     const gasLabelsBHL = Object.keys(gasConsumed);
     const cylIdsBHL = [
       ['cylBot_size','cylBot_pres','cylBot_reserve'],
@@ -8437,7 +8439,7 @@ function runDecoSchedule() {
             <th style="text-align:left;padding:4px 6px;">GAS</th>
             <th style="text-align:left;padding:4px 6px;">REQUIRED</th>
             <th style="text-align:left;padding:4px 6px;">AVAILABLE</th>
-            <th style="text-align:left;padding:4px 6px;">${ruleLblBHL} TURN</th>
+            <th style="text-align:left;padding:4px 6px;">${ruleLblBHL}</th>
             <th style="text-align:left;padding:4px 6px;">STATUS</th>
           </tr></thead>
           <tbody>${tableRowsBHL}</tbody>
