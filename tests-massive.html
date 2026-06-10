@@ -2485,6 +2485,260 @@ const TIER3_GROUPS = [
     ]
   },
 
+  // ── T3-NEW-E: Gas Plan tab removed ──────────────────────────────────────────
+  {
+    tier: 3, name: 'T3-NEW-E · Gas Plan Tab Removed',
+    tests: [
+      ['tab-gasplan button absent from nav', 'SCN', function(){
+        const d = getDoc();
+        const btn = d.getElementById('tab-gasplan');
+        if (btn) return 'tab-gasplan button still present in nav ✗';
+        return 'tab-gasplan button absent ✓';
+      }],
+      ['gasplan-panel hidden (display:none)', 'SCN', function(){
+        const d = getDoc();
+        const panel = d.getElementById('gasplan-panel');
+        if (!panel) return 'gasplan-panel not found (warn)';
+        const style = panel.getAttribute('style') || '';
+        if (!/display\s*:\s*none/i.test(style)) return 'gasplan-panel not hidden (warn)';
+        return 'gasplan-panel hidden ✓';
+      }],
+    ]
+  },
+
+  // ── T3-NEW-F: Gas Consumption Card (calcGasPlan) ─────────────────────────────
+  {
+    tier: 3, name: 'T3-NEW-F · Gas Consumption Card — calcGasPlan',
+    tests: [
+      ['calcGasPlan function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.calcGasPlan === 'function', 'calcGasPlan not found on window');
+        return 'calcGasPlan ✓';
+      }],
+      ['_lastGasPlan populated after calcGasPlan()', 'SCN', function(){
+        WIN.calcGasPlan();
+        const gp = WIN._lastGasPlan;
+        if (!gp) return '_lastGasPlan is null after calcGasPlan (warn)';
+        assert(Array.isArray(gp.rows), '_lastGasPlan.rows is not an array');
+        return '_lastGasPlan.rows.length=' + gp.rows.length + ' ✓';
+      }],
+      ['_lastGasPlan has rule property (thirds or half)', 'SCN', function(){
+        WIN.calcGasPlan();
+        const gp = WIN._lastGasPlan;
+        if (!gp) return '_lastGasPlan null (warn)';
+        assert(gp.rule === 'thirds' || gp.rule === 'half', '_lastGasPlan.rule not thirds/half, got: ' + gp.rule);
+        return 'rule=' + gp.rule + ' ✓';
+      }],
+      ['setGasRule function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.setGasRule === 'function', 'setGasRule not found on window');
+        return 'setGasRule ✓';
+      }],
+      ['setGasRule("half") changes _lastGasPlan.rule', 'SCN', function(){
+        WIN.setGasRule('half');
+        WIN.calcGasPlan();
+        const gp = WIN._lastGasPlan;
+        if (!gp) return '_lastGasPlan null after half (warn)';
+        assert(gp.rule === 'half', 'expected rule=half, got ' + gp.rule);
+        WIN.setGasRule('thirds');
+        return 'setGasRule half ✓, restored thirds';
+      }],
+      ['setGasRule("thirds") restores rule', 'SCN', function(){
+        WIN.setGasRule('thirds');
+        WIN.calcGasPlan();
+        const gp = WIN._lastGasPlan;
+        if (!gp) return '_lastGasPlan null (warn)';
+        assert(gp.rule === 'thirds', 'expected rule=thirds, got ' + gp.rule);
+        return 'setGasRule thirds ✓';
+      }],
+      ['DOM contains THIRDS header (not RULE OF 3RDS)', 'SCN', function(){
+        const d = getDoc();
+        const html = d.body.innerHTML || '';
+        if (/RULE OF 3RDS/i.test(html)) return 'RULE OF 3RDS still present in DOM ✗';
+        if (!/THIRDS/i.test(html)) return 'THIRDS header not found in DOM (warn)';
+        return 'THIRDS present, RULE OF 3RDS absent ✓';
+      }],
+      ['gpResultBody element exists in DOM', 'SCN', function(){
+        const d = getDoc();
+        const el = d.getElementById('gpResultBody');
+        assert(el, 'gpResultBody not found in DOM');
+        return 'gpResultBody ✓';
+      }],
+    ]
+  },
+
+  // ── T3-NEW-G: Travel Gas Pooling ─────────────────────────────────────────────
+  {
+    tier: 3, name: 'T3-NEW-G · Travel Gas Pooling (same mix as bottom)',
+    tests: [
+      ['_applyGasWarningStyles function exists on WIN', 'SCN', function(){
+        assert(typeof WIN._applyGasWarningStyles === 'function', '_applyGasWarningStyles not found on window');
+        return '_applyGasWarningStyles ✓';
+      }],
+      ['calcGasPlan pools travel gas into bottom when same mix', 'SCN', function(){
+        const d = getDoc();
+        const botSize = d.getElementById('gpBot_size');
+        const botFill = d.getElementById('gpBot_fill');
+        const botRes  = d.getElementById('gpBot_reserve');
+        if (!botSize || !botFill || !botRes) return 'gpBot inputs not found (warn)';
+        const origS = botSize.value, origF = botFill.value, origR = botRes.value;
+        botSize.value = '12'; botFill.value = '200'; botRes.value = '50';
+        if (typeof WIN.addTravelGas === 'function') WIN.addTravelGas();
+        const tSize = d.getElementById('gpTravel_size');
+        const tFill = d.getElementById('gpTravel_fill');
+        const tRes  = d.getElementById('gpTravel_reserve');
+        if (!tSize || !tFill || !tRes) { botSize.value=origS; botFill.value=origF; botRes.value=origR; return 'gpTravel inputs not found (warn)'; }
+        tSize.value = '12'; tFill.value = '200'; tRes.value = '50';
+        WIN.calcGasPlan();
+        const gp = WIN._lastGasPlan;
+        botSize.value = origS; botFill.value = origF; botRes.value = origR;
+        if (!gp || !gp.rows.length) return '_lastGasPlan empty after setup (warn)';
+        const bot = gp.rows.find(r => r.kind === 'bottom');
+        if (!bot) return 'no bottom row in _lastGasPlan (warn)';
+        const expectedL = (200-50)*12 + (200-50)*12;
+        if (Math.abs(bot.totalL - expectedL) > 10)
+          return 'totalL=' + bot.totalL.toFixed(0) + 'L, expected ~' + expectedL + 'L — pooling may not be working (warn)';
+        return 'pooled totalL=' + bot.totalL.toFixed(0) + 'L (' + expectedL + 'L expected) ✓';
+      }],
+      ['travel row absent from one-way rows when pooled with bottom', 'SCN', function(){
+        WIN.calcGasPlan();
+        const gp = WIN._lastGasPlan;
+        if (!gp || !gp.rows.length) return '_lastGasPlan empty (warn)';
+        const travelRow = gp.rows.find(r => r.kind !== 'bottom' && /travel/i.test(r.name || r.label || ''));
+        if (travelRow) return 'Travel still appears as separate one-way row when same mix as bottom ✗';
+        return 'no separate Travel row ✓';
+      }],
+      ['pooled bottom row label includes +Travel', 'SCN', function(){
+        WIN.calcGasPlan();
+        const gp = WIN._lastGasPlan;
+        if (!gp || !gp.rows.length) return '_lastGasPlan empty (warn)';
+        const bot = gp.rows.find(r => r.kind === 'bottom');
+        if (!bot) return 'no bottom row (warn)';
+        if (!bot.label.includes('+Travel') && !bot.label.includes('Travel'))
+          return 'label does not include +Travel: ' + bot.label + ' (warn — travel may not be configured)';
+        return 'label=' + bot.label + ' ✓';
+      }],
+    ]
+  },
+
+  // ── T3-NEW-H: Warning Rows (BT banner + tight) ───────────────────────────────
+  {
+    tier: 3, name: 'T3-NEW-H · Gas Warning Rows (BT banner + tight)',
+    tests: [
+      ['gas-bt-cell class rendered for tiny cylinder', 'SCN', function(){
+        const d = getDoc();
+        const gpBody = d.getElementById('gpResultBody');
+        if (!gpBody) return 'gpResultBody not found (warn)';
+        const botSize = d.getElementById('gpBot_size');
+        const botFill = d.getElementById('gpBot_fill');
+        const botRes  = d.getElementById('gpBot_reserve');
+        if (!botSize || !botFill || !botRes) return 'gpBot inputs not found (warn)';
+        const origS = botSize.value, origF = botFill.value, origR = botRes.value;
+        botSize.value = '3'; botFill.value = '200'; botRes.value = '50';
+        WIN.calcGasPlan();
+        const hasBTCell = gpBody.querySelector('.gas-bt-cell') !== null;
+        botSize.value = origS; botFill.value = origF; botRes.value = origR;
+        WIN.calcGasPlan();
+        if (!hasBTCell) return 'gas-bt-cell not rendered for tiny 3L cylinder (warn — needs a deco plan run)';
+        return 'gas-bt-cell rendered ✓';
+      }],
+      ['_applyGasWarningStyles() runs without crash on gpResultBody', 'SCN', function(){
+        const d = getDoc();
+        const gpBody = d.getElementById('gpResultBody');
+        if (!gpBody) return 'gpResultBody not found (warn)';
+        WIN._applyGasWarningStyles(gpBody);
+        return '_applyGasWarningStyles ran OK ✓';
+      }],
+      ['_applyGasWarningStyles() runs without crash on null container', 'SCN', function(){
+        WIN._applyGasWarningStyles(null);
+        return 'null container handled gracefully ✓';
+      }],
+    ]
+  },
+
+  // ── T3-NEW-I: Gas Rule Info Modal ────────────────────────────────────────────
+  {
+    tier: 3, name: 'T3-NEW-I · Gas Rule Info Modal',
+    tests: [
+      ['gasRuleModal element exists in DOM', 'SCN', function(){
+        const d = getDoc();
+        assert(d.getElementById('gasRuleModal'), 'gasRuleModal not found in DOM');
+        return 'gasRuleModal ✓';
+      }],
+      ['showGasRuleInfo function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.showGasRuleInfo === 'function', 'showGasRuleInfo not found on window');
+        return 'showGasRuleInfo ✓';
+      }],
+      ['closeGasRuleInfo function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.closeGasRuleInfo === 'function', 'closeGasRuleInfo not found on window');
+        return 'closeGasRuleInfo ✓';
+      }],
+      ['showGasRuleInfo() makes gasRuleModal visible', 'SCN', function(){
+        WIN.showGasRuleInfo();
+        const modal = getDoc().getElementById('gasRuleModal');
+        assert(modal && modal.style.display !== 'none', 'modal still hidden after showGasRuleInfo()');
+        WIN.closeGasRuleInfo();
+        return 'show → visible, close → hidden ✓';
+      }],
+      ['gasRuleModal mentions Thirds and Half', 'SCN', function(){
+        const modal = getDoc().getElementById('gasRuleModal');
+        if (!modal) return 'gasRuleModal not found (warn)';
+        const txt = modal.textContent || '';
+        if (!/thirds/i.test(txt)) return 'Thirds not in modal text (warn)';
+        if (!/half/i.test(txt)) return 'Half not in modal text (warn)';
+        return 'Thirds + Half both present ✓';
+      }],
+    ]
+  },
+
+  // ── T3-NEW-J: Gas Plan Exports ───────────────────────────────────────────────
+  {
+    tier: 3, name: 'T3-NEW-J · Gas Plan Exports (text + PDF)',
+    tests: [
+      ['buildGasPlanText function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.buildGasPlanText === 'function', 'buildGasPlanText not found on window');
+        return 'buildGasPlanText ✓';
+      }],
+      ['buildGasPlanPDF function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.buildGasPlanPDF === 'function', 'buildGasPlanPDF not found on window');
+        return 'buildGasPlanPDF ✓';
+      }],
+      ['copyGasPlan function exists on WIN', 'SCN', function(){
+        assert(typeof WIN.copyGasPlan === 'function', 'copyGasPlan not found on window');
+        return 'copyGasPlan ✓';
+      }],
+      ['buildGasPlanText() returns non-empty string', 'SCN', function(){
+        const txt = WIN.buildGasPlanText();
+        if (!txt) return 'buildGasPlanText returned null/empty (warn — needs bottom gas configured)';
+        assert(typeof txt === 'string' && txt.length > 20, 'text too short: ' + String(txt).slice(0,50));
+        return 'text length=' + txt.length + ' ✓';
+      }],
+      ['buildGasPlanText() contains BOTTOM GAS label', 'SCN', function(){
+        const txt = WIN.buildGasPlanText();
+        if (!txt) return 'no text returned (warn)';
+        if (!/BOTTOM GAS/i.test(txt)) return 'BOTTOM GAS not found in text output (warn)';
+        return 'BOTTOM GAS present ✓';
+      }],
+      ['buildGasPlanText() contains Thirds or Half Tank rule label', 'SCN', function(){
+        const txt = WIN.buildGasPlanText();
+        if (!txt) return 'no text returned (warn)';
+        if (!/thirds|half tank/i.test(txt)) return 'rule label not in text (warn)';
+        return 'rule label present ✓';
+      }],
+      ['buildGasPlanText() does NOT contain old label RULE OF 3RDS', 'SCN', function(){
+        const txt = WIN.buildGasPlanText();
+        if (!txt) return 'no text returned (warn)';
+        if (/rule of 3rds/i.test(txt)) return 'old label RULE OF 3RDS still in text output ✗';
+        return 'old label absent ✓';
+      }],
+      ['_lastGasPlan.rows[0].kind === "bottom"', 'SCN', function(){
+        WIN.calcGasPlan();
+        const gp = WIN._lastGasPlan;
+        if (!gp || !gp.rows.length) return '_lastGasPlan empty (warn)';
+        assert(gp.rows[0].kind === 'bottom', 'first row not kind=bottom, got: ' + gp.rows[0].kind);
+        return 'rows[0].kind=bottom ✓';
+      }],
+    ]
+  },
+
 ];
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -2812,3 +3066,4 @@ window.addEventListener('load', () => setTimeout(startTests, 300));
 </script>
 </body>
 </html>
+
