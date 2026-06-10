@@ -1682,7 +1682,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
       <table class="deco-table table-view">
         <thead><tr>
-          <th>GAS</th><th>TOTAL VOL</th><th>THIRDS</th><th>TURN PRESS</th><th>RESERVE</th><th>SUFFICIENT</th>
+          <th style="min-width:110px;white-space:nowrap;">GAS</th><th>TOTAL VOL</th><th>THIRDS</th><th>TURN PRESS</th><th>RESERVE</th><th>SUFFICIENT</th>
         </tr></thead>
         <tbody id="gpResultBody"></tbody>
       </table>
@@ -10896,7 +10896,7 @@ function calcGasPlan() {
             ? `Max BT with this cylinder: <strong>${r.maxBTmin} min</strong>, turn at <strong>${gpPresDisp(r.maxTurnBar)} ${presU}</strong>`
             : '';
           html += `<tr>
-            <td>${r.label}</td>
+            <td style="white-space:nowrap;">${r.label}</td>
             <td style="color:var(--red) !important;font-weight:700;">${gpVolDisp(r.totalL)} ${volU} avail</td>
             <td style="color:var(--red) !important;">need ${gpVolDisp(r.reqL)} ${volU}</td>
             <td style="color:var(--muted);font-size:10px;">(${ruleTxt} rule)</td>
@@ -10909,9 +10909,10 @@ function calcGasPlan() {
           const suffNote = r.reqL != null
             ? ` <span style="color:var(--green) !important;font-size:10px;">✓ ${gpVolDisp(r.reqL)} ${volU} needed</span>`
             : '';
+          const botVolColor = r.reqL != null ? 'color:var(--green) !important;font-weight:700;' : '';
           html += `<tr>
-            <td>${r.label}</td>
-            <td>${gpVolDisp(r.totalL)} ${volU}</td>
+            <td style="white-space:nowrap;">${r.label}</td>
+            <td style="${botVolColor}">${gpVolDisp(r.totalL)} ${volU}</td>
             <td>${gpVolDisp(r.portionL)} ${volU} <span style="color:var(--muted);">(${ruleTxt})</span></td>
             <td style="color:var(--accent) !important;font-weight:700;">${gpPresDisp(r.turnBar)} ${presU}</td>
             <td>${gpPresDisp(r.reserveBar)} ${presU}</td>
@@ -10936,7 +10937,7 @@ function calcGasPlan() {
         const reqTxt = r.reqL == null ? '—' : `${gpVolDisp(r.reqL)} ${volU}`;
         const isTight = r.reqL != null && r.totalL >= r.reqL && r.totalL < r.reqL * 1.10;
         html += `<tr class="${isTight ? 'gas-tight-row' : ''}">
-          <td>${r.label}</td>
+          <td style="white-space:nowrap;">${r.label}</td>
           <td style="${isTight ? '' : 'color:' + statusCol + ' !important;'}font-weight:700;">${gpVolDisp(r.totalL)} ${volU} avail</td>
           <td>${isTight ? '' : 'req '}${reqTxt}</td>
           <td>${isTight ? 'tight' : 'one-way'}</td>
