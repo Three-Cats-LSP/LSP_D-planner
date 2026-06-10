@@ -2512,6 +2512,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     <button class="tab-btn active" id="tool-mod"       onclick="switchTool('mod',this)">MOD</button>
     <button class="tab-btn"        id="tool-bestmix"   onclick="switchTool('bestmix',this)">Best Mix</button>
     <button class="tab-btn"        id="tool-avgdepth"  onclick="switchTool('avgdepth',this)">Avg Depth</button>
+    <button class="tab-btn"        id="tool-eadtable"  onclick="switchTool('eadtable',this)">EAD Table</button>
     <button class="tab-btn"        id="tool-gastable"  onclick="switchTool('gastable',this)">Gas Table</button>
     <button class="tab-btn"        id="tool-converter" onclick="switchTool('converter',this)">Unit Converter</button>
     <button class="tab-btn"        id="tool-knowledge" onclick="switchTool('knowledge',this)">Knowledge</button>
@@ -2883,6 +2884,24 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     </div>
   </div>
   <!-- ════════════════ END KNOWLEDGE PANEL ════════════════════ -->
+
+  <!-- ── EAD Table ── -->
+  <div id="tool-panel-eadtable" style="display:none;">
+
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+      <div class="card-title" style="margin-bottom:0;">EAD — Equivalent Air Depth Table</div>
+      <span class="tip-icon" onclick="showTip(_eadTipTitle,_eadTipText)"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span>
+    </div>
+    <p style="color:var(--muted);font-size:11px;margin-bottom:12px;">EAD for EAN 22–40 at depths 12–38 m. Use EAD with standard air NDL tables when diving nitrox. Values computed live using your current unit setting.</p>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+      <table id="eadRefTable" style="width:100%;border-collapse:collapse;font-size:11px;font-family:'JetBrains Mono',monospace;">
+        <!-- filled by renderEADTable() -->
+      </table>
+    </div>
+  </div>
+
+  </div>
 
   <!-- ── Gas Table (MOD / MND reference) ── -->
   <div id="tool-panel-gastable" style="display:none;">
@@ -10711,6 +10730,64 @@ function calcMaxDepth() {
 // ═══════════════════════════════════════════════
 // GAS TABLE — MOD / MND reference for common mixes
 // ═══════════════════════════════════════════════
+const _eadTipTitle = 'Equivalent Air Depth (EAD)';
+const _eadTipText  =
+`What is EAD?
+EAD (Equivalent Air Depth) is the depth at which air would have the same partial pressure of nitrogen as your nitrox mix at the actual depth. Because nitrox has less N₂ than air, EAD is always shallower — meaning you absorb nitrogen as if you were at a shallower depth.
+
+Why does EAD matter?
+Standard air NDL tables and dive computers set to "air" mode were designed for 79% N₂. When diving nitrox, you can look up your EAD in standard tables to get longer no-deco limits safely.
+
+Formula
+EAD = ((1 − fO₂) × (depth + 10) / 0.79) − 10
+where fO₂ is the oxygen fraction and depth is in metres.
+
+Example
+Diving EAN32 to 30 m:
+fN₂ = 0.68, pAmb = 4 bar
+EAD = (0.68 × 40 / 0.79) − 10 = 24.4 m
+→ Use the 24 m air NDL instead of 30 m.
+
+Limits
+EAD only addresses nitrogen narcosis and NDL. You must still respect the ppO₂ MOD for your mix — nitrox does not reduce oxygen toxicity risk.`;
+
+function renderEADTable() {
+  const table = document.getElementById('eadRefTable');
+  if (!table) return;
+  const du = units === 'metric';
+  const toDisp = m => du ? m.toFixed(1) + ' m' : (m * 3.28084).toFixed(1) + ' ft';
+  const depthLabel = m => du ? m + ' m' : Math.round(m * 3.28084) + ' ft';
+
+  const depths = [12,14,16,18,20,22,24,26,28,30,32,34,36,38];
+  const mixes  = Array.from({length:19}, (_, i) => 22 + i); // 22..40
+
+  // Header row
+  let html = '<thead><tr style="border-bottom:1px solid var(--border);">' +
+    '<th style="text-align:left;padding:5px 6px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:400;white-space:nowrap;">Mix</th>';
+  depths.forEach(d => {
+    html += `<th style="text-align:right;padding:5px 4px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:400;white-space:nowrap;">${depthLabel(d)}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  // Data rows
+  mixes.forEach(o2pct => {
+    const fO2 = o2pct / 100;
+    const fN2 = 1 - fO2;
+    const o2Col = o2pct >= 32 ? 'var(--green)' : o2pct >= 22 ? 'var(--accent)' : 'var(--muted)';
+    html += `<tr class="bmt-ref-row"><td style="color:${o2Col};font-weight:600;white-space:nowrap;">EAN${o2pct}</td>`;
+    depths.forEach(dM => {
+      const pAmb = (altSurfaceP || 1.0) + dM * (BAR_PER_METRE || 0.1);
+      const pN2  = fN2 * pAmb;
+      const ead  = Math.max(0, (pN2 / 0.79 - (altSurfaceP || 1.0)) / (BAR_PER_METRE || 0.1));
+      html += `<td style="text-align:right;padding:5px 4px;color:var(--muted);white-space:nowrap;">${toDisp(ead)}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
 function renderGasTable() {
   const body = document.getElementById('gasTableBody');
   if (!body) return;
@@ -10967,7 +11044,7 @@ function toggleSurfIntPanel(prefix) {
 
 // Init tools on tab open
 function switchTool(name, btn) {
-  ['mod','bestmix','avgdepth','gastable','converter','knowledge'].forEach(t => {
+  ['mod','bestmix','avgdepth','eadtable','gastable','converter','knowledge'].forEach(t => {
     document.getElementById('tool-panel-' + t).style.display = t === name ? 'block' : 'none';
     document.getElementById('tool-' + t).classList.toggle('active', t === name);
   });
@@ -10975,6 +11052,7 @@ function switchTool(name, btn) {
   if (name === 'mod')       { calcMOD(); renderModRefTable(); }
   if (name === 'bestmix')   { calcBestMix(); renderToolsBmtRefTable(); }
   if (name === 'avgdepth')  calcAvgDepth();
+  if (name === 'eadtable')  renderEADTable();
   if (name === 'gastable')  renderGasTable();
   if (name === 'converter') initConverter();
 }
