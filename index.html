@@ -8478,7 +8478,9 @@ function runDecoSchedule() {
       gasEl.style.display = 'block';
     }
 
-    // Tissue handled by updateTissueViz via tissueInlineCard
+  } // end if (gasEl && Object.keys(gasConsumed).length)
+
+  // Tissue handled by updateTissueViz via tissueInlineCard
 
   if (!_contingencyRunning) {
     document.getElementById('tissueInlineCard').style.display = 'block';
