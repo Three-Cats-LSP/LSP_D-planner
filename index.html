@@ -30,146 +30,134 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════
-   SHARED DESIGN TOKENS
+ SHARED DESIGN TOKENS
 ═══════════════════════════════════════════ */
-:root {
-  /* DARK THEME (Default) */
-  --bg:        #030c18;
-  --surface:   #07121f;
-  --card:      #0a1a2e;
-  --card2:     #0d2038;
-  --border:    rgba(0,200,255,0.09);
-  --border-hi: rgba(0,200,255,0.28);
+:root { /* DARK THEME (Default) */
+ --bg: #030c18;
+ --surface: #07121f;
+ --card: #0a1a2e;
+ --card2: #0d2038;
+ --border: rgba(0,200,255,0.09);
+ --border-hi: rgba(0,200,255,0.28);
 
-  /* PADI accent (cyan/teal) */
-  --padi-accent:  #00d9ff;
-  --padi-teal:    #00b8a0;
-  --padi-mid:     #1a5c9a;
+ /* PADI accent (cyan/teal) */
+ --padi-accent: #00d9ff;
+ --padi-teal: #00b8a0;
+ --padi-mid: #1a5c9a;
 
-  /* Bühlmann accent (electric blue / magenta) */
-  --buh-accent:   #00b4ff;
-  --buh-mag:      #e040fb;
-  --buh-accent2:  #0077cc;
+ /* Bühlmann accent (electric blue / magenta) */
+ --buh-accent: #00b4ff;
+ --buh-mag: #e040fb;
+ --buh-accent2: #0077cc;
 
-  /* Active accent — swapped on algo change */
-  --accent:   #00d9ff;
-  --accent2:  #00b8a0;
+ /* Active accent — swapped on algo change */
+ --accent: #00d9ff;
+ --accent2: #00b8a0;
 
-  --green:  #26d07c;
-  --yellow: #ffb703;
-  --orange: #ff6d00;
-  --red:    #ff4757;
-  --gold:   #d4af37;
+ --green: #26d07c;
+ --yellow: #ffb703;
+ --orange: #ff6d00;
+ --red: #ff4757;
+ --gold: #d4af37;
 
-  --text:   #d8eef8;
-  --muted:  #3e6882;
-  --tip:    #5ba4c2;
-  --dim:    #142535;
-  
-  /* Theme toggle */
-  --theme-toggle-size: 20px;
+ --text: #d8eef8;
+ --muted: #3e6882;
+ --tip: #5ba4c2;
+ --dim: #142535;
+
+ /* Theme toggle */
+ --theme-toggle-size: 20px;
 }
 
 /* LIGHT THEME - High Contrast for Outdoor Use */
-body.light-theme {
-  --bg:        #ffffff;
-  --surface:   #f8f9fa;
-  --card:      #eff3f8;
-  --card2:     #e8ecf1;
-  --border:    rgba(0,100,200,0.25);
-  --border-hi: rgba(0,100,200,0.45);
+body.light-theme { --bg: #ffffff;
+ --surface: #f8f9fa;
+ --card: #eff3f8;
+ --card2: #e8ecf1;
+ --border: rgba(0,100,200,0.25);
+ --border-hi: rgba(0,100,200,0.45);
 
-  /* PADI accent - darker, more visible */
-  --padi-accent:  #0055aa;
-  --padi-teal:    #005544;
-  --padi-mid:     #1a5c9a;
+ /* PADI accent - darker, more visible */
+ --padi-accent: #0055aa;
+ --padi-teal: #005544;
+ --padi-mid: #1a5c9a;
 
-  /* Bühlmann accent - darker, more visible */
-  --buh-accent:   #0033dd;
-  --buh-mag:      #a80099;
-  --buh-accent2:  #002299;
+ /* Bühlmann accent - darker, more visible */
+ --buh-accent: #0033dd;
+ --buh-mag: #a80099;
+ --buh-accent2: #002299;
 
-  /* Active accent - darker */
-  --accent:   #0055aa;
-  --accent2:  #005544;
+ /* Active accent - darker */
+ --accent: #0055aa;
+ --accent2: #005544;
 
-  --green:  #1a9e55;
-  --yellow: #FFBF00;
-  --orange: #ff5500;
-  --red:    #FF3131;
-  --gold:   #996600;
+ --green: #1a9e55;
+ --yellow: #FFBF00;
+ --orange: #ff5500;
+ --red: #FF3131;
+ --gold: #996600;
 
-  --text:   #1a1a1a;
-  --muted:  #555555;
-  --tip:    #4a7fa0;
-  --dim:    #cccccc;
+ --text: #1a1a1a;
+ --muted: #555555;
+ --tip: #4a7fa0;
+ --dim: #cccccc;
 }
 
-body.algo-buh {
-  --accent:  #00b4ff;
-  --accent2: #e040fb;
+body.algo-buh { --accent: #00b4ff;
+ --accent2: #e040fb;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Outfit', sans-serif;
-  min-height: 100vh;
-  overflow-x: hidden;
-  transition: all 0.4s ease;
+body { background: var(--bg);
+ color: var(--text);
+ font-family: 'Outfit', sans-serif;
+ min-height: 100vh;
+ overflow-x: hidden;
+ transition: all 0.4s ease;
 }
 
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background:
-    radial-gradient(ellipse 70% 55% at 15% 60%, rgba(0,100,180,0.22) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 70% at 85% 20%, rgba(0,60,140,0.18) 0%, transparent 60%),
-    linear-gradient(160deg, #030c18 0%, #050e1c 60%, #030c18 100%);
-  z-index: 0;
-  pointer-events: none;
-  transition: all 0.4s ease;
+body::before { content: '';
+ position: fixed; inset: 0;
+ background:
+ radial-gradient(ellipse 70% 55% at 15% 60%, rgba(0,100,180,0.22) 0%, transparent 60%),
+ radial-gradient(ellipse 50% 70% at 85% 20%, rgba(0,60,140,0.18) 0%, transparent 60%),
+ linear-gradient(160deg, #030c18 0%, #050e1c 60%, #030c18 100%);
+ z-index: 0;
+ pointer-events: none;
+ transition: all 0.4s ease;
 }
 
-body.light-theme::before {
-  background:
-    radial-gradient(ellipse 70% 55% at 15% 60%, rgba(100,180,255,0.05) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 70% at 85% 20%, rgba(100,150,255,0.04) 0%, transparent 60%),
-    linear-gradient(160deg, #ffffff 0%, #ffffff 60%, #ffffff 100%);
+body.light-theme::before { background:
+ radial-gradient(ellipse 70% 55% at 15% 60%, rgba(100,180,255,0.05) 0%, transparent 60%),
+ radial-gradient(ellipse 50% 70% at 85% 20%, rgba(100,150,255,0.04) 0%, transparent 60%),
+ linear-gradient(160deg, #ffffff 0%, #ffffff 60%, #ffffff 100%);
 }
 
 /* Force dark text in light theme */
-body.light-theme {
-  color: #000000 !important;
+body.light-theme { color: #000000 !important;
 }
 
-body.light-theme * {
-  color: inherit;
+body.light-theme * { color: inherit;
 }
 
-body.light-theme h1, body.light-theme h2, body.light-theme h3, body.light-theme h4, body.light-theme h5, body.light-theme h6 {
-  color: #000000 !important;
+body.light-theme h1, body.light-theme h2, body.light-theme h3, body.light-theme h4, body.light-theme h5, body.light-theme h6 { color: #000000 !important;
 }
 
-body.light-theme button, body.light-theme input, body.light-theme textarea, body.light-theme select {
-  color: #000000 !important;
+body.light-theme button, body.light-theme input, body.light-theme textarea, body.light-theme select { color: #000000 !important;
 }
-body.light-theme .switch-depth-display {
-  color: var(--text) !important;
+body.light-theme .switch-depth-display { color: var(--text) !important;
 }
 
-body.light-theme .text, body.light-theme p, body.light-theme span, body.light-theme div {
-  color: #1a1a1a !important;
+body.light-theme .text, body.light-theme p, body.light-theme span, body.light-theme div { color: #1a1a1a !important;
 }
 
 /* Restore alert colors overridden by broad div rule above */
 body.light-theme .dang, body.light-theme .dang * { color:#cc0000 !important; }
 body.light-theme .warn, body.light-theme .warn * { color:#884400 !important; }
-body.light-theme .ok,   body.light-theme .ok *   { color:#116622 !important; }
-body.light-theme .info, body.light-theme .info *  { color:#0077aa !important; }
+body.light-theme .ok, body.light-theme .ok * { color:#116622 !important; }
+body.light-theme .info, body.light-theme .info * { color:#0077aa !important; }
 
 /* Gas consumption — BT suggestion banner row */
 .gas-bt-cell { background:#FF4433 !important; color:#fff !important; font-weight:700; font-size:11px; padding:6px 10px; border-bottom:1px solid var(--border) !important; }
@@ -188,417 +176,371 @@ body.light-theme .deco-table tr.gas-tight-row td span,
 body.light-theme .deco-table tr.gas-tight-row td * { color:#000 !important; }
 
 /* Keep algo-label bright cyan in light theme */
-body.light-theme .algo-label {
-  color: #00d9ff !important;
+body.light-theme .algo-label { color: #00d9ff !important;
 }
 
 /* Keep deco table phase colors in light theme */
 body.light-theme .deco-table tr[data-phase="descent"] td span { color: #cc3333 !important; }
 
 /* Grid lines for Bühlmann mode */
-body.algo-buh::after {
-  content: '';
-  position: fixed; inset: 0;
-  background-image:
-    linear-gradient(rgba(0,180,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,180,255,0.025) 1px, transparent 1px);
-  background-size: 44px 44px;
-  z-index: 0;
-  pointer-events: none;
+body.algo-buh::after { content: '';
+ position: fixed; inset: 0;
+ background-image:
+ linear-gradient(rgba(0,180,255,0.025) 1px, transparent 1px),
+ linear-gradient(90deg, rgba(0,180,255,0.025) 1px, transparent 1px);
+ background-size: 44px 44px;
+ z-index: 0;
+ pointer-events: none;
 }
 
 /* Bubbles for PADI mode */
 .bubbles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-.bubble {
-  position: absolute; border-radius: 50%;
-  background: rgba(0,217,255,0.04);
-  border: 1px solid rgba(0,217,255,0.1);
-  animation: rise linear infinite;
+.bubble { position: absolute; border-radius: 50%;
+ background: rgba(0,217,255,0.04);
+ border: 1px solid rgba(0,217,255,0.1);
+ animation: rise linear infinite;
 }
-@keyframes rise {
-  0%   { transform: translateY(0) translateX(0);   opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 0.4; }
-  100% { transform: translateY(-110vh) translateX(20px); opacity: 0; }
+@keyframes rise { 0% { transform: translateY(0) translateX(0); opacity: 0; }
+ 10% { opacity: 1; }
+ 90% { opacity: 0.4; }
+ 100% { transform: translateY(-110vh) translateX(20px); opacity: 0; }
 }
 body.algo-buh .bubbles { display: none; }
 
-.app {
-  position: relative; z-index: 1;
-  max-width: 1140px;
-  margin: 0 auto;
-  padding: 20px 16px 2px;
+.app { position: relative; z-index: 1;
+ max-width: 1140px;
+ margin: 0 auto;
+ padding: 20px 16px 2px;
 }
 
 /* ══ HEADER ══ */
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 0 18px;
-  border-bottom: 1px solid var(--border-hi);
-  margin-bottom: 20px;
-  gap: 16px;
-  flex-wrap: wrap;
+header { display: flex;
+ justify-content: space-between;
+ align-items: center;
+ padding: 20px 0 18px;
+ border-bottom: 1px solid var(--border-hi);
+ margin-bottom: 20px;
+ gap: 16px;
+ flex-wrap: wrap;
 }
 
 .brand { display: flex; align-items: center; gap: 12px; }
 
-.brand-icon {
-  width: 44px; height: 44px;
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px;
-  background: linear-gradient(135deg, rgba(0,200,255,0.12), rgba(0,100,200,0.08));
-  border: 1px solid var(--accent);
-  transition: all 0.4s ease;
-  animation: iconGlow 4s ease-in-out infinite;
+.brand-icon { width: 44px; height: 44px;
+ border-radius: 10px;
+ display: flex; align-items: center; justify-content: center;
+ font-size: 22px;
+ background: linear-gradient(135deg, rgba(0,200,255,0.12), rgba(0,100,200,0.08));
+ border: 1px solid var(--accent);
+ transition: all 0.4s ease;
+ animation: iconGlow 4s ease-in-out infinite;
 }
-@keyframes iconGlow {
-  0%,100% { box-shadow: 0 0 12px rgba(0,200,255,0.15); }
-  50%      { box-shadow: 0 0 24px rgba(0,200,255,0.3); }
+@keyframes iconGlow { 0%,100% { box-shadow: 0 0 12px rgba(0,200,255,0.15); }
+ 50% { box-shadow: 0 0 24px rgba(0,200,255,0.3); }
 }
 
-.brand-text h1 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 24px;
-  letter-spacing: 3px;
-  color: var(--text);
-  line-height: 1;
+.brand-text h1 { font-family: 'Bebas Neue', sans-serif;
+ font-size: 24px;
+ letter-spacing: 3px;
+ color: var(--text);
+ line-height: 1;
 }
 .brand-text h1 .algo-label { color: #00d9ff; transition: color 0.4s; }
 
-.brand-text p {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-top: 3px;
+.brand-text p { font-family: 'JetBrains Mono', monospace;
+ font-size: 9px;
+ letter-spacing: 2px;
+ text-transform: uppercase;
+ color: var(--muted);
+ margin-top: 3px;
 }
 
 /* ── ALGO SWITCHER ── */
-.algo-switcher {
-  display: flex;
-  gap: 8px;
+.algo-switcher { display: flex;
+ gap: 8px;
 }
 
 /* Custom GF styling - match other GF buttons */
-#gfCustomRow .gf-btn {
-  background: var(--bg-alt) !important;
-  border: 1px solid var(--border) !important;
-  cursor: pointer !important;
-  pointer-events: auto !important;
-  transition: all 0.2s;
+#gfCustomRow .gf-btn { background: var(--bg-alt) !important;
+ border: 1px solid var(--border) !important;
+ cursor: pointer !important;
+ pointer-events: auto !important;
+ transition: all 0.2s;
 }
 
-#gfCustomRow .gf-btn:hover {
-  background: var(--card) !important;
-  border-color: var(--accent) !important;
+#gfCustomRow .gf-btn:hover { background: var(--card) !important;
+ border-color: var(--accent) !important;
 }
 
-#gfCustomRow .gf-btn.active {
-  background: var(--accent) !important;
-  color: var(--bg) !important;
-  border-color: var(--accent) !important;
+#gfCustomRow .gf-btn.active { background: var(--accent) !important;
+ color: var(--bg) !important;
+ border-color: var(--accent) !important;
 }
 
 /* Custom GF dropdown styling */
-#gfLowInput, #gfHighInput {
-  background: var(--bg-alt) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text) !important;
-  transition: all 0.2s;
-  cursor: pointer;
+#gfLowInput, #gfHighInput { background: var(--bg-alt) !important;
+ border: 1px solid var(--border) !important;
+ color: var(--text) !important;
+ transition: all 0.2s;
+ cursor: pointer;
 }
 
-#gfLowInput:focus, #gfHighInput:focus {
-  border-color: var(--accent) !important;
-  background: var(--card) !important;
+#gfLowInput:focus, #gfHighInput:focus { border-color: var(--accent) !important;
+ background: var(--card) !important;
 }
 
 /* REC mode - gray out GF settings to show as inactive */
 body.rec-mode #gfPresetsRow,
-body.rec-mode #gfCustomRow {
-  opacity: 0.4 !important;
-  pointer-events: none !important;
-  cursor: not-allowed !important;
+body.rec-mode #gfCustomRow { opacity: 0.4 !important;
+ pointer-events: none !important;
+ cursor: not-allowed !important;
 }
 
 body.rec-mode #gfPresetsRow button,
 body.rec-mode #gfCustomRow button,
 body.rec-mode #gfCustomRow input,
-body.rec-mode #gfCustomRow select {
-  opacity: 0.5 !important;
-  cursor: not-allowed !important;
+body.rec-mode #gfCustomRow select { opacity: 0.5 !important;
+ cursor: not-allowed !important;
 }
 
 /* Tools mode - gray out only Water and GF, keep Training/REF bright */
-body.algo-tools #waterRow {
-  opacity: 0.4 !important;
-  pointer-events: none !important;
-  cursor: not-allowed !important;
+body.algo-tools #waterRow { opacity: 0.4 !important;
+ pointer-events: none !important;
+ cursor: not-allowed !important;
 }
 
 body.algo-tools #waterRow button,
-body.algo-tools #waterRow span {
-  opacity: 0.5 !important;
-  cursor: not-allowed !important;
+body.algo-tools #waterRow span { opacity: 0.5 !important;
+ cursor: not-allowed !important;
 }
 
 body.algo-tools #gfPresetsRow,
-body.algo-tools #gfCustomRow {
-  opacity: 0.4 !important;
-  pointer-events: none !important;
-  cursor: not-allowed !important;
+body.algo-tools #gfCustomRow { opacity: 0.4 !important;
+ pointer-events: none !important;
+ cursor: not-allowed !important;
 }
 
 body.algo-tools #gfPresetsRow button,
 body.algo-tools #gfCustomRow button,
 body.algo-tools #gfCustomRow input,
-body.algo-tools #gfCustomRow select {
-  opacity: 0.5 !important;
-  cursor: not-allowed !important;
+body.algo-tools #gfCustomRow select { opacity: 0.5 !important;
+ cursor: not-allowed !important;
 }
 
 /* Tools mode - keep Training Use Only and REF fully bright */
-body.algo-tools .algo-switcher > div:last-child {
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  cursor: auto !important;
+body.algo-tools .algo-switcher > div:last-child { opacity: 1 !important;
+ pointer-events: auto !important;
+ cursor: auto !important;
 }
 
 body.algo-tools .algo-switcher > div:last-child button,
-body.algo-tools .algo-switcher > div:last-child .header-warn {
-  opacity: 1 !important;
-  cursor: pointer !important;
+body.algo-tools .algo-switcher > div:last-child .header-warn { opacity: 1 !important;
+ cursor: pointer !important;
 }
 
-.algo-label-text {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--muted);
+.algo-label-text { font-family: 'JetBrains Mono', monospace;
+ font-size: 9px;
+ letter-spacing: 2px;
+ text-transform: uppercase;
+ color: var(--muted);
 }
 
 /* ── Unified tooltip-trigger icon ─────────────────────────
-   Single source of truth for every ? info icon in the app.
-   Color: --tip  (teal-steel, between --muted and --accent)
-   Usage: <span class="tip-icon" onclick="showTip(...)">SVG</span>
-   For standalone button wrappers add class="tip-icon tip-btn"
+ Single source of truth for every ? info icon in the app.
+ Color: --tip (teal-steel, between --muted and --accent)
+ Usage: <span class="tip-icon" onclick="showTip(...)">SVG</span>
+ For standalone button wrappers add class="tip-icon tip-btn"
 ──────────────────────────────────────────────────────────── */
-.tip-icon {
-  display: inline-block;
-  line-height: 0;
-  vertical-align: middle;
-  margin-left: 3px;
-  cursor: pointer;
-  color: var(--tip);
-  opacity: 0.75;
-  transition: opacity 0.15s, color 0.15s;
-  flex-shrink: 0;
+.tip-icon { display: inline-block;
+ line-height: 0;
+ vertical-align: middle;
+ margin-left: 3px;
+ cursor: pointer;
+ color: var(--tip);
+ opacity: 0.75;
+ transition: opacity 0.15s, color 0.15s;
+ flex-shrink: 0;
 }
-.tip-icon:hover {
-  opacity: 1;
-  color: var(--accent);
+.tip-icon:hover { opacity: 1;
+ color: var(--accent);
 }
 /* Standalone button variant (toggleReference, settingsHelp) */
-.tip-btn {
-  background: none;
-  border: none;
-  padding: 4px 6px;
-  border-radius: 6px;
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.tip-btn { background: none;
+ border: none;
+ padding: 4px 6px;
+ border-radius: 6px;
+ margin-left: auto;
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
 }
 
-.algo-toggle {
-  display: flex;
-  background: var(--surface);
-  border: 1px solid var(--border-hi);
-  border-radius: 8px;
-  padding: 3px;
-  gap: 3px;
+.algo-toggle { display: flex;
+ background: var(--surface);
+ border: 1px solid var(--border-hi);
+ border-radius: 8px;
+ padding: 3px;
+ gap: 3px;
 }
 
-.algo-btn {
-  padding: 7px 14px;
-  border: none;
-  background: transparent;
-  color: #00d9ff;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.25s ease;
-  white-space: nowrap;
+.algo-btn { padding: 7px 14px;
+ border: none;
+ background: transparent;
+ color: #00d9ff;
+ font-family: 'JetBrains Mono', monospace;
+ font-size: 10px;
+ font-weight: 600;
+ letter-spacing: 1px;
+ text-transform: uppercase;
+ cursor: pointer;
+ border-radius: 6px;
+ transition: all 0.25s ease;
+ white-space: nowrap;
 }
 .algo-btn:hover { background: rgba(0,200,255,0.07); }
-.algo-btn.active {
-  background: linear-gradient(135deg, rgba(0,200,255,0.18), rgba(0,100,200,0.22));
-  color: #00d9ff;
-  border: 1px solid rgba(0,200,255,0.28);
+.algo-btn.active { background: linear-gradient(135deg, rgba(0,200,255,0.18), rgba(0,100,200,0.22));
+ color: #00d9ff;
+ border: 1px solid rgba(0,200,255,0.28);
 }
 
-.gf-btn {
-  padding: 8px 14px;
-  border: 1px solid var(--border);
-  background: var(--bg-alt);
-  color: var(--muted);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.gf-btn { padding: 8px 14px;
+ border: 1px solid var(--border);
+ background: var(--bg-alt);
+ color: var(--muted);
+ font-family: 'JetBrains Mono', monospace;
+ font-size: 10px;
+ font-weight: 700;
+ letter-spacing: 0.5px;
+ text-transform: uppercase;
+ cursor: pointer;
+ border-radius: 5px;
+ transition: all 0.2s ease;
+ white-space: nowrap;
+ box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-.gf-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: rgba(0, 200, 255, 0.08);
-  box-shadow: 0 2px 8px rgba(0, 200, 255, 0.15);
+.gf-btn:hover { border-color: var(--accent);
+ color: var(--accent);
+ background: rgba(0, 200, 255, 0.08);
+ box-shadow: 0 2px 8px rgba(0, 200, 255, 0.15);
 }
-.gf-btn.active {
-  background: linear-gradient(135deg, rgba(0,200,255,0.2), rgba(0,150,255,0.15));
-  color: var(--accent);
-  border-color: var(--accent);
-  box-shadow: 0 2px 8px rgba(0, 200, 255, 0.25);
+.gf-btn.active { background: linear-gradient(135deg, rgba(0,200,255,0.2), rgba(0,150,255,0.15));
+ color: var(--accent);
+ border-color: var(--accent);
+ box-shadow: 0 2px 8px rgba(0, 200, 255, 0.25);
 }
 
 /* Custom GF Dropdown Styling */
-#gfLowInput, #gfHighInput {
-  border: 1px solid var(--border);
-  background: var(--bg-alt);
-  color: var(--text);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
-  cursor: pointer;
+#gfLowInput, #gfHighInput { border: 1px solid var(--border);
+ background: var(--bg-alt);
+ color: var(--text);
+ box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+ transition: all 0.2s ease;
+ cursor: pointer;
 }
 
-#gfLowInput:focus, #gfHighInput:focus {
-  border-color: var(--accent) !important;
-  color: var(--accent) !important;
-  background: rgba(0, 200, 255, 0.08) !important;
-  box-shadow: 0 2px 8px rgba(0, 200, 255, 0.15) !important;
+#gfLowInput:focus, #gfHighInput:focus { border-color: var(--accent) !important;
+ color: var(--accent) !important;
+ background: rgba(0, 200, 255, 0.08) !important;
+ box-shadow: 0 2px 8px rgba(0, 200, 255, 0.15) !important;
 }
 
-.header-warn {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 1px;
-  padding: 6px 12px;
-  border-radius: 5px;
-  background: rgba(204,0,0,0.07);
-  border: 1px solid #cc0000;
-  color: #ff4444;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+.header-warn { font-family: 'JetBrains Mono', monospace;
+ font-size: 10px;
+ letter-spacing: 1px;
+ padding: 6px 12px;
+ border-radius: 5px;
+ background: rgba(204,0,0,0.07);
+ border: 1px solid #cc0000;
+ color: #ff4444;
+ text-transform: uppercase;
+ cursor: pointer;
+ transition: background 0.2s, border-color 0.2s;
 }
-.header-warn:hover {
-  background: rgba(204,0,0,0.15);
-  border-color: #ff0000;
+.header-warn:hover { background: rgba(204,0,0,0.15);
+ border-color: #ff0000;
 }
 
 /* Theme Toggle Button */
-.theme-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--accent);
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.theme-toggle { display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ width: 32px;
+ height: 32px;
+ border-radius: 6px;
+ border: 1px solid var(--border);
+ background: var(--card);
+ color: var(--accent);
+ font-size: 16px;
+ cursor: pointer;
+ transition: all 0.3s ease;
 }
 
-.theme-toggle:hover {
-  border-color: var(--accent);
-  background: rgba(0, 200, 255, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 200, 255, 0.15);
+.theme-toggle:hover { border-color: var(--accent);
+ background: rgba(0, 200, 255, 0.1);
+ box-shadow: 0 2px 8px rgba(0, 200, 255, 0.15);
 }
 
-.theme-icon {
-  display: inline-block;
-  transition: transform 0.3s ease;
+.theme-icon { display: inline-block;
+ transition: transform 0.3s ease;
 }
 
-.theme-toggle:active .theme-icon {
-  transform: rotate(360deg);
+.theme-toggle:active .theme-icon { transform: rotate(360deg);
 }
 
 /* ── TABS ── */
-.tabs-nav {
-  display: flex;
-  gap: 3px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 4px;
-  margin-bottom: 20px;
-  overflow-x: auto;
-  flex-wrap: nowrap;
-  scrollbar-width: none;
+.tabs-nav { display: flex;
+ gap: 3px;
+ background: var(--surface);
+ border: 1px solid var(--border);
+ border-radius: 10px;
+ padding: 4px;
+ margin-bottom: 20px;
+ overflow-x: auto;
+ flex-wrap: nowrap;
+ scrollbar-width: none;
 }
 .tabs-nav::-webkit-scrollbar { display: none; }
 
-.tab-btn {
-  flex-shrink: 0;
-  padding: 8px 13px;
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-radius: 7px;
-  transition: all 0.2s;
-  white-space: nowrap;
+.tab-btn { flex-shrink: 0;
+ padding: 8px 13px;
+ border: none;
+ background: transparent;
+ color: var(--muted);
+ font-family: 'JetBrains Mono', monospace;
+ font-size: 10px;
+ font-weight: 600;
+ letter-spacing: 0.8px;
+ text-transform: uppercase;
+ cursor: pointer;
+ border-radius: 7px;
+ transition: all 0.2s;
+ white-space: nowrap;
 }
 .tab-btn:hover { color: var(--text); background: rgba(0,200,255,0.05); }
-.tab-btn.active {
-  background: linear-gradient(135deg, rgba(0,200,255,0.14), rgba(0,100,200,0.18));
-  color: var(--accent);
-  border: 1px solid rgba(0,200,255,0.18);
+.tab-btn.active { background: linear-gradient(135deg, rgba(0,200,255,0.14), rgba(0,100,200,0.18));
+ color: var(--accent);
+ border: 1px solid rgba(0,200,255,0.18);
 }
 
 /* ── Export / Copy buttons ── */
-.btn-export {
-  padding: 7px 10px;
-  background: var(--surface);
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  cursor: pointer;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 600;
-  font-size: 12px;
-  letter-spacing: 1px;
-  transition: background 0.15s, color 0.15s;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-  line-height: 1;
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
+.btn-export { padding: 7px 10px;
+ background: var(--surface);
+ color: var(--accent);
+ border: 1px solid var(--accent);
+ border-radius: 6px;
+ cursor: pointer;
+ font-family: 'JetBrains Mono', monospace;
+ font-weight: 600;
+ font-size: 12px;
+ letter-spacing: 1px;
+ transition: background 0.15s, color 0.15s;
+ white-space: nowrap;
+ display: inline-flex;
+ align-items: center;
+ gap: 0;
+ line-height: 1;
+ -webkit-tap-highlight-color: transparent;
+ outline: none;
 }
 .btn-export:focus { outline: none; }
 .btn-export:active { background: var(--accent); color: var(--bg); opacity: 1; }
@@ -608,26 +550,21 @@ body.algo-tools .algo-switcher > div:last-child .header-warn {
 .btn-export svg { display:block; }
 
 /* Reset button — vivid red in both themes */
-.btn-reset-red {
-  border-color: var(--red) !important;
-  color: var(--red) !important;
+.btn-reset-red { border-color: var(--red) !important;
+ color: var(--red) !important;
 }
-.btn-reset-red:hover {
-  background: rgba(255,49,49,0.12) !important;
+.btn-reset-red:hover { background: rgba(255,49,49,0.12) !important;
 }
-body.light-theme .btn-reset-red {
-  border-color: #FF3131 !important;
-  color: #FF3131 !important;
-  background: rgba(255,49,49,0.06) !important;
+body.light-theme .btn-reset-red { border-color: #FF3131 !important;
+ color: #FF3131 !important;
+ background: rgba(255,49,49,0.06) !important;
 }
-body.light-theme .btn-reset-red:hover {
-  background: rgba(255,49,49,0.15) !important;
+body.light-theme .btn-reset-red:hover { background: rgba(255,49,49,0.15) !important;
 }
-.export-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
+.export-row { display: flex;
+ gap: 8px;
+ flex-wrap: wrap;
+ align-items: center;
 }
 
 /* Bühlmann-only tabs hidden in PADI mode */
@@ -637,341 +574,302 @@ body.algo-buh .buh-only { display: flex !important; }
 /* ── PANELS ── */
 .panel { display: none !important; animation: fadeUp 0.3s ease; }
 .panel.active { display: block !important; }
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); }
+ to { opacity: 1; transform: translateY(0); }
 }
 
 /* ── CARD ── */
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 20px;
-  margin-bottom: 14px;
-  position: relative;
-  overflow: hidden;
+.card { background: var(--card);
+ border: 1px solid var(--border);
+ border-radius: 14px;
+ padding: 20px;
+ margin-bottom: 14px;
+ position: relative;
+ overflow: hidden;
 }
-@media (max-width: 600px) {
-  .card { padding: 10px 8px; }
-  .card-title { margin-bottom: 8px; }
+@media (max-width: 600px) { .card { padding: 10px 8px; }
+ .card-title { margin-bottom: 8px; }
 }
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  opacity: 0.2;
+.card::before { content: '';
+ position: absolute;
+ top: 0; left: 0; right: 0; height: 1px;
+ background: linear-gradient(90deg, transparent, var(--accent), transparent);
+ opacity: 0.2;
 }
 
-.card-title {
-  font-family: 'Outfit', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.card-title { font-family: 'Outfit', sans-serif;
+ font-size: 11px;
+ font-weight: 700;
+ letter-spacing: 2.5px;
+ text-transform: uppercase;
+ color: var(--accent);
+ margin-bottom: 16px;
+ display: flex;
+ align-items: center;
+ gap: 8px;
 }
-.card-title::after {
-  content: ''; flex: 1; height: 1px;
-  background: linear-gradient(90deg, var(--border-hi), transparent);
-  margin-left: 4px;
+.card-title::after { content: ''; flex: 1; height: 1px;
+ background: linear-gradient(90deg, var(--border-hi), transparent);
+ margin-left: 4px;
 }
 /* ── COLLAPSIBLE CARDS ── */
-.card.collapsible .card-title::after {
-  display: none;
+.card.collapsible .card-title::after { display: none;
 }
-.card.collapsible .card-title {
-  cursor: pointer;
-  user-select: none;
-  margin-bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.card.collapsible .card-title { cursor: pointer;
+ user-select: none;
+ margin-bottom: 0;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
 }
-.card.collapsible .card-title .card-caret {
-  color: var(--accent);
-  font-size: 11px;
-  margin-left: auto;
-  flex-shrink: 0;
-  display: inline-block;
-  transition: transform 0.2s;
-  vertical-align: middle;
+.card.collapsible .card-title .card-caret { color: var(--accent);
+ font-size: 11px;
+ margin-left: auto;
+ flex-shrink: 0;
+ display: inline-block;
+ transition: transform 0.2s;
+ vertical-align: middle;
 }
-.card.collapsible.card-open .card-title .card-caret {
-  transform: rotate(180deg);
+.card.collapsible.card-open .card-title .card-caret { transform: rotate(180deg);
 }
 /* collapsed state: hide everything inside card except the title */
-.card.collapsible:not(.card-open) .card-collapsible-body {
-  display: none;
+.card.collapsible:not(.card-open) .card-collapsible-body { display: none;
 }
-.card.collapsible.card-open .card-collapsible-body {
-  display: block;
-  margin-top: 14px;
+.card.collapsible.card-open .card-collapsible-body { display: block;
+ margin-top: 14px;
 }
-
-
 
 /* ── UNIT / SEG CONTROLS ── */
-.ctrl-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
+.ctrl-row { display: flex;
+ align-items: center;
+ gap: 12px;
+ margin-bottom: 16px;
+ flex-wrap: wrap;
 }
 
-.ctrl-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--muted);
+.ctrl-label { font-family: 'JetBrains Mono', monospace;
+ font-size: 9px;
+ letter-spacing: 2px;
+ text-transform: uppercase;
+ color: var(--muted);
 }
 
-.seg {
-  display: flex;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  overflow: hidden;
+.seg { display: flex;
+ background: var(--surface);
+ border: 1px solid var(--border);
+ border-radius: 7px;
+ overflow: hidden;
 }
 
-.seg-btn {
-  padding: 6px 12px;
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.seg-btn { padding: 6px 12px;
+ border: none;
+ background: transparent;
+ color: var(--muted);
+ font-family: 'JetBrains Mono', monospace;
+ font-size: 10px;
+ font-weight: 600;
+ cursor: pointer;
+ transition: all 0.2s;
+ text-transform: uppercase;
+ letter-spacing: 0.5px;
 }
 .seg-btn:hover { color: var(--text); }
-.seg-btn.active {
-  background: rgba(0,200,255,0.12);
-  color: var(--accent);
+.seg-btn.active { background: rgba(0,200,255,0.12);
+ color: var(--accent);
 }
 
 /* ── FORM ── */
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 12px;
-  margin-bottom: 12px;
+.form-grid { display: grid;
+ grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+ gap: 12px;
+ margin-bottom: 12px;
 }
 
-.field label {
-  display: block;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 5px;
+.field label { display: block;
+ font-family: 'JetBrains Mono', monospace;
+ font-size: 9px;
+ letter-spacing: 1.5px;
+ text-transform: uppercase;
+ color: var(--muted);
+ margin-bottom: 5px;
 }
 
-.field input, .field select {
-  width: 100%;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 10px;
-  color: var(--text);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  appearance: none;
+.field input, .field select { width: 100%;
+ background: var(--surface);
+ border: 1px solid var(--border);
+ border-radius: 8px;
+ padding: 8px 10px;
+ color: var(--text);
+ font-family: 'JetBrains Mono', monospace;
+ font-size: 13px;
+ outline: none;
+ transition: border-color 0.2s, box-shadow 0.2s;
+ appearance: none;
 }
-.field input:focus, .field select:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(0,200,255,0.08);
+.field input:focus, .field select:focus { border-color: var(--accent);
+ box-shadow: 0 0 0 3px rgba(0,200,255,0.08);
 }
-.field select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%2300d9ff' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  padding-right: 28px;
-  cursor: pointer;
+.field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%2300d9ff' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+ background-repeat: no-repeat;
+ background-position: right 10px center;
+ padding-right: 28px;
+ cursor: pointer;
 }
 
 /* ── BUTTON ── */
-.btn-calc {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid var(--accent);
-  border-radius: 9px;
-  background: linear-gradient(135deg, rgba(0,200,255,0.10), rgba(0,100,200,0.16));
-  color: var(--accent);
-  font-family: 'Outfit', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  cursor: pointer;
-  margin-top: 14px;
-  transition: all 0.2s;
+.btn-calc { width: 100%;
+ padding: 12px;
+ border: 1px solid var(--accent);
+ border-radius: 9px;
+ background: linear-gradient(135deg, rgba(0,200,255,0.10), rgba(0,100,200,0.16));
+ color: var(--accent);
+ font-family: 'Outfit', sans-serif;
+ font-size: 13px;
+ font-weight: 700;
+ letter-spacing: 2.5px;
+ text-transform: uppercase;
+ cursor: pointer;
+ margin-top: 14px;
+ transition: all 0.2s;
 }
-.btn-calc:hover {
-  background: linear-gradient(135deg, rgba(0,200,255,0.2), rgba(0,100,200,0.28));
-  box-shadow: 0 4px 16px rgba(0,200,255,0.15);
-  transform: translateY(-1px);
+.btn-calc:hover { background: linear-gradient(135deg, rgba(0,200,255,0.2), rgba(0,100,200,0.28));
+ box-shadow: 0 4px 16px rgba(0,200,255,0.15);
+ transform: translateY(-1px);
 }
 .btn-calc:active { transform: translateY(0); }
 
 /* ── STATS ── */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 8px;
-  margin-top: 14px;
+.stats { display: grid;
+ grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+ gap: 8px;
+ margin-top: 14px;
 }
 
-.stat {
-  background: var(--card2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 10px;
-  text-align: center;
-  transition: border-color 0.2s, transform 0.2s;
+.stat { background: var(--card2);
+ border: 1px solid var(--border);
+ border-radius: 10px;
+ padding: 12px 10px;
+ text-align: center;
+ transition: border-color 0.2s, transform 0.2s;
 }
 .stat:hover { border-color: var(--border-hi); transform: translateY(-1px); }
 
-.stat-val {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 26px;
-  line-height: 1;
-  margin-bottom: 5px;
-  color: var(--accent);
+.stat-val { font-family: 'Bebas Neue', sans-serif;
+ font-size: 26px;
+ line-height: 1;
+ margin-bottom: 5px;
+ color: var(--accent);
 }
 .stat-val.g { color: var(--green); }
 .stat-val.y { color: var(--yellow); }
 .stat-val.o { color: var(--orange); }
 .stat-val.r { color: var(--red); }
 
-.stat-lbl {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--muted);
+.stat-lbl { font-family: 'JetBrains Mono', monospace;
+ font-size: 8px;
+ letter-spacing: 1px;
+ text-transform: uppercase;
+ color: var(--muted);
 }
 
 /* ── ALERTS ── */
-.alert {
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin: 10px 0;
-  font-family: 'Outfit', sans-serif;
-  font-size: 12px;
-  line-height: 1.5;
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  border: 1px solid;
+.alert { border-radius: 8px;
+ padding: 10px 14px;
+ margin: 10px 0;
+ font-family: 'Outfit', sans-serif;
+ font-size: 12px;
+ line-height: 1.5;
+ display: flex;
+ gap: 10px;
+ align-items: flex-start;
+ border: 1px solid;
 }
 .alert span { flex-shrink: 0; }
-.ok    { background:rgba(38,208,124,0.07);  border-color:rgba(38,208,124,0.22); color:#70f0aa; }
-.warn  { background:rgba(255,183,3,0.07);   border-color:rgba(255,183,3,0.22);  color:#ffcc40; }
-.dang  { background:#fff0f0; border:1px solid #cc0000; color:#cc0000 !important; font-weight:600; }
-.info  { background:rgba(0,200,255,0.06);   border-color:rgba(0,200,255,0.2);   color:#60d8ff; }
-.deco  { background:#ffffff; border:1px solid #cc0000; color:#111111; }
+.ok { background:rgba(38,208,124,0.07); border-color:rgba(38,208,124,0.22); color:#70f0aa; }
+.warn { background:rgba(255,183,3,0.07); border-color:rgba(255,183,3,0.22); color:#ffcc40; }
+.dang { background:#fff0f0; border:1px solid #cc0000; color:#cc0000 !important; font-weight:600; }
+.info { background:rgba(0,200,255,0.06); border-color:rgba(0,200,255,0.2); color:#60d8ff; }
+.deco { background:#ffffff; border:1px solid #cc0000; color:#111111; }
 
 /* Light theme: solid strong colors for readability on white */
 body.light-theme .dang { background:#fff0f0; border:1px solid #cc0000; color:#cc0000; font-weight:600; }
 body.light-theme .deco { background:#ffffff; border:1px solid #cc0000; color:#111111; }
 body.light-theme .warn { background:#fff8e6; border-color:#cc7700; color:#884400; }
-body.light-theme .ok   { background:#f0fff4; border-color:#116622; color:#116622; }
+body.light-theme .ok { background:#f0fff4; border-color:#116622; color:#116622; }
 
 /* ── BAR ── */
 .bar-wrap { background:var(--dim); border-radius:4px; height:6px; overflow:hidden; margin-top:8px; }
-.bar-fill  { height:100%; border-radius:4px; transition:width 0.5s ease; }
+.bar-fill { height:100%; border-radius:4px; transition:width 0.5s ease; }
 
 /* ── DIVE BLOCKS ── */
-.dive-block {
-  background: rgba(0,200,255,0.025);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px;
-  margin-bottom: 4px;
-  transition: border-color 0.2s;
+.dive-block { background: rgba(0,200,255,0.025);
+ border: 1px solid var(--border);
+ border-radius: 10px;
+ padding: 16px;
+ margin-bottom: 4px;
+ transition: border-color 0.2s;
 }
 .dive-block:hover { border-color: var(--border-hi); }
 
 .dive-hdr { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
 
-.dive-num {
-  width: 26px; height: 26px;
-  border-radius: 50%;
-  border: 1.5px solid var(--accent);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 14px;
-  color: var(--accent);
-  background: rgba(0,200,255,0.08);
-  flex-shrink: 0;
-  transition: border-color 0.4s, color 0.4s;
+.dive-num { width: 26px; height: 26px;
+ border-radius: 50%;
+ border: 1.5px solid var(--accent);
+ display: flex; align-items: center; justify-content: center;
+ font-family: 'Bebas Neue', sans-serif;
+ font-size: 14px;
+ color: var(--accent);
+ background: rgba(0,200,255,0.08);
+ flex-shrink: 0;
+ transition: border-color 0.4s, color 0.4s;
 }
 
-.dive-hdr-lbl {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 14px;
-  letter-spacing: 3px;
-  color: var(--accent);
-  transition: color 0.4s;
+.dive-hdr-lbl { font-family: 'Bebas Neue', sans-serif;
+ font-size: 14px;
+ letter-spacing: 3px;
+ color: var(--accent);
+ transition: color 0.4s;
 }
 
 /* SI connector */
 .si-connector { display:flex; align-items:center; gap:10px; padding:6px 10px; }
 .si-line { flex:1; height:1px; background:var(--border-hi); }
-.si-inner {
-  display:flex; align-items:center; gap:8px;
-  background:rgba(0,200,255,0.04); border:1px solid var(--border);
-  border-radius:6px; padding:6px 12px; flex-shrink:0;
+.si-inner { display:flex; align-items:center; gap:8px;
+ background:rgba(0,200,255,0.04); border:1px solid var(--border);
+ border-radius:6px; padding:6px 12px; flex-shrink:0;
 }
 .si-inner label { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); }
-.si-inner input {
-  width:68px; background:var(--surface); border:1px solid var(--border); border-radius:4px;
-  padding:5px 8px; color:#fff; font-family:'JetBrains Mono',monospace; font-size:12px;
-  outline:none; text-align:center;
+.si-inner input { width:68px; background:var(--surface); border:1px solid var(--border); border-radius:4px;
+ padding:5px 8px; color:#fff; font-family:'JetBrains Mono',monospace; font-size:12px;
+ outline:none; text-align:center;
 }
 .si-inner input:focus { border-color:var(--accent); }
 
 /* Result dive cards */
-.result-card {
-  background: var(--card2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px;
-  margin-bottom: 8px;
-  transition: border-color 0.2s;
+.result-card { background: var(--card2);
+ border: 1px solid var(--border);
+ border-radius: 10px;
+ padding: 14px;
+ margin-bottom: 8px;
+ transition: border-color 0.2s;
 }
-.result-card.c-ok   { border-left: 3px solid var(--green); }
+.result-card.c-ok { border-left: 3px solid var(--green); }
 .result-card.c-warn { border-left: 3px solid var(--yellow); }
 .result-card.c-dang { border-left: 3px solid var(--red); }
-.rc-title {
-  display: flex; align-items: center; gap: 8px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 11px; font-weight: 700; letter-spacing: 2px;
-  text-transform: uppercase; color: var(--accent);
+.rc-title { display: flex; align-items: center; gap: 8px;
+ font-family: 'Outfit', sans-serif;
+ font-size: 11px; font-weight: 700; letter-spacing: 2px;
+ text-transform: uppercase; color: var(--accent);
 }
 
 /* ── INFO BOX ── */
-.info-box {
-  border-left: 2px solid var(--accent);
-  background: rgba(0,200,255,0.03);
-  padding: 10px 14px; border-radius: 0 8px 8px 0;
-  font-family: 'Outfit', sans-serif;
-  font-size: 12px; line-height: 1.6; margin: 10px 0;
-  color: var(--muted);
+.info-box { border-left: 2px solid var(--accent);
+ background: rgba(0,200,255,0.03);
+ padding: 10px 14px; border-radius: 0 8px 8px 0;
+ font-family: 'Outfit', sans-serif;
+ font-size: 12px; line-height: 1.6; margin: 10px 0;
+ color: var(--muted);
 }
 .t-col { display:flex; flex-direction:column; align-items:center; gap:4px; }
 
@@ -1013,217 +911,189 @@ body.light-theme .asc-color { color: #1a9e55 !important; }
 
 /* Gas switch row — Nitrox sticker convention: yellow bg, dark green text */
 .deco-table tr[data-phase="switch"],
-body:not(.light-theme) .deco-table tr[data-phase="switch"] {
-  background: #FFD700 !important;
+body:not(.light-theme) .deco-table tr[data-phase="switch"] { background: #FFD700 !important;
 }
 .deco-table tr[data-phase="switch"] td,
-body:not(.light-theme) .deco-table tr[data-phase="switch"] td {
-  color: #007A33 !important;
-  font-weight: 700 !important;
-  border-top: 1px solid #007A33 !important;
+body:not(.light-theme) .deco-table tr[data-phase="switch"] td { color: #007A33 !important;
+ font-weight: 700 !important;
+ border-top: 1px solid #007A33 !important;
 }
 /* First td (icon cell) — center like all other phase icons */
-.deco-table tr[data-phase="switch"] td:first-child {
-  text-align: center !important;
+.deco-table tr[data-phase="switch"] td:first-child { text-align: center !important;
 }
-body.light-theme .deco-table tr[data-phase="switch"] {
-  background: #FFD700 !important;
+body.light-theme .deco-table tr[data-phase="switch"] { background: #FFD700 !important;
 }
-body.light-theme .deco-table tr[data-phase="switch"] td {
-  color: #007A33 !important;
-  font-weight: 700 !important;
-  border-top: 1px solid #007A33 !important;
+body.light-theme .deco-table tr[data-phase="switch"] td { color: #007A33 !important;
+ font-weight: 700 !important;
+ border-top: 1px solid #007A33 !important;
 }
 
 .deco-table tr:hover td { background:rgba(0,200,255,0.04); }
 .deco-table .deco-row td { color:var(--red); font-weight:600; }
 .deco-table .safe-row td { color:var(--green); }
-.deco-table .asc-row  td { color:var(--muted); }
+.deco-table .asc-row td { color:var(--muted); }
 
 /* ── MOBILE: card-style deco table ── */
-@media (max-width: 600px) {
-  #tableViewToggle { display:flex !important; }
+@media (max-width: 600px) { #tableViewToggle { display:flex !important; }
 
-  .deco-table:not(.table-view) thead { display:none; }
-  .deco-table:not(.table-view), .deco-table:not(.table-view) tbody, .deco-table:not(.table-view) tr, .deco-table:not(.table-view) td { display:block; width:100%; }
+ .deco-table:not(.table-view) thead { display:none; }
+ .deco-table:not(.table-view), .deco-table:not(.table-view) tbody, .deco-table:not(.table-view) tr, .deco-table:not(.table-view) td { display:block; width:100%; }
 
-  .deco-table:not(.table-view) tr {
-    margin-bottom:8px;
-    border-radius:8px;
-    border:1px solid var(--border);
-    overflow:hidden;
-    background:var(--card);
-  }
+ .deco-table:not(.table-view) tr { margin-bottom:8px;
+ border-radius:8px;
+ border:1px solid var(--border);
+ overflow:hidden;
+ background:var(--card);
+ }
 
-  /* Gas switch row — keep as full-width banner */
-  .deco-table:not(.table-view) tr td[colspan] {
-    border-radius:8px;
-    padding:10px 12px;
-    font-size:11px;
-  }
+ /* Gas switch row — keep as full-width banner */
+ .deco-table:not(.table-view) tr td[colspan] { border-radius:8px;
+ padding:10px 12px;
+ font-size:11px;
+ }
 
-  /* First cell = icon header bar */
-  .deco-table:not(.table-view) td:first-child {
-    width:100% !important;
-    display:flex;
-    align-items:center;
-    justify-content:flex-start;
-    gap:10px;
-    padding:9px 12px;
-    font-size:16px;
-    background:rgba(0,200,255,0.04);
-    border-bottom:1px solid var(--border);
-    text-align:left !important;
-  }
+ /* First cell = icon header bar */
+ .deco-table:not(.table-view) td:first-child { width:100% !important;
+ display:flex;
+ align-items:center;
+ justify-content:flex-start;
+ gap:10px;
+ padding:9px 12px;
+ font-size:16px;
+ background:rgba(0,200,255,0.04);
+ border-bottom:1px solid var(--border);
+ text-align:left !important;
+ }
 
-  /* Other cells: show label on left, value on right */
-  .deco-table:not(.table-view) td:not(:first-child) {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:6px 14px;
-    font-size:12px;
-    border-bottom:1px solid var(--border);
-  }
+ /* Other cells: show label on left, value on right */
+ .deco-table:not(.table-view) td:not(:first-child) { display:flex;
+ justify-content:space-between;
+ align-items:center;
+ padding:6px 14px;
+ font-size:12px;
+ border-bottom:1px solid var(--border);
+ }
 
-  .deco-table:not(.table-view) td:not(:first-child)::before {
-    content: attr(data-label);
-    font-size:9px;
-    letter-spacing:1.5px;
-    text-transform:uppercase;
-    color:var(--muted);
-    font-weight:600;
-    flex-shrink:0;
-    margin-right:8px;
-  }
+ .deco-table:not(.table-view) td:not(:first-child)::before { content: attr(data-label);
+ font-size:9px;
+ letter-spacing:1.5px;
+ text-transform:uppercase;
+ color:var(--muted);
+ font-weight:600;
+ flex-shrink:0;
+ margin-right:8px;
+ }
 
-  .deco-table:not(.table-view) td:last-child { border-bottom:none; }
+ .deco-table:not(.table-view) td:last-child { border-bottom:none; }
 
-  /* END column — always visible (mobile card layout) */
-  .deco-table .end-col { display:flex !important; }
+ /* END column — always visible (mobile card layout) */
+ .deco-table .end-col { display:flex !important; }
 
-  /* Table view on mobile — force standard table layout */
-  .deco-table.table-view {
-    display:block !important;
-    overflow-x:auto !important;
-    font-size:10px !important;
-  }
-  .deco-table.table-view thead { display:table-header-group !important; }
-  .deco-table.table-view tbody { display:table-row-group !important; }
-  .deco-table.table-view tr {
-    display:table-row !important;
-    background:none !important;
-    border:none !important;
-    margin:0 !important;
-    border-radius:0 !important;
-    overflow:visible !important;
-  }
-  .deco-table.table-view td {
-    display:table-cell !important;
-    padding:5px 6px !important;
-    font-size:10px !important;
-    width:auto !important;
-    border-bottom:1px solid var(--border) !important;
-  }
-  .deco-table.table-view td:first-child {
-    display:table-cell !important;
-    width:28px !important;
-    background:none !important;
-    text-align:center !important;
-    padding:5px 4px !important;
-    font-size:10px !important;
-  }
-  .deco-table.table-view td::before { display:none !important; }
-  .deco-table.table-view th { display:table-cell !important; padding:5px 6px !important; font-size:8px !important; }
-  .deco-table.table-view thead tr { display:table-row !important; background:none !important; }
-  /* Gas plan table — responsive */
-  .gas-plan-table { font-size:10px !important; }
-  .gas-plan-table th { padding:5px 6px !important; font-size:8px !important; }
-  .gas-plan-table td { padding:5px 6px !important; font-size:10px !important; }
+ /* Table view on mobile — force standard table layout */
+ .deco-table.table-view { display:block !important;
+ overflow-x:auto !important;
+ font-size:10px !important;
+ }
+ .deco-table.table-view thead { display:table-header-group !important; }
+ .deco-table.table-view tbody { display:table-row-group !important; }
+ .deco-table.table-view tr { display:table-row !important;
+ background:none !important;
+ border:none !important;
+ margin:0 !important;
+ border-radius:0 !important;
+ overflow:visible !important;
+ }
+ .deco-table.table-view td { display:table-cell !important;
+ padding:5px 6px !important;
+ font-size:10px !important;
+ width:auto !important;
+ border-bottom:1px solid var(--border) !important;
+ }
+ .deco-table.table-view td:first-child { display:table-cell !important;
+ width:28px !important;
+ background:none !important;
+ text-align:center !important;
+ padding:5px 4px !important;
+ font-size:10px !important;
+ }
+ .deco-table.table-view td::before { display:none !important; }
+ .deco-table.table-view th { display:table-cell !important; padding:5px 6px !important; font-size:8px !important; }
+ .deco-table.table-view thead tr { display:table-row !important; background:none !important; }
+ /* Gas plan table — responsive */
+ .gas-plan-table { font-size:10px !important; }
+ .gas-plan-table th { padding:5px 6px !important; font-size:8px !important; }
+ .gas-plan-table td { padding:5px 6px !important; font-size:10px !important; }
 
-  /* BT banner + tight warning rows — must come AFTER background:none rules above to win */
-  .gas-bt-cell { background:#FF4433 !important; color:#fff !important; }
-  .gas-bt-cell *, .gas-bt-cell strong, .gas-bt-cell span { color:#fff !important; }
-  body.light-theme .gas-bt-cell { color:#000 !important; }
-  body.light-theme .gas-bt-cell *, body.light-theme .gas-bt-cell strong, body.light-theme .gas-bt-cell span { color:#000 !important; }
+ /* BT banner + tight warning rows — must come AFTER background:none rules above to win */
+ .gas-bt-cell { background:#FF4433 !important; color:#fff !important; }
+ .gas-bt-cell *, .gas-bt-cell strong, .gas-bt-cell span { color:#fff !important; }
+ body.light-theme .gas-bt-cell { color:#000 !important; }
+ body.light-theme .gas-bt-cell *, body.light-theme .gas-bt-cell strong, body.light-theme .gas-bt-cell span { color:#000 !important; }
 
-  .deco-table tr.gas-tight-row td,
-  .deco-table tr.gas-tight-row td:first-child { background:#FF4433 !important; color:#fff !important; font-weight:600 !important; border-bottom:1px solid var(--border) !important; }
-  .deco-table tr.gas-tight-row td span,
-  .deco-table tr.gas-tight-row td * { color:#fff !important; }
-  body.light-theme .deco-table tr.gas-tight-row td,
-  body.light-theme .deco-table tr.gas-tight-row td:first-child { background:#FF4433 !important; color:#000 !important; }
-  body.light-theme .deco-table tr.gas-tight-row td span,
-  body.light-theme .deco-table tr.gas-tight-row td * { color:#000 !important; }
+ .deco-table tr.gas-tight-row td,
+ .deco-table tr.gas-tight-row td:first-child { background:#FF4433 !important; color:#fff !important; font-weight:600 !important; border-bottom:1px solid var(--border) !important; }
+ .deco-table tr.gas-tight-row td span,
+ .deco-table tr.gas-tight-row td * { color:#fff !important; }
+ body.light-theme .deco-table tr.gas-tight-row td,
+ body.light-theme .deco-table tr.gas-tight-row td:first-child { background:#FF4433 !important; color:#000 !important; }
+ body.light-theme .deco-table tr.gas-tight-row td span,
+ body.light-theme .deco-table tr.gas-tight-row td * { color:#000 !important; }
 }
 
 /* ── LSP SLIDER ── */
 .slider-wrap { position:relative; padding-bottom:20px; }
-.lsp-slider {
-  -webkit-appearance:none; appearance:none;
-  width:100%; height:4px; border-radius:2px; outline:none; cursor:pointer;
-  background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--fill,31%), var(--border-hi) var(--fill,31%), var(--border-hi) 100%);
+.lsp-slider { -webkit-appearance:none; appearance:none;
+ width:100%; height:4px; border-radius:2px; outline:none; cursor:pointer;
+ background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--fill,31%), var(--border-hi) var(--fill,31%), var(--border-hi) 100%);
 }
-.lsp-slider::-webkit-slider-thumb {
-  -webkit-appearance:none; appearance:none;
-  width:22px; height:22px; border-radius:50%;
-  background: var(--accent);
-  border:3px solid var(--card);
-  box-shadow: 0 0 0 2px var(--accent), 0 2px 8px rgba(0,200,255,0.4);
-  cursor:grab; transition:transform 0.15s, box-shadow 0.15s;
+.lsp-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none;
+ width:22px; height:22px; border-radius:50%;
+ background: var(--accent);
+ border:3px solid var(--card);
+ box-shadow: 0 0 0 2px var(--accent), 0 2px 8px rgba(0,200,255,0.4);
+ cursor:grab; transition:transform 0.15s, box-shadow 0.15s;
 }
-.lsp-slider::-webkit-slider-thumb:active {
-  cursor:grabbing; transform:scale(1.2);
-  box-shadow: 0 0 0 3px var(--accent), 0 4px 16px rgba(0,200,255,0.5);
+.lsp-slider::-webkit-slider-thumb:active { cursor:grabbing; transform:scale(1.2);
+ box-shadow: 0 0 0 3px var(--accent), 0 4px 16px rgba(0,200,255,0.5);
 }
-.lsp-slider::-moz-range-thumb {
-  width:22px; height:22px; border-radius:50%;
-  background: var(--accent); border:3px solid var(--card);
-  box-shadow: 0 0 0 2px var(--accent); cursor:grab;
+.lsp-slider::-moz-range-thumb { width:22px; height:22px; border-radius:50%;
+ background: var(--accent); border:3px solid var(--card);
+ box-shadow: 0 0 0 2px var(--accent); cursor:grab;
 }
-.slider-ticks {
-  display:flex; justify-content:space-between;
-  margin-top:6px; padding:0 2px;
-  font-family:'JetBrains Mono',monospace; font-size:9px;
-  color:var(--muted); letter-spacing:0.5px;
+.slider-ticks { display:flex; justify-content:space-between;
+ margin-top:6px; padding:0 2px;
+ font-family:'JetBrains Mono',monospace; font-size:9px;
+ color:var(--muted); letter-spacing:0.5px;
 }
-.slider-ticks-abs {
-  position:relative; height:16px; margin-top:6px;
-  font-family:'JetBrains Mono',monospace; font-size:9px;
-  color:var(--muted); letter-spacing:0.5px;
+.slider-ticks-abs { position:relative; height:16px; margin-top:6px;
+ font-family:'JetBrains Mono',monospace; font-size:9px;
+ color:var(--muted); letter-spacing:0.5px;
 }
-.slider-ticks-abs span {
-  position:absolute; transform:translateX(-50%);
-  white-space:nowrap;
+.slider-ticks-abs span { position:absolute; transform:translateX(-50%);
+ white-space:nowrap;
 }
 .slider-ticks-abs span:first-child { transform:translateX(0); }
-.slider-ticks-abs span:last-child  { transform:translateX(-100%); }
+.slider-ticks-abs span:last-child { transform:translateX(-100%); }
 
 /* ── Unit Converter ── */
-.conv-row {
-  display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;
+.conv-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px;
 }
-.conv-field {
-  flex:1; min-width:90px;
+.conv-field { flex:1; min-width:90px;
 }
-.conv-field label {
-  display:block; font-family:'JetBrains Mono',monospace; font-size:9px;
-  letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:5px;
+.conv-field label { display:block; font-family:'JetBrains Mono',monospace; font-size:9px;
+ letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:5px;
 }
-.conv-field input {
-  width:100%; background:var(--surface); border:1px solid var(--border);
-  border-radius:8px; padding:10px 12px; color:var(--text);
-  font-family:'Bebas Neue',sans-serif; font-size:22px; outline:none;
-  transition:border-color 0.2s; text-align:center;
+.conv-field input { width:100%; background:var(--surface); border:1px solid var(--border);
+ border-radius:8px; padding:10px 12px; color:var(--text);
+ font-family:'Bebas Neue',sans-serif; font-size:22px; outline:none;
+ transition:border-color 0.2s; text-align:center;
 }
 .conv-field input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,200,255,0.08); }
-.conv-arrow {
-  color:var(--accent); font-size:18px; flex-shrink:0; margin-top:18px;
+.conv-arrow { color:var(--accent); font-size:18px; flex-shrink:0; margin-top:18px;
 }
-.conv-ref {
-  display:flex; flex-wrap:wrap; gap:12px; margin-top:10px;
-  font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted);
-  background:var(--card2); padding:8px 12px; border-radius:6px; border:1px solid var(--border);
+.conv-ref { display:flex; flex-wrap:wrap; gap:12px; margin-top:10px;
+ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted);
+ background:var(--card2); padding:8px 12px; border-radius:6px; border:1px solid var(--border);
 }
 
 /* NDL reference table */
@@ -1237,57 +1107,49 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
 .td-o { color:var(--orange); font-weight:600; }
 .td-r { color:var(--red); font-weight:700; }
 
-.group-badge {
-  display:inline-flex; align-items:center; justify-content:center;
-  width:26px; height:26px; border-radius:50%;
-  background:rgba(212,175,55,0.15); border:1.5px solid var(--gold);
-  color:var(--gold); font-family:'Bebas Neue',sans-serif; font-size:13px;
+.group-badge { display:inline-flex; align-items:center; justify-content:center;
+ width:26px; height:26px; border-radius:50%;
+ background:rgba(212,175,55,0.15); border:1.5px solid var(--gold);
+ color:var(--gold); font-family:'Bebas Neue',sans-serif; font-size:13px;
 }
 
 /* ── RESPONSIVE ── */
-@media(max-width:640px) {
-  .stats { grid-template-columns:repeat(2,1fr); }
-  header { flex-direction:column; align-items:flex-start; }
-  .brand-text h1 { font-size:22px; }
-  .tabs-nav { flex-wrap:wrap; }
-  
-  /* Mobile header - center everything */
-  header > div:first-child {
-    width: 100%;
-    flex-direction: column;
-    gap: 12px;
-    align-items: center;
-  }
-  
-  /* Center brand on mobile */
-  header > div:first-child > div:first-child {
-    padding-left: 0;
-    width: 100%;
-    justify-content: center;
-  }
-  
-  /* Center mode buttons on mobile */
-  header > div:first-child > div:last-child {
-    padding-right: 0;
-    width: 100%;
-    justify-content: center;
-  }
-  
-  /* Settings wrap naturally on mobile */
-  .algo-switcher {
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-    padding: 8px 14px !important;
-    justify-content: flex-start !important;
-  }
-  
-  /* Keep setting groups left-aligned on mobile */
-  .algo-switcher > div {
-    justify-content: flex-start !important;
-    margin-left: 0 !important;
-  }
-}
+@media(max-width:640px) { .stats { grid-template-columns:repeat(2,1fr); }
+ header { flex-direction:column; align-items:flex-start; }
+ .brand-text h1 { font-size:22px; }
+ .tabs-nav { flex-wrap:wrap; }
 
+ /* Mobile header - center everything */
+ header > div:first-child { width: 100%;
+ flex-direction: column;
+ gap: 12px;
+ align-items: center;
+ }
+
+ /* Center brand on mobile */
+ header > div:first-child > div:first-child { padding-left: 0;
+ width: 100%;
+ justify-content: center;
+ }
+
+ /* Center mode buttons on mobile */
+ header > div:first-child > div:last-child { padding-right: 0;
+ width: 100%;
+ justify-content: center;
+ }
+
+ /* Settings wrap naturally on mobile */
+ .algo-switcher { flex-wrap: wrap !important;
+ gap: 8px !important;
+ padding: 8px 14px !important;
+ justify-content: flex-start !important;
+ }
+
+ /* Keep setting groups left-aligned on mobile */
+ .algo-switcher > div { justify-content: flex-start !important;
+ margin-left: 0 !important;
+ }
+}
 
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1313,10 +1175,10 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
         <span class="theme-icon" id="themeIcon">🌙</span>
       </button>
     </div>
-    
+
     <!-- Spacer -->
     <div style="flex:1;"></div>
-    
+
     <!-- Mode (Right side) -->
     <div style="display:flex;align-items:center;gap:8px;padding-right:14px;flex-shrink:0;">
       <div class="algo-toggle" style="display:flex;align-items:center;gap:4px;">
@@ -1699,7 +1561,6 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     </div>
   </div>
 
-
   <!-- Best Mix Calculator -->
   <div class="card">
     <!-- Title + Nitrox/Trimix toggle -->
@@ -1756,7 +1617,6 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
       No depth set — configure a dive on the Deco Schedule tab first.
     </div>
   </div>
-
 
   <!-- ── Nitrox Reference Table ── -->
   <div class="card" id="bmtRefCard">
@@ -2350,7 +2210,6 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     </div>
   </div>
 
-
   <!-- ── Gas Consumption ── -->
   <div id="gasConsumptionSummary" style="display:none;"></div>
 
@@ -2384,7 +2243,6 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     <div id="emergencyGasConsumption" style="display:none;"></div>
     </div><!-- /card-collapsible-body contingency -->
   </div>
-
 
   <!-- ── Dive Graph ── -->
   <div class="card collapsible card-open" id="diveGraphCard" style="display:none;">
@@ -2707,9 +2565,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
   </div>
   </div>
 
-
   <!-- ── Average Depth Converter ── -->
-
 
   <!-- ── Unit Converter ── -->
   <div id="tool-panel-converter" style="display:none;">
@@ -3111,7 +2967,6 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
 
 </div>
 
-
 <!-- ══════════════════════════════════════
      INFO TIP MODAL (click/tap tooltips)
 ══════════════════════════════════════ -->
@@ -3413,7 +3268,6 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
   </div>
 </div>
 
-
 <!-- Footer: Instagram + GitHub -->
 <div style="text-align: center; padding: 14px 24px 24px; background: transparent; border-top: none; margin-top: -2px;">
   <div style="display:inline-flex;align-items:center;gap:14px;">
@@ -3450,13 +3304,10 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
   <p id="mainVersionLabel" style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:10px;margin-top:6px;letter-spacing:1px;opacity:0.5;"></p>
 </div>
 
-
 </div><!-- /app -->
 
 <script>
-// ═══════════════════════════════════════════════
 // BÜHLMANN ZH-L16C DATA
-// ═══════════════════════════════════════════════
 
 // ── Android WebView detection — hide APK download icon in-app ──
 (function() {
@@ -3616,8 +3467,6 @@ Yes — set the O₂% to match the analysed cylinder fill. The computer applies 
 Why does the O₂% stay the same across several depths?
 Best mix is rounded down to the nearest whole %. At shallow depths the limit allows up to 40% O₂, so EAN40 appears optimal across multiple rows until depth is great enough to require a lower fraction.`;
 
-
-
 function setNarcosis(gas, isNarc) {
   if (gas === 'n2') {
     narcoticN2 = isNarc;
@@ -3766,9 +3615,7 @@ function applyCustomWaterDensity(inputId) {
   setWaterDensity('custom', val);
 }
 
-// ═══════════════════════════════════════════════
 // ALTITUDE
-// ═══════════════════════════════════════════════
 
 // Barometric formula: p = 1.01325 * exp(-alt_m / 8434)
 function altToPressure(altM) {
@@ -3959,9 +3806,7 @@ let stopDurMin = 3;
 let mGF        = { low: 20, high: 85 }; // matches default preset 20/85
 let lastTissues = null;
 
-// ═══════════════════════════════════════════════
 // ALGO SWITCH
-// ═══════════════════════════════════════════════
 function setAlgo(a) {
   algo = a;
   const isBuh   = a === 'buh';
@@ -3973,7 +3818,7 @@ function setAlgo(a) {
   document.getElementById('algoBUH').classList.toggle('active', isBuh);
   document.getElementById('algoTools').classList.toggle('active', isTools);
   document.getElementById('algoTools').style.color = isTools ? 'var(--accent)' : 'var(--muted)';
-  
+
   // Add mode classes for CSS styling
   document.body.classList.toggle('rec-mode', isRec);
   document.body.classList.toggle('algo-buh', isBuh);
@@ -4051,12 +3896,8 @@ function setAlgo(a) {
   }
 }
 
-// ═══════════════════════════════════════════════
 // THEME TOGGLE
-// ═══════════════════════════════════════════════
-// ═══════════════════════════════════════════════
 // TABLE VIEW TOGGLE (mobile)
-// ═══════════════════════════════════════════════
 function toggleTableView() {
   const table  = document.querySelector('#decoTableBody')?.closest('table');
   const btn    = document.getElementById('tableViewToggle');
@@ -4135,19 +3976,19 @@ function toggleTheme() {
   const body = document.body;
   const isLight = body.classList.toggle('light-theme');
   const icon = document.getElementById('themeIcon');
-  
+
   // Update icon
   icon.textContent = isLight ? '☀️' : '🌙';
-  
+
   // Save preference
   localStorage.setItem('diveTheme', isLight ? 'light' : 'dark');
-  
+
   // Update PWA theme color
   const metaThemeColor = document.querySelector('meta[name="theme-color"]');
   if (metaThemeColor) {
     metaThemeColor.setAttribute('content', isLight ? '#f5f7f9' : '#030c18');
   }
-  
+
   console.log('[LSP] Theme switched to:', isLight ? 'LIGHT' : 'DARK');
 
   // Re-apply JS-forced warning row colors for new theme
@@ -4169,7 +4010,7 @@ function loadThemePreference() {
   const savedTheme = localStorage.getItem('diveTheme');
   const body = document.body;
   const icon = document.getElementById('themeIcon');
-  
+
   if (savedTheme === 'light') {
     body.classList.add('light-theme');
     if (icon) icon.textContent = '☀️';
@@ -4179,9 +4020,7 @@ function loadThemePreference() {
   }
 }
 
-// ═══════════════════════════════════════════════
 // GF SELECTOR
-// ═══════════════════════════════════════════════
 function setDecoAlgorithm(model, skipSave) {
   const isVPMB    = model === 'VPMB';
   const isVPMBGFS = model === 'VPMB_GFS';
@@ -4452,9 +4291,7 @@ function setCustomGF(commit) {
   if (window._lastContingency) calcContingency();
 }
 
-// ═══════════════════════════════════════════════
 // TABS
-// ═══════════════════════════════════════════════
 function switchTab(name, btn) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -4488,9 +4325,7 @@ function switchTab(name, btn) {
   }
 }
 
-// ═══════════════════════════════════════════════
 // UNIT HELPERS
-// ═══════════════════════════════════════════════
 function mToFt(m)    { return Math.round(m * 3.28084); }
 function depthDisp(m, u) { return u === 'metric' ? `${m} m` : `${mToFt(m)} ft`; }
 
@@ -4731,10 +4566,7 @@ function setUnits(u) {
   renderModRefTable?.();
 }
 
-
-// ═══════════════════════════════════════════════
 // SAFETY STOP CONTROLS
-// ═══════════════════════════════════════════════
 function setStopDepth(m) {
   stopDepthM = m;
   document.getElementById('sd3').classList.toggle('active', m===3);
@@ -4746,13 +4578,11 @@ function setStopDur(min) {
   document.getElementById('sdur5').classList.toggle('active', min===5);
 }
 
-// ═══════════════════════════════════════════════
 // GF CONTROLS
-// ═══════════════════════════════════════════════
 function autoSlashGF(input) {
   const oldVal = input.value;
   const oldPos = input.selectionStart;
-  
+
   // If backspace was pressed at or near the slash, handle specially
   if (oldVal.length > 0 && oldVal[2] === '/' && oldPos === 3) {
     // Cursor is right after slash — delete the slash and one Low digit
@@ -4760,19 +4590,19 @@ function autoSlashGF(input) {
     input.selectionStart = input.selectionEnd = 1;
     return;
   }
-  
+
   // Normal digit-only filtering and slash insertion
   let v = input.value.replace(/[^\d/]/g, '');
   const digits = v.replace('/', '');
-  
+
   if (digits.length >= 2) {
     v = digits.slice(0, 2) + '/' + digits.slice(2, 4);
   } else {
     v = digits;
   }
-  
+
   input.value = v;
-  
+
   // Smart cursor positioning: jump over the slash
   if (oldPos === 2 && v[2] === '/') {
     // User just typed the 2nd digit, move cursor past the slash
@@ -4783,11 +4613,7 @@ function autoSlashGF(input) {
   }
 }
 
-
-
-// ═══════════════════════════════════════════════
 // BÜHLMANN PHYSICS
-// ═══════════════════════════════════════════════
 function initTissues() {
   // Acclimatized: tissues loaded to altitude surface pressure.
   // Not acclimatized: tissues loaded to sea-level pressure (just arrived at altitude).
@@ -4842,7 +4668,6 @@ function saturateLinear(tissues, fromDepth, toDepth, t, fN2, fHe) {
     pHe: fH > 0 ? schreinerLinear(t0.pHe, fH, ZHL16C_HE_HT[i], t, p0Amb, R) : t0.pHe,
   }));
 }
-
 
 function saturate(tissues, depthM, t, fN2, fHe) {
   const pAmb = depthBar(depthM);
@@ -4906,9 +4731,7 @@ function maxSatPct(tissues, gfHigh) {
   return max;
 }
 
-// ═══════════════════════════════════════════════
 // PADI LOOKUP
-// ═══════════════════════════════════════════════
 function padiNDL(depthM, mix) {
   return getNitroxNDL(depthM, mix || 'air');
 }
@@ -4919,9 +4742,7 @@ function padiGroup(depthM, time, mix) {
   return PADI_GROUPS[gi];
 }
 
-// ═══════════════════════════════════════════════
 // PLANNER
-// ═══════════════════════════════════════════════
 function runPlanner() {
   const isMetric = units === 'metric';
   const rawD = parseFloat(document.getElementById('depth').value)||30;
@@ -5056,9 +4877,7 @@ function safetyStopHTML(depthM, depthFt, dur) {
   </div>`;
 }
 
-// ═══════════════════════════════════════════════
 // NDL TABLE
-// ═══════════════════════════════════════════════
 function renderNDLTable() {
   if (window._zhlHeadless) return; // skip during headless test execution
   const isM  = ndlUnits === 'metric';
@@ -5113,9 +4932,7 @@ function renderNDLTable() {
   });
 }
 
-// ═══════════════════════════════════════════════
 // TISSUE VIZ (Bühlmann)
-// ═══════════════════════════════════════════════
 function updateTissueViz(tissues, gfH) {
   const gfF   = gfH / 100;
   const grid  = document.getElementById('tissueGrid');
@@ -5164,9 +4981,7 @@ function updateTissueViz(tissues, gfH) {
   if (tic) tic.style.display = 'none'; // old card suppressed
 }
 
-// ═══════════════════════════════════════════════
 // DECO SCHEDULE
-// ═══════════════════════════════════════════════
 function toggleDecoCustomO2(selectId, fieldId) {
   const isCustom = document.getElementById(selectId).value === 'custom';
   document.getElementById(fieldId).style.display = isCustom ? 'block' : 'none';
@@ -5262,7 +5077,6 @@ function getBottomGasFractions() {
   }
   return { fO2: 0.21, fHe: 0, fN2: 0.79 };
 }
-
 
 // Returns the best available gas at a given depth.
 // "Best" = lowest fN2 (highest O₂) whose floored ppO₂ at curDepthM is within
@@ -5403,7 +5217,6 @@ function enforceMinDecoProfile(steps, enabled, min9m, min6m, isMetric, fallbackG
 
   return result;
 }
-
 
 let _confirmCallback = null;
 function showConfirm(message, callback) {
@@ -5605,7 +5418,6 @@ function clearVpmRepState() {
   const row = document.getElementById('vpmRepRow');
   if (row) row.style.display = 'none';
 }
-// ───────────────────────────────────────────────────────────────────────────────
 
 function runVPMSchedule(depthM, bt, descentRate, ascentRate, decoAscentRate, surfaceAscentRate,
                         stepSize, lastStop, minStopTime, ppo2Bottom, ppo2Deco, model) {
@@ -5671,7 +5483,6 @@ function runVPMSchedule(depthM, bt, descentRate, ascentRate, decoAscentRate, sur
     settings._surfaceInterval = siMin;
     settings._prevBubbleState = _lastVPMResult.finalBubbleState;
   }
-  // ───────────────────────────────────────────────────────────────────────────
 
   // Bottom gas from DOM
   const bottomGasEl = document.getElementById('decoGas');
@@ -5707,7 +5518,6 @@ function runVPMSchedule(depthM, bt, descentRate, ascentRate, decoAscentRate, sur
     const vpmRepRow = document.getElementById('vpmRepRow');
     if (vpmRepRow) vpmRepRow.style.display = 'flex';
   }
-  // ───────────────────────────────────────────────────────────────────────────
 
   // Render into the existing deco table using the same format as Bühlmann
   renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct, decoGases, model, _vpmBotFracs);
@@ -6193,7 +6003,6 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
 
 // ── END VPM SCHEDULE RUNNER ──────────────────────────────────────────
 
-
 const VPMEngine = (() => {
     const ZHL16C_N2 = [
         { ht: 5.0,    a: 1.2599, b: 0.5050 },
@@ -6231,17 +6040,17 @@ const VPMEngine = (() => {
         { ht: 188.24, a: 0.5172, b: 0.9217 },
         { ht: 240.03, a: 0.5119, b: 0.9267 }
     ];
-    const NC = 16; 
-    const GAMMA = 0.0179;            
-    const GAMMA_C = 0.257;           
-    const INITIAL_RADIUS_N2 = 0.55e-6; 
-    const INITIAL_RADIUS_He = 0.45e-6; 
-    const REGEN_TIME = 20160.0;      
-    const WATER_VAPOR_PRESSURE = 0.0493; 
-    const CONSTANT_PRESSURE_OTHER_GASES = (102.0 / 760.0) * 1.01325; 
+    const NC = 16;
+    const GAMMA = 0.0179;
+    const GAMMA_C = 0.257;
+    const INITIAL_RADIUS_N2 = 0.55e-6;
+    const INITIAL_RADIUS_He = 0.45e-6;
+    const REGEN_TIME = 20160.0;
+    const WATER_VAPOR_PRESSURE = 0.0493;
+    const CONSTANT_PRESSURE_OTHER_GASES = (102.0 / 760.0) * 1.01325;
     const CRIT_VOLUME_LAMBDA_FSW_MIN = 7500.0;
     function twoGammaOverR(gamma, r) {
-        return (2.0 * gamma / r) / 1.0e5; 
+        return (2.0 * gamma / r) / 1.0e5;
     }
     const SLP_SW_M = 10.078;
     const SLP_FW_M = 10.337;
@@ -6294,7 +6103,6 @@ const VPMEngine = (() => {
         const altFactor = Math.pow(P_SL / surfP, 1.0 / 3.0);
         const initRadN2 = INITIAL_RADIUS_N2 * altFactor; // enlarged at altitude
         const initRadHe = INITIAL_RADIUS_He * altFactor;
-        // ─────────────────────────────────────────────────────────────────────────────
         for (let i = 0; i < NC; i++) {
             tissues.push({ pN2: inspiredN2, pHe: 0 });
             critRadiiN2.push(initRadN2);
@@ -6380,7 +6188,6 @@ const VPMEngine = (() => {
                 initialAllowableGradientHe[i] = gHec;
             }
         }
-        // ─────────────────────────────────────────────────────────────────────────────
         return {
             tissues,
             critRadiiN2,
@@ -6560,7 +6367,7 @@ const VPMEngine = (() => {
         }
     }
     function calcCrushRadius(r0, pCrush) {
-        const twoGammaC = (2.0 * GAMMA_C / r0) / 1.0e5; 
+        const twoGammaC = (2.0 * GAMMA_C / r0) / 1.0e5;
         if (twoGammaC + pCrush <= 0) return r0;
         return r0 * twoGammaC / (twoGammaC + pCrush);
     }
@@ -6700,12 +6507,12 @@ const VPMEngine = (() => {
         return stopDepth;
     }
     const VPM_CRITICAL_RADIUS_FACTOR = [
-        1.00, 
-        1.05, 
-        1.12, 
-        1.22, 
-        1.35, 
-        1.50  
+        1.00,
+        1.05,
+        1.12,
+        1.22,
+        1.35,
+        1.50
     ];
     function setCriticalRadiiForConservatism(state, conservatism) {
         const consIdx = Math.max(0, Math.min(5, Math.round(conservatism || 0)));
@@ -6793,7 +6600,7 @@ const VPMEngine = (() => {
         const surfP = getSurfacePressure(settings);
         const pMaxAmb = state.maxAmbientPressure;
         const maxDepthBar = pMaxAmb - surfP;
-        const threshold = 6.0; 
+        const threshold = 6.0;
         if (maxDepthBar <= threshold) return;
         const extFactor = 1.0 - (maxDepthBar - threshold) * 0.02;
         const clampedFactor = Math.max(0.5, Math.min(1.0, extFactor));
@@ -6821,7 +6628,7 @@ const VPMEngine = (() => {
     }
     function applyGFSurfacing(state, stopDepth, firstStopDepth, gfHi, settings) {
         if (firstStopDepth <= 0) return;
-        const fraction = stopDepth / firstStopDepth; 
+        const fraction = stopDepth / firstStopDepth;
         const surfP = getSurfacePressure(settings);
         const pAmb = getAmbientPressure(stopDepth, settings);
         const gf = gfHi / 100;
@@ -7752,7 +7559,6 @@ if (typeof window !== 'undefined') window.VPMEngine = VPMEngine; // expose for t
 
 // ── END VPM ENGINE ──
 
-
 // Collect all deco gas IDs from DOM (both pre-built and dynamic cards)
 function getAllDecoGasIds() {
   const ids = [];
@@ -7819,7 +7625,6 @@ function updateGasMODDisplays() {
     disp.title = tooltipText(fO2, ppO2Deco, 'Deco');
   }
 }
-
 
 // ── Dynamic Deco Gas Cards ──────────────────────────────────────────────────
 let _dgNextIdx = 3; // next deco gas index (1-based, cards 1 and 2 are pre-built)
@@ -7907,9 +7712,7 @@ function removeDecoGasCard(idx) {
 
 // ── End Dynamic Deco Gas Cards ──────────────────────────────────────────────
 
-// ═══════════════════════════════════════════════
 // TRAVEL GAS
-// ═══════════════════════════════════════════════
 
 function addTravelGas() {
   document.getElementById('travelGasCard').style.display = 'block';
@@ -8137,7 +7940,6 @@ function runDecoSchedule() {
   const steps = [];
   let cur = depthM;
   let rt  = bt; // run time = full BT input (descent already counted in BT)
-
 
   // ── GF anchor = ceiling(bottom_tissues, gfL) rounded up to nearest stop depth ──
   const bottomCeil = ceiling(tissues, gfL);
@@ -8580,8 +8382,6 @@ function runDecoSchedule() {
     gasConsumed[label] = (gasConsumed[label] || 0) + litres;
   }
 
-
-
   // CNS% helper for a given ppO2 and duration
   function rowCNS(ppo2, dur) {
     const key = Math.round(ppo2 * 10);
@@ -9015,11 +8815,9 @@ function runDecoSchedule() {
   }
 }
 
-// ═══════════════════════════════════════════════
 // ZHL ENGINE — headless Bühlmann interface for test harnesses
 // Mirrors VPMEngine.calculate(levels, gases, settings, 'ZHLC_GF')
 // so Tier 1 tests can directly call the Bühlmann engine.
-// ═══════════════════════════════════════════════
 const ZHLEngine = (() => {
   function setEl(id, val) {
     const el = document.getElementById(id);
@@ -9204,9 +9002,7 @@ const ZHLEngine = (() => {
 })();
 if (typeof window !== 'undefined') window.ZHLEngine = ZHLEngine; // expose for test harnesses
 
-// ═══════════════════════════════════════════════
 // MULTI DIVE
-// ═══════════════════════════════════════════════
 const DEFAULT_DEPTHS_M  = ['','','',''];
 const DEFAULT_DEPTHS_FT = ['','','',''];
 
@@ -9727,14 +9523,9 @@ function runSolver() {
   }
 }
 
-
-// ═══════════════════════════════════════════════
 // REFERENCE TABLE
-// ═══════════════════════════════════════════════();
 
-// ═══════════════════════════════════════════════
 // BUBBLES (PADI mode)
-// ═══════════════════════════════════════════════
 function spawnBubbles() {
   const c = document.getElementById('bubbles');
   for (let i=0; i<35; i++) {
@@ -9746,20 +9537,14 @@ function spawnBubbles() {
   }
 }
 
-// ═══════════════════════════════════════════════
 // INIT
-// ═══════════════════════════════════════════════
 spawnBubbles();
 renderNDLTable();
 buildUnifiedPlan();
 
-// ═══════════════════════════════════════════════
 // PWA — MANIFEST + ICON + SERVICE WORKER
-// ═══════════════════════════════════════════════();
 
-// ═══════════════════════════════════════════════
 // CNS OXYGEN TOXICITY CALCULATOR
-// ═══════════════════════════════════════════════
 
 // NOAA CNS single-dive limits (min) keyed by ppO2 (x10 for integer key)
 const CNS_LIMITS = {
@@ -9781,9 +9566,7 @@ function getCNSLimit(ppo2) {
   return vLo + (vHi - vLo) * frac;
 }
 
-// ═══════════════════════════════════════════════
 // DIVE PROFILE GRAPH
-// ═══════════════════════════════════════════════
 
 // ─── HiDPI canvas setup ─────────────────────────────────────────────────────
 function setupHiDPI(canvas) {
@@ -10407,9 +10190,7 @@ function drawDecoProfile() {
   });
 }
 
-// ═══════════════════════════════════════════════
 // TOOLS — MOD / BEST MIX / MAX DEPTH
-// ═══════════════════════════════════════════════
 
 function updateSliderFill(el) {
   const pct = (el.value - el.min) / (el.max - el.min) * 100;
@@ -10429,9 +10210,7 @@ function calcMOD() {
   renderModRefTable();
 }
 
-// ═══════════════════════════════════════════════
 // BEST MIX TAB — Tec trimix optimizer
-// ═══════════════════════════════════════════════
 let _bmtMode = 'nitrox'; // 'nitrox' | 'trimix'
 
 function setBmtMode(mode) {
@@ -10742,10 +10521,7 @@ function renderToolsBmtRefTable() {
   tbody.innerHTML = rows.join('');
 }
 
-
-// ═══════════════════════════════════════════════
 // GAS TABLE — MOD / MND reference for common mixes
-// ═══════════════════════════════════════════════
 const _endTipTitle = 'Equivalent Narcotic Depth (END)';
 window._endTipTitle = _endTipTitle;
 const _endTipText  =
@@ -10986,10 +10762,8 @@ function renderGasTable() {
   });
 }
 
-// ═══════════════════════════════════════════════
 // SURFACE INTERVAL — minimum SI between two air dives
 // Reuses the app's ZH-L16C compartment data + saturate()/initTissues()
-// ═══════════════════════════════════════════════
 function calcSurfInt(prefix) {
   const P = prefix || 'si';
   const gid = (suffix) => document.getElementById(P + suffix);
@@ -11172,7 +10946,6 @@ function renderSurfIntPanel(containerId, prefix, preDepthM, preBtMin) {
   c.style.display = 'block';
 }
 
-
 // ── Collapsible card toggle ────────────────────────────────────────────────
 // Cards with class "collapsible" have a .card-title with onclick="toggleCard(this)"
 // and a sibling .card-collapsible-body that is shown/hidden.
@@ -11331,8 +11104,6 @@ function renderTissueLoadChart() {
 
   chartEl.innerHTML = html;
 }
-
-
 
 // Init tools on tab open
 function switchTool(name, btn) {
@@ -11514,9 +11285,7 @@ function initTools() {
   switchTool('bestmix', document.getElementById('tool-bestmix'));
 }
 
-// ═══════════════════════════════════════════════
 // GAS PLAN TAB — Rule of Thirds / turning pressure
-// ═══════════════════════════════════════════════
 const GP_PSI_PER_BAR = 14.5038;
 const GP_CUFT_PER_L  = 0.0353147;
 let _gasRule = 'thirds';
@@ -12014,16 +11783,12 @@ async function buildGasPlanPDF() {
   showExportToast();
 }
 
-// ═══════════════════════════════════════════════
 // COPY DIVE PROFILE TO CLIPBOARD
-// ═══════════════════════════════════════════════
 
-// ═══════════════════════════════════════════════════════
 //  UNIFIED EXPORT SYSTEM — v5.7.0
 //  buildExportText(mode) → clean plain text, messenger-friendly
 //  copyDiveProfile(mode) → clipboard
 //  exportTXT(mode)       → .txt file download
-// ═══════════════════════════════════════════════════════
 
 function buildExportText(mode) {
   const now     = new Date();
@@ -12066,7 +11831,6 @@ function buildExportText(mode) {
 
   let lines = [];
 
-  // ────────────────────────────────────────
   if (mode === 'planner') {
     const depth   = document.getElementById('depth')?.value  || '-';
     const bt      = document.getElementById('bt')?.value     || '-';
@@ -12112,7 +11876,6 @@ function buildExportText(mode) {
       }
     }
 
-  // ────────────────────────────────────────
   } else if (mode === 'deco') {
     const depth       = document.getElementById('decoDepth')?.value || '-';
     const bt          = document.getElementById('decoBT')?.value    || '-';
@@ -12373,7 +12136,6 @@ function buildExportText(mode) {
     }
     lines.push('');
 
-  // ────────────────────────────────────────
   } else if (mode === 'contingency') {
     const c = window._lastContingency;
     if (!c) return null;
@@ -12504,7 +12266,6 @@ function buildExportText(mode) {
     lines.push('- Use your dive computer for backup');
     lines.push('');
 
-  // ────────────────────────────────────────
   } else if (mode === 'multi') {
     lines.push('LSP D-PLANNER - MULTI DIVE DAY PLAN');
     lines.push(hr);
@@ -12539,7 +12300,6 @@ function buildExportText(mode) {
       lines.push('');
     }
 
-  // ────────────────────────────────────────
   } else if (mode === 'cns') {
     const depth    = document.getElementById('cnsDepth')?.value || '-';
     const bt       = document.getElementById('cnsBT')?.value    || '-';
@@ -13157,10 +12917,6 @@ function copyFallback(text) {
   }
 }
 
-
-
-
-
 function showCopyToast()   { showToast('📋 Copied!', 'copy'); }
 function showExportToast() { showToast('📥 Saved!',  'export'); }
 function showToast(msg, id) {
@@ -13175,8 +12931,6 @@ function showToast(msg, id) {
   toast.style.opacity = '1';
   setTimeout(() => { toast.style.opacity = '0'; }, 2200);
 }
-
-
 
 function runContingencyScenario(modifyFn) {
   const savedBody    = document.getElementById('decoTableBody').innerHTML;
@@ -13405,10 +13159,6 @@ function calcContingency() {
   }
 }
 // Redirected to unified exportTXT — kept for backward compat
-
-
-
-
 
   function drawGraphLegend(doc, y, ML, CW, checkY) {
     const legEl = document.getElementById('decoProfileLegend');
@@ -13916,7 +13666,6 @@ async function exportContingencyPDF(opts) {
   showExportToast();
 }
 
-
 function calcCNS() {
   const depth  = parseFloat(document.getElementById('cnsDepth')?.value) || 0;
   const bt     = parseFloat(document.getElementById('cnsBT')?.value)    || 0;
@@ -13976,9 +13725,7 @@ function calcCNS() {
   statusTxt.textContent = msg;
 }
 
-// ═══════════════════════════════════════════════
 // GF CURVE VISUALIZER
-// ═══════════════════════════════════════════════
 
 function drawGFCurve() {
   const canvas = document.getElementById('gfCurveCanvas');
@@ -14185,9 +13932,7 @@ function drawGFCurve() {
   }
 }
 
-// ═══════════════════════════════════════════════
 // INTERACTIVE GRAPHS — hover/touch cursor
-// ═══════════════════════════════════════════════
 
 // Store last opts for interpolation
 const _graphOpts = {};
@@ -14544,14 +14289,9 @@ function attachGFCurveInteraction() {
   newOverlay.addEventListener('touchend', hideGFTooltip);
 }
 
-// ═══════════════════════════════════════════════
 // PDF EXPORT
-// ═══════════════════════════════════════════════
-
 
 // ── PDF gas consumption card builder — matches web card design ──
-
-
 
 function showPDFExportDialog() {
   // Remove any existing dialog
@@ -15338,9 +15078,7 @@ async function exportPDF(opts) {
   showExportToast();
 }
 
-// ═══════════════════════════════════════════════
 // SETTINGS PERSISTENCE - Remember Last Values
-// ═══════════════════════════════════════════════
 
 var appSettings = {
   // All tracked fields organized by mode
@@ -15364,24 +15102,24 @@ var appSettings = {
     'gpDg1_size', 'gpDg1_fill', 'gpDg1_reserve',
     'gpDg2_size', 'gpDg2_fill', 'gpDg2_reserve',
   ],
-  
+
   REC_FIELDS: ['ndlRange', 'ndlUImp', 'ndlUMet'],
-  
+
   // Multi-dive fields that might exist (0-9 for each prefix)
   MULTI_DIVE_PREFIXES: ['mD', 'mBT', 'mSI', 'mGas'],
   MAX_MULTI_DIVE: 10,
-  
+
   // Get all POSSIBLE field IDs (including ones that don't exist yet)
   getAllPossibleFields: function() {
     const fields = [...this.DECO_FIELDS, ...this.REC_FIELDS];
-    
+
     // Add all POSSIBLE multi-dive field IDs (mD0-mD9, mBT0-mBT9, etc.)
     for (let i = 0; i < this.MAX_MULTI_DIVE; i++) {
       this.MULTI_DIVE_PREFIXES.forEach(prefix => {
         fields.push(prefix + i);
       });
     }
-    
+
     fields.push('__algo__');
     return fields;
   },
@@ -15390,13 +15128,13 @@ var appSettings = {
   getExistingFields: function() {
     const fields = [];
     const possible = this.getAllPossibleFields();
-    
+
     possible.forEach(id => {
       if (id !== '__algo__' && document.getElementById(id)) {
         fields.push(id);
       }
     });
-    
+
     fields.push('__algo__');
     return fields;
   },
@@ -15406,21 +15144,21 @@ var appSettings = {
     if (window._zhlHeadless) return; // skip during headless tests
     const values = {};
     const fields = this.getExistingFields();
-    
+
     // Always save the current algorithm
     values['__algo__'] = window.algo || 'padi';
-    
+
     fields.forEach(id => {
       if (id === '__algo__') {
         return; // Already saved above
       }
-      
+
       const el = document.getElementById(id);
       if (el) {
         values[id] = el.value || '';
       }
     });
-    
+
     try {
       localStorage.setItem('lspDiveSettings_v6', JSON.stringify(values));
       if (verbose) {
@@ -15443,17 +15181,17 @@ var appSettings = {
     } catch(e) {
       console.warn('[LSP] Cleanup warning:', e.message);
     }
-    
+
     try {
       const json = localStorage.getItem('lspDiveSettings_v6');
       if (!json) {
         console.log('[LSP] ℹ️ No saved settings found (v3)');
         return false;
       }
-      
+
       const values = JSON.parse(json);
       console.log('[LSP] Loading saved settings... Saved algo: ' + values['__algo__']);
-      
+
       // First, switch to the correct algorithm if different
       if (values['__algo__']) {
         const savedAlgo = values['__algo__'];
@@ -15466,7 +15204,7 @@ var appSettings = {
           return true;
         }
       }
-      
+
       // If same algo, restore fields immediately
       this._restoreFields(values);
       return true;
@@ -15480,12 +15218,12 @@ var appSettings = {
   _restoreFields: function(values) {
     let restored = 0;
     const allPossible = this.getAllPossibleFields();
-    
+
     allPossible.forEach(id => {
       if (id === '__algo__' || !values.hasOwnProperty(id)) {
         return; // Skip algorithm and non-existent values
       }
-      
+
       // Wait a bit more for dynamic fields to be created
       const checkAndRestore = () => {
         const el = document.getElementById(id);
@@ -15500,14 +15238,14 @@ var appSettings = {
           restored++;
         }
       };
-      
+
       // Check immediately
       checkAndRestore();
-      
+
       // Also check after a short delay for dynamically created fields
       setTimeout(checkAndRestore, 100);
     });
-    
+
     console.log('[LSP] ✅ Settings restored (' + restored + ' fields) - Algo: ' + (values['__algo__'] || 'padi'));
   },
 
@@ -15707,7 +15445,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const vMain = document.getElementById('mainVersionLabel');
   if (vMain) vMain.textContent = 'Version ' + APP_VERSION;
 
-  
   // Load theme preference first
   loadThemePreference();
   updateGasMODDisplays();
@@ -15725,7 +15462,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (unitsEl) unitsEl.value = units || 'metric';
 
   calcCNS();
-  
+
   // Initialize algorithm (REC mode by default)
   setAlgo('buh');
 
@@ -15771,12 +15508,4 @@ window.addEventListener('load', function() {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
 
