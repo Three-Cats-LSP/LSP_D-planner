@@ -618,18 +618,47 @@ function findEngine(win) {
   return null;
 }
 
+var _iframeBootError = null;
+
 function waitForEngine(iframe, timeout, cb) {
   var start = Date.now();
+
+  // Hook iframe.onload so we capture boot errors and know when the page
+  // has at least started loading (avoids polling the old page's globals).
+  iframe.onload = function() {
+    try {
+      var w = iframe.contentWindow;
+      if (w && !w.__lspHooked) {
+        w.__lspHooked = true;
+        w.addEventListener('error', function(e) {
+          _iframeBootError = (e && e.message) ? e.message : 'Unknown error';
+        });
+        w.addEventListener('unhandledrejection', function(e) {
+          _iframeBootError = (e.reason && e.reason.message) ? e.reason.message : 'Unhandled rejection';
+        });
+      }
+    } catch(_) {}
+  };
+
   function check() {
     try {
       var win = iframe.contentWindow;
       var eng = win && findEngine(win);
-      if (eng) return cb(null, eng, win);
+      if (eng) {
+        // Wait 1s for deferred app init (localStorage restore, setTimeout callbacks)
+        // before handing off to tests, to avoid mid-test DOM side-effects.
+        setTimeout(function() { cb(null, eng, win); }, 1000);
+        return;
+      }
     } catch(e) {}
+    if (_iframeBootError) return cb(new Error('Boot error: ' + _iframeBootError));
     if (Date.now() - start > timeout) return cb(new Error('Timed out waiting for engine in index.html'));
-    setTimeout(check, 200);
+    setTimeout(check, 300);
   }
-  check();
+
+  // Start polling after a short delay so the iframe has begun navigating
+  // and contentWindow reflects the new page (not the previous one).
+  setTimeout(check, 300);
 }
 
 function startTests() {
@@ -641,6 +670,7 @@ function startTests() {
   document.getElementById('results').innerHTML = '';
   document.getElementById('summary').style.display = 'none';
 
+  _iframeBootError = null;
   var frame = document.getElementById('app-frame');
   frame.src = 'index.html?' + Date.now();
 

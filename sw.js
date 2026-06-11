@@ -2,7 +2,7 @@
 // Cache-first strategy for offline use.
 // Bump CACHE_VERSION when deploying a new app version to force cache refresh.
 
-const CACHE_VERSION = 'lsp-dplanner-v2.9.1b';
+const CACHE_VERSION = 'lsp-dplanner-v2.9.1c';
 const ASSETS = [
   '/LSP_D-planner/',
   '/LSP_D-planner/index.html'
@@ -38,19 +38,22 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin) return;
 
   event.respondWith(
-    caches.match(event.request)
+    // ignoreSearch: true so cache-busted URLs (e.g. index.html?ts=123) still
+    // hit the cached entry — important for test harnesses that append timestamps.
+    caches.match(event.request, { ignoreSearch: true })
       .then(cached => {
         if (cached) return cached;
         return fetch(event.request)
           .then(response => {
-            // Cache successful responses for our scope
+            // Cache successful responses for our scope (store by pathname, no query)
             if (response.ok && url.pathname.startsWith('/LSP_D-planner/')) {
               const clone = response.clone();
-              caches.open(CACHE_VERSION).then(cache => cache.put(event.request, clone));
+              const cacheKey = new Request(url.origin + url.pathname);
+              caches.open(CACHE_VERSION).then(cache => cache.put(cacheKey, clone));
             }
             return response;
           })
-          .catch(() => caches.match('/LSP_D-planner/index.html'));
+          .catch(() => caches.match('/LSP_D-planner/index.html', { ignoreSearch: true }));
       })
   );
 });
