@@ -13885,11 +13885,11 @@ async function exportContingencyPDF() {
 
   // Table
   sectionTitle('EMERGENCY ASCENT SCHEDULE', cleanPDF(c.label));
-  const colW=[8,24,16,18,20,16,14,14];
+  const colW=[8,22,16,16,20,14,13,12,11];
   const colX=[ML]; colW.forEach((w,i)=>{ if(i<colW.length-1) colX.push(colX[i]+colW[i]); });
   doc.setFillColor(180,30,30); doc.rect(ML,y,CW,6,'F');
   doc.setFontSize(7); doc.setFont('NotoSans','bold'); doc.setTextColor(255,255,255);
-  ['Phase','Depth','Stop','Run','Mix','EAD','PPO2','CNS%'].forEach((h,i)=>doc.text(h,colX[i]+colW[i]/2,y+4,{align:'center'}));
+  ['Phase','Depth','Stop','Run','Mix','EAD','END','PPO2','CNS%'].forEach((h,i)=>doc.text(h,colX[i]+colW[i]/2,y+4,{align:'center'}));
   doc.setTextColor(0,0,0); y+=6;
 
   document.querySelectorAll('#contingencyResult .deco-table tbody tr').forEach((tr,rowI)=>{
@@ -13928,7 +13928,7 @@ async function exportContingencyPDF() {
     const icon=isDeco?'Stp':isAsc?'Asc':isBtm?'Lvl':isSafe?'Stp':isDes?'Des':'---';
     doc.setFontSize(7); doc.setFont('NotoSans','normal');
     doc.setTextColor(...txC); doc.text(icon,colX[0]+colW[0]/2,y+3.5,{align:'center'});
-    [cv[1],cv[2],cv[3],cv[4],cv[5],cv[6],cv[7]].forEach((v,i)=>{
+    [cv[1],cv[2],cv[3],cv[4],cv[5],cv[6],cv[7],cv[8]].forEach((v,i)=>{
       const cv2=cleanPDF(v||''); if(cv2&&cv2!=='-') doc.text(cv2,colX[i+1]+colW[i+1]/2,y+3.5,{align:'center'});
     });
     doc.setTextColor(0,0,0); y+=5;
@@ -15051,11 +15051,11 @@ async function exportPDF(opts) {
   const _pdfMdp6m  = document.getElementById('minDeco6m')?.value || '3';
   const _pdfMdpStr = _pdfMdpEn ? `  MinDeco:ON(9${du}:${_pdfMdp9m}' 6${du}:${_pdfMdp6m}')` : '';
   sectionTitle('DIVE PROFILE',`${depthVal}${du} / ${btVal}min / ${_pdfBotDetail} / ${gfStr}  |  Des:${_dRate} Asc:${_aRate} Deco:${_daRate} Sur:${_saRate} ${du}/min  |  Rounding:${_rnd}  WV:${_wv}(${_wvL})${_pdfTravelStr}${_pdfAltStr}${_pdfRepStr}${_pdfHeHtStr}${_pdfMdpStr}`);
-  const colW=[8,24,16,18,20,16,14,14];
+  const colW=[8,22,16,16,20,14,13,12,11];
   const colX=[ML]; colW.forEach((w,i)=>{if(i<colW.length-1)colX.push(colX[i]+colW[i]);});
   checkY(7); doc.setFillColor(0,85,170); doc.rect(ML,y,CW,6,'F');
   doc.setFontSize(7); doc.setFont('NotoSans','bold'); doc.setTextColor(255,255,255);
-  ['Phase','Depth','Stop','Run','Mix','EAD','PPO2','CNS%'].forEach((h,i)=>doc.text(h,colX[i]+colW[i]/2,y+4,{align:'center'}));
+  ['Phase','Depth','Stop','Run','Mix','EAD','END','PPO2','CNS%'].forEach((h,i)=>doc.text(h,colX[i]+colW[i]/2,y+4,{align:'center'}));
   doc.setTextColor(0,0,0); y+=6;
   document.querySelectorAll('#decoTableBody tr').forEach((tr,rowI)=>{
     const phase=tr.dataset.phase; if(!phase) return;
@@ -15093,7 +15093,7 @@ async function exportPDF(opts) {
     const icon=isDeco?'Stp':isAsc?'Asc':isBtm?'Lvl':isSafe?'Stp':isDes?'Des':'---';
     doc.setFontSize(7); doc.setFont('NotoSans','normal');
     doc.setTextColor(...txC); doc.text(icon,colX[0]+colW[0]/2,y+3.5,{align:'center'});
-    [c[1],c[2],c[3],c[4],c[5],c[6],c[7]].forEach((v,i)=>{const cv=cleanPDF(v||'');if(cv&&cv!=='-')doc.text(cv,colX[i+1]+colW[i+1]/2,y+3.5,{align:'center'});});
+    [c[1],c[2],c[3],c[4],c[5],c[6],c[7],c[8]].forEach((v,i)=>{const cv=cleanPDF(v||'');if(cv&&cv!=='-')doc.text(cv,colX[i+1]+colW[i+1]/2,y+3.5,{align:'center'});});
     doc.setTextColor(0,0,0); y+=5;
   });
   y+=3; checkY(7); doc.setFontSize(7); doc.setFont('NotoSans','normal');
@@ -15541,7 +15541,7 @@ async function exportPDF(opts) {
     sectionTitle('EMERGENCY ASCENT SCHEDULE', cc.label);
     doc.setFillColor(180,30,30);doc.rect(ML,y,CW,6,'F');
     doc.setFontSize(7);doc.setFont('NotoSans','bold');doc.setTextColor(255,255,255);
-    ['Phase','Depth','Stop','Run','Mix','EAD','PPO2','CNS%'].forEach((h,i)=>doc.text(h,colX[i]+colW[i]/2,y+4,{align:'center'}));
+    ['Phase','Depth','Stop','Run','Mix','EAD','END','PPO2','CNS%'].forEach((h,i)=>doc.text(h,colX[i]+colW[i]/2,y+4,{align:'center'}));
     doc.setTextColor(0,0,0);y+=6;
     document.querySelectorAll('#contingencyResult .deco-table tbody tr').forEach((tr,ri)=>{
       const ph=tr.dataset.phase; const tds2=Array.from(tr.querySelectorAll('td')); const cv=tds2.map(td=>td.textContent.trim());
@@ -15553,7 +15553,7 @@ async function exportPDF(opts) {
       const tc=id2?[180,0,0]:ia?[30,130,60]:ib?[0,60,160]:is2?[20,140,50]:[160,50,50];
       const ic=id2?'●':ia?'↑':ib?'●':is2?'●':id3?'↓':'·';
       doc.setFontSize(7);doc.setFont('NotoSans','normal');doc.setTextColor(...tc);doc.text(ic,colX[0]+colW[0]/2,y+3.5,{align:'center'});
-      [cv[1],cv[2],cv[3],cv[4],cv[5],cv[6],cv[7]].forEach((v,i)=>{if(v&&v!=='-'&&v!=='—')doc.text(v,colX[i+1]+colW[i+1]/2,y+3.5,{align:'center'});});
+      [cv[1],cv[2],cv[3],cv[4],cv[5],cv[6],cv[7],cv[8]].forEach((v,i)=>{if(v&&v!=='-'&&v!=='—')doc.text(v,colX[i+1]+colW[i+1]/2,y+3.5,{align:'center'});});
       doc.setTextColor(0,0,0);y+=5;
     });
   }
