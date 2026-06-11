@@ -13079,13 +13079,16 @@ function buildSlateText() {
     out.push(`${dep}  ${run}  ${gas} ${ppo2}`);
   });
 
-  // Footer: TRT = total run time, DECO = deco time — read from totals row
+  // Footer: TRT/DECO/CNS/OTU/PrT — read from totals row
   const _stotRow = document.querySelector('#decoTableBody tr[data-phase="totals"] td');
-  let tbt = '-', decoDisp = '-';
+  let tbt = '-', decoDisp = '-', _sCNS = '-', _sOTU = '-', _sPrT = '-';
   if (_stotRow) {
     const _st = _stotRow.textContent.replace(/\s+/g,' ');
     const _srM = _st.match(/Run time:\s*([\d'":\s]+)/i);
     const _sdM = _st.match(/Deco time:\s*([\d'":\s]+)/i);
+    const _scM = _st.match(/CNS:\s*([\d.]+%)/i);
+    const _soM = _st.match(/OTU:\s*(\d+)/i);
+    const _spM = _st.match(/PrT:\s*([\d.]+)/i);
     const _toMMSS = s => {
       if (!s) return '-';
       s = s.trim();
@@ -13098,6 +13101,9 @@ function buildSlateText() {
     };
     if (_srM) tbt = _toMMSS(_srM[1]);
     if (_sdM) decoDisp = _toMMSS(_sdM[1]);
+    if (_scM) _sCNS = _scM[1];
+    if (_soM) _sOTU = _soM[1];
+    if (_spM) _sPrT = _spM[1];
   }
   // Fallback: use input field for BT if totals row not available
   if (tbt === '-') tbt = `${document.getElementById('decoBT')?.value || '-'}'00"`;
@@ -13118,6 +13124,7 @@ function buildSlateText() {
   }
   lines.push(bar);
   lines.push(`TRT: ${tbt} | DECO: ${decoDisp}`);
+  lines.push(`CNS: ${_sCNS} OTU: ${_sOTU} PrT: ${_sPrT}`);
   return lines.join('\n');
 }
 
@@ -13208,6 +13215,9 @@ function buildContingencySlateText() {
   };
   const tbt = _ecToMMSS(cc.lastRunFmt || cc.lastRun);
   const decoDisp = _ecToMMSS(cc.decoTimeFmt || cc.decoTime);
+  const _ecCNS = cc.totalCNS || '-';
+  const _ecOTU = cc.totalOTU || '-';
+  const _ecPrT = cc.totalPrT || '-';
   const bar = '========================';
   const lines = ['EMERGENCY SLATE', ecStamp, bar,
     `Algo: ${algoLine}`, `Mix: ${mixLine}`, '',
@@ -13216,6 +13226,7 @@ function buildContingencySlateText() {
   else lines.push('  (no decompression stops)');
   lines.push(bar);
   lines.push(`TRT: ${tbt} | DECO: ${decoDisp}`);
+  lines.push(`CNS: ${_ecCNS} OTU: ${_ecOTU} PrT: ${_ecPrT}`);
   return lines.join('\n');
 }
 
