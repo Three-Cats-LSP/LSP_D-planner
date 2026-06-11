@@ -293,4 +293,6 @@ To deploy a new version: replace `index.html` on `main`.
 
 ---
 
-*Developed by Three Cats LSP · [@threecats_lsp](https://www.instagram.com/threecats_lsp) · v2.9.0*
+*Developed by Three Cats LSP · [@threecats_lsp](https://www.instagram.com/threecats_lsp)*
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
