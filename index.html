@@ -13086,20 +13086,21 @@ function buildSlateText() {
     const _st = _stotRow.textContent.replace(/\s+/g,' ');
     const _srM = _st.match(/Run time:\s*([\d'":\s]+)/i);
     const _sdM = _st.match(/Deco time:\s*([\d'":\s]+)/i);
-    const _toMin = s => {
+    const _toMMSS = s => {
       if (!s) return '-';
       s = s.trim();
       const mm = s.match(/(\d+)'(\d+)"/);
-      if (mm) return String(parseInt(mm[1]) + Math.round(parseInt(mm[2])/60));
+      if (mm) return `${mm[1]}'${mm[2]}"`;
       const colon = s.match(/(\d+):(\d+)/);
-      if (colon) return String(parseInt(colon[1]) + Math.round(parseInt(colon[2])/60));
-      return s.replace(/[^\d]/g,'') || '-';
+      if (colon) return `${colon[1]}'${colon[2]}"`;
+      const plain = s.replace(/[^\d]/g,'');
+      return plain ? `${plain}'00"` : '-';
     };
-    if (_srM) tbt = _toMin(_srM[1]);
-    if (_sdM) decoDisp = _toMin(_sdM[1]);
+    if (_srM) tbt = _toMMSS(_srM[1]);
+    if (_sdM) decoDisp = _toMMSS(_sdM[1]);
   }
   // Fallback: use input field for BT if totals row not available
-  if (tbt === '-') tbt = document.getElementById('decoBT')?.value || '-';
+  if (tbt === '-') tbt = `${document.getElementById('decoBT')?.value || '-'}'00"`;
 
   const bar = '========================';
   const lines = [];
@@ -13116,7 +13117,7 @@ function buildSlateText() {
     lines.push('  (no decompression stops)');
   }
   lines.push(bar);
-  lines.push(`TRT: ${tbt} min | DECO: ${decoDisp} min`);
+  lines.push(`TRT: ${tbt} | DECO: ${decoDisp}`);
   return lines.join('\n');
 }
 
@@ -13197,16 +13198,16 @@ function buildContingencySlateText() {
     out.push(`${dep}  ${run}  ${gas} ${ppo2}`);
   });
   // TRT = run time, DECO = deco time — from contingency data object
-  const _ecToMin = s => {
+  const _ecToMMSS = s => {
     if (!s && s !== 0) return '-';
-    if (typeof s === 'number') return String(Math.round(s));
+    if (typeof s === 'number') return `${s}'00"`;
     s = String(s).trim();
-    const mm = s.match(/(\d+)'(\d+)"/); if (mm) return String(parseInt(mm[1]) + Math.round(parseInt(mm[2])/60));
-    const colon = s.match(/(\d+):(\d+)/); if (colon) return String(parseInt(colon[1]) + Math.round(parseInt(colon[2])/60));
-    return s.replace(/[^\d]/g,'') || '-';
+    const mm = s.match(/(\d+)'(\d+)"/); if (mm) return `${mm[1]}'${mm[2]}"`;
+    const colon = s.match(/(\d+):(\d+)/); if (colon) return `${colon[1]}'${colon[2]}"`;
+    const plain = s.replace(/[^\d]/g,''); return plain ? `${plain}'00"` : '-';
   };
-  const tbt = _ecToMin(cc.lastRunFmt || cc.lastRun);
-  const decoDisp = _ecToMin(cc.decoTimeFmt || cc.decoTime);
+  const tbt = _ecToMMSS(cc.lastRunFmt || cc.lastRun);
+  const decoDisp = _ecToMMSS(cc.decoTimeFmt || cc.decoTime);
   const bar = '========================';
   const lines = ['EMERGENCY SLATE', ecStamp, bar,
     `Algo: ${algoLine}`, `Mix: ${mixLine}`, '',
@@ -13214,7 +13215,7 @@ function buildContingencySlateText() {
   if (out.length) out.forEach(l => lines.push(l));
   else lines.push('  (no decompression stops)');
   lines.push(bar);
-  lines.push(`TRT: ${tbt} min | DECO: ${decoDisp} min`);
+  lines.push(`TRT: ${tbt} | DECO: ${decoDisp}`);
   return lines.join('\n');
 }
 
