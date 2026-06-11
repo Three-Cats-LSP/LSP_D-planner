@@ -5,28 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>LSP D-Planner · Rec & Tec</title>
 
-<!-- PWA manifest -->
-<link rel="manifest" id="pwaManifest">
-
 <!-- Theme & status bar -->
 <meta name="theme-color" content="#030c18">
-<meta name="background-color" content="#030c18">
 
-<!-- iOS / Safari PWA -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Dive Planner">
-
-<!-- Android / Chrome PWA -->
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="application-name" content="Dive Planner">
-
-<!-- Description for install prompt -->
+<!-- Description -->
 <meta name="description" content="Professional dive planner with Rec NDL tables and Bühlmann ZH-L16C decompression algorithm.">
 
-<!-- Inline SVG icons injected via JS below -->
-<link rel="apple-touch-icon" id="appleTouchIcon">
-<link rel="icon" type="image/svg+xml" id="faviconSVG">
+<!-- Favicon (inline SVG) -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23030c18'/%3E%3Ctext x='32' y='46' font-size='38' text-anchor='middle'%3E%F0%9F%A4%BF%3C/text%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════
@@ -3700,7 +3686,7 @@ function setAlgo(a) { algo = a; const isBuh = a === 'buh'; const isTools = a ===
   });
   { const _tBtn=document.getElementById('tissueChartToggleBtn'); const _cBtn=document.getElementById('contingencyJumpBtn'); if(_tBtn)_tBtn.style.display='none'; if(_cBtn)_cBtn.style.display='none'; }
   const _pr2 = document.getElementById('plannerResult'); if(_pr2){_pr2.style.display='none';_pr2.innerHTML='';}
-  const _mr2 = document.getElementById('multiResult'); if (_mr2) _mr2.style.display = 'none';
+  // multiResult removed — multi dive now renders into #unifiedDivePlan
 
   if (isTools) {
     document.getElementById('algoLabel').textContent    = 'TOOLS';
@@ -10322,32 +10308,24 @@ function buildExportText(mode) {
           const arrowMatch = depRaw.match(/[→>](.+)$/);
           if (arrowMatch) depRaw = arrowMatch[1].trim();
         }
-        const dep  = (depRaw.length <= 2 ? depRaw.padStart(3) : depRaw).padEnd(6); const stpRaw = c2[2]||''; const stpVal = /^\d+:\d+$/.test(stpRaw) ? stpRaw : ''; const stp = (stpVal.length > 0 && stpVal.length <= 4 ? stpVal.padStart(5) : stpVal).padEnd(7); const runRaw2 = c2[3]||''; const run = (runRaw2.length <= 4 ? runRaw2.padStart(5) : runRaw2).padEnd(6); const mix = eShortMix(c2[4]||'').padEnd(5); const eadVal = (c2[5]||'-').trim() || '-'; const ead = (eadVal === '-' ? eadVal.padStart(2) : eadVal.padStart(3)).padEnd(6); const ppo2 = (c2[6]||'').padStart(4).padEnd(5); const cnsRaw = (c2[7]||'').trim() || '-'; const cns = cnsRaw === '-' ? cnsRaw.padStart(4) : cnsRaw.padStart(5); lines.push(`${lbl} ${dep}${stp}${run} ${mix} ${ead} ${ppo2}${cns}`); }); // Totals line const totRow = document.querySelector('#contingencyResult .deco-table tbody tr[data-phase="totals"] td'); if (totRow) { const t = totRow.textContent.replace(/\s+/g, ' ').trim(); const runM = t.match(/Run time:\s*([\d':"]+)/i); const decM = t.match(/Deco time:\s*([\d':"]+)/i); const cnsM = t.match(/CNS:\s*([\d.]+%)/i); const otuM = t.match(/OTU:\s*(\d+)/i); const prtM = t.match(/PrT:\s*([\d.]+)/i); lines.push('-'.repeat(49)); lines.push(`Run Time:${runM?.[1]||'-'} Deco:${decM?.[1]||'-'}`); lines.push(`CNS:${cnsM?.[1]||'-'} OTU:${otuM?.[1]||'-'} PrT:${prtM?.[1]||'-'}`); } lines.push(''); } lines.push('!! SAFETY REMINDERS'); lines.push('- Do NOT skip mandatory deco stops'); lines.push('- Check ppO2 before each gas switch'); lines.push('- Plan conservatively - never dive tables exactly'); lines.push('- Carry 3+ min of reserve gas'); lines.push('- Use your dive computer for backup'); lines.push(''); } else if (mode === 'multi') { lines.push('LSP D-PLANNER - MULTI DIVE DAY PLAN'); lines.push(hr); lines.push(`Water : ${density}`); lines.push(''); // Pull each dive result card const cards = document.querySelectorAll('#multiCards > div');
+        const dep  = (depRaw.length <= 2 ? depRaw.padStart(3) : depRaw).padEnd(6); const stpRaw = c2[2]||''; const stpVal = /^\d+:\d+$/.test(stpRaw) ? stpRaw : ''; const stp = (stpVal.length > 0 && stpVal.length <= 4 ? stpVal.padStart(5) : stpVal).padEnd(7); const runRaw2 = c2[3]||''; const run = (runRaw2.length <= 4 ? runRaw2.padStart(5) : runRaw2).padEnd(6); const mix = eShortMix(c2[4]||'').padEnd(5); const eadVal = (c2[5]||'-').trim() || '-'; const ead = (eadVal === '-' ? eadVal.padStart(2) : eadVal.padStart(3)).padEnd(6); const ppo2 = (c2[6]||'').padStart(4).padEnd(5); const cnsRaw = (c2[7]||'').trim() || '-'; const cns = cnsRaw === '-' ? cnsRaw.padStart(4) : cnsRaw.padStart(5); lines.push(`${lbl} ${dep}${stp}${run} ${mix} ${ead} ${ppo2}${cns}`); }); // Totals line const totRow = document.querySelector('#contingencyResult .deco-table tbody tr[data-phase="totals"] td'); if (totRow) { const t = totRow.textContent.replace(/\s+/g, ' ').trim(); const runM = t.match(/Run time:\s*([\d':"]+)/i); const decM = t.match(/Deco time:\s*([\d':"]+)/i); const cnsM = t.match(/CNS:\s*([\d.]+%)/i); const otuM = t.match(/OTU:\s*(\d+)/i); const prtM = t.match(/PrT:\s*([\d.]+)/i); lines.push('-'.repeat(49)); lines.push(`Run Time:${runM?.[1]||'-'} Deco:${decM?.[1]||'-'}`); lines.push(`CNS:${cnsM?.[1]||'-'} OTU:${otuM?.[1]||'-'} PrT:${prtM?.[1]||'-'}`); } lines.push(''); } lines.push('!! SAFETY REMINDERS'); lines.push('- Do NOT skip mandatory deco stops'); lines.push('- Check ppO2 before each gas switch'); lines.push('- Plan conservatively - never dive tables exactly'); lines.push('- Carry 3+ min of reserve gas'); lines.push('- Use your dive computer for backup'); lines.push(''); } else if (mode === 'multi') { lines.push('LSP D-PLANNER - MULTI DIVE DAY PLAN'); lines.push(hr); lines.push(`Water : ${density}`); lines.push(''); // Pull each dive card from unifiedDivePlan
+    const diveCards = document.querySelectorAll('#unifiedDivePlan [id^="udp-dive-"]');
     let diveNum = 1;
-    cards.forEach(card => {
-      const title = clean(card.querySelector('.card-title, h3, b, [class*="title"]')?.textContent || `DIVE ${diveNum}`);
-      lines.push(`* ${title.toUpperCase()}`);
+    diveCards.forEach(card => {
+      lines.push(`* DIVE ${diveNum}`);
       lines.push('-'.repeat(30));
-      card.querySelectorAll('.stat').forEach(s => {
-        const val = clean(s.querySelector('.stat-val')?.textContent || '');
-        const lbl = clean(s.querySelector('.stat-lbl')?.textContent || '');
-        if (val && lbl) lines.push(`  ${lbl.padEnd(22)}: ${val}`);
-      });
-      card.querySelectorAll('.alert').forEach(a => {
-        lines.push('  !! ' + clean(a.textContent));
-      });
+      const dEl  = card.querySelector('[id^="udp-d"][id$="-disp"]');
+      const btEl = card.querySelector('[id^="udp-bt"][id$="-disp"]');
+      const advEl= card.querySelector('[id^="udp-adv"]');
+      if (dEl)   lines.push(`  ${'Depth'.padEnd(22)}: ${clean(dEl.textContent)}`);
+      if (btEl)  lines.push(`  ${'Bottom Time'.padEnd(22)}: ${clean(btEl.textContent)}`);
+      if (advEl?.textContent?.trim()) lines.push(`  !! ${clean(advEl.textContent)}`);
       lines.push('');
       diveNum++;
+      // Surface interval connector (sibling after card)
+      const siDisp = document.getElementById('udp-si' + (diveNum-2) + '-disp');
+      if (siDisp) { lines.push(`  Surface Interval        : ${clean(siDisp.textContent)}`); lines.push(''); }
     });
-
-    // Warnings block
-    const warns = document.getElementById('multiWarnings');
-    if (warns?.textContent?.trim()) {
-      lines.push('!! WARNINGS');
-      lines.push(hr);
-      lines.push(clean(warns.textContent));
-      lines.push('');
-    }
 
   } else if (mode === 'cns') {
     const depth    = document.getElementById('cnsDepth')?.value || '-';
