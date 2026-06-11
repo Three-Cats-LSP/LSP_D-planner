@@ -12478,7 +12478,8 @@ function buildExportText(mode) {
     const gasStr  = gasEl?.options[gasEl?.selectedIndex]?.text || '';
     const o2pct   = document.getElementById('customO2')?.value;
 
-    lines.push(`LSP D-PLANNER - DIVE PLAN  ${stamp}`);
+    lines.push('LSP D-PLANNER - DIVE PLAN');
+    lines.push(stamp);
     lines.push(hr);
     lines.push(`Algorithm : ${algo}${gfStr ? '  ' + gfStr : ''}`);
     lines.push(`Depth     : ${depth}${du}`);
@@ -12592,7 +12593,8 @@ function buildExportText(mode) {
       };
     });
 
-    lines.push(`DECOMPRESSION SCHEDULE  ${stamp}`);
+    lines.push('DECOMPRESSION SCHEDULE');
+    lines.push(stamp);
     lines.push(decoHr);
     // Algorithm line — name + settings (GF or conservatism)
     const algoNames = { ZHLC_GF: 'Buhlmann ZH-L16C + GF', VPMB: 'VPM-B', VPMB_GFS: 'VPM-B / GFS' };
@@ -12789,7 +12791,8 @@ function buildExportText(mode) {
       return s;
     };
 
-    lines.push(`EMERGENCY PLAN  ${stamp}`);
+    lines.push('EMERGENCY PLAN');
+    lines.push(stamp);
     lines.push(hr);
     // Algorithm + settings (reuse same logic as main deco export)
     const eAlgoSel  = document.getElementById('algorithmSelect')?.value || 'ZHLC_GF';
@@ -13087,7 +13090,8 @@ function buildSlateText() {
 
   const bar = '========================';
   const lines = [];
-  lines.push(`LSP D-PLANNER DECO SLATE  ${stamp}`);
+  lines.push('LSP D-PLANNER DECO SLATE');
+  lines.push(stamp);
   lines.push(bar);
   lines.push(`Algo: ${algoLine}`);
   lines.push(`Mix: ${mixLine}`);
@@ -13189,7 +13193,7 @@ function buildContingencySlateText() {
     }
   });
   const bar = '========================';
-  const lines = [`LSP D-PLANNER EMERGENCY SLATE  ${ecStamp}`, bar,
+  const lines = ['LSP D-PLANNER EMERGENCY SLATE', ecStamp, bar,
     `Algo: ${algoLine}`, `Mix: ${mixLine}`, '',
     'DEPTH  TIME   GAS    PPO2'];
   if (out.length) out.forEach(l => lines.push(l));
@@ -13228,7 +13232,8 @@ function buildMessengerText(mode) {
     const clean = t => t.replace(/[📋⚠️🤿✓⚡🔵🔴🟢🚨⏱ℹ⇄↓↑]/g,'').replace(/\s*·\s*/g,' - ').replace(/ppO₂/g,'ppO2').replace(/O₂/g,'O2').replace(/[—–]/g,'-').replace(/Bühlmann/g,'Buhlmann').replace(/(\d)\s+(m|ft)\b/g,'$1$2').replace(/\s*→\s*/g,'>').replace(/\s+/g,' ').trim();
     const _cn = new Date(); const _cStamp = `${_cn.getFullYear()}/${String(_cn.getDate()).padStart(2,'0')}/${String(_cn.getMonth()+1).padStart(2,'0')} ${String(_cn.getHours()).padStart(2,'0')}:${String(_cn.getMinutes()).padStart(2,'0')}`;
     const result = [];
-    result.push(`EMERGENCY PLAN  ${_cStamp}`);
+    result.push('EMERGENCY PLAN');
+    result.push(_cStamp);
     result.push(`${depth}${du} / ${bt}min / ${c.label}`);
 
     const cRnd = (document.getElementById('stopRounding')?.value||'fractional')==='wholeminute'?'Yes':'No';
