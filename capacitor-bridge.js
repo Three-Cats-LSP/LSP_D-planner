@@ -2,44 +2,35 @@
  * capacitor-bridge.js
  *
  * Intercepts blob <a download> clicks produced by exportTXT() and exportPDF()
- * and saves the file via @capacitor/filesystem, then opens it with the system
- * viewer via @capawesome-team/capacitor-file-opener.
+ * and saves the file via @capacitor/filesystem, then shares via @capacitor/share.
  *
  * On the web / PWA this file does nothing — the normal <a download> path runs as-is.
  *
- * ANDROID STORAGE STRATEGY
- * -------------------------
- * TXT files:
- *   - Write to Directory.CACHE → open with FileOpener (app chooser appears) ✓
+ * STRATEGY
+ * --------
+ * 1. Write file to Directory.EXTERNAL (app-scoped external dir).
+ *    Path: Android/data/com.threecats.lsp.dplanner/files/<filename>
+ *    No storage permissions needed on any Android version.
+ *    The file STAYS there permanently — user can also access via USB.
  *
- * PDF files (extra reliable path):
- *   - Write to Directory.CACHE (for immediate viewing attempt)
- *   - ALSO write to Directory.External (app-scoped:
- *     Android/data/com.threecats.lsp.dplanner/files/) — permanent, accessible
- *     via USB/file manager even if no viewer opens
- *   - Try FileOpener first; if that throws ActivityNotFoundException or similar,
- *     fall back to @capacitor/share Share sheet so user can save to Drive/Files/etc.
+ * 2. Pass the returned file:// URI to @capacitor/share Share.share().
+ *    The Share plugin converts it to a content:// URI via FileProvider internally
+ *    and shows the native Android share sheet.
+ *    User can tap: "Save to Downloads", "Files", Google Drive, email, etc.
  *
- * No WRITE_EXTERNAL_STORAGE permission needed for Cache or app-scoped External
- * on Android 11+ (targetSdk 34, minSdk 22).
+ * 3. Toast confirms the permanent save location regardless of share outcome.
  *
- * HOW IT WORKS
- * ------------
- * exportTXT / exportPDF both do:
- *   const a = document.createElement('a');
- *   a.href = URL.createObjectURL(blob);
- *   a.download = 'filename.ext';
- *   document.body.appendChild(a);
- *   a.click();            <-- we intercept this
- *   document.body.removeChild(a);
- *   URL.revokeObjectURL(a.href);
+ * WHY NOT FileOpener:
+ *    FileOpener uses ACTION_VIEW which requires a specific viewer app to handle
+ *    the content:// URI. If no PDF viewer is installed it fails silently.
+ *    Share (ACTION_SEND) presents all capable apps and always works.
  *
- * We patch HTMLAnchorElement.prototype.click so that when:
- *   - Capacitor is present (i.e. we are in the Android app), AND
- *   - the anchor has a `download` attribute, AND
- *   - the href is a blob: URL
- * we read the blob, base64-encode it, write it via Filesystem.writeFile to
- * Directory.Cache, then open it with FileOpener (with Share sheet fallback for PDF).
+ * WHY NOT Directory.CACHE:
+ *    Cache is app-private — user cannot browse to it. Files are deleted by Android
+ *    when storage is low. EXTERNAL survives and is visible to the user.
+ *
+ * WHY NOT Directory.Documents / Directory.ExternalStorage:
+ *    Requires MANAGE_EXTERNAL_STORAGE on Android 11+ — not granted by default.
  */
 
 (function () {
@@ -47,27 +38,16 @@
   if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return;
 
   const FS = 'Filesystem';
-  const FO = 'FileOpener'; // plugin registration name — @CapacitorPlugin(name = "FileOpener")
-  const SH = 'Share';      // @capacitor/share — registration name = "Share"
+  const SH = 'Share';
 
   // Helper: read a blob as base64 string
   function blobToBase64(blob) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        // result is "data:<mime>;base64,<data>" — strip the prefix
-        resolve(reader.result.split(',')[1]);
-      };
+      reader.onloadend = () => resolve(reader.result.split(',')[1]);
       reader.onerror = reject;
       reader.readAsDataURL(blob);
     });
-  }
-
-  // Helper: derive MIME type from filename extension
-  function mimeFromFilename(name) {
-    if (name.endsWith('.pdf'))  return 'application/pdf';
-    if (name.endsWith('.txt'))  return 'text/plain';
-    return 'application/octet-stream';
   }
 
   // Helper: show a brief toast (reuses app's showExportToast if available)
@@ -85,41 +65,30 @@
       'pointer-events:none', 'max-width:80vw', 'text-align:center'
     ].join(';');
     document.body.appendChild(div);
-    setTimeout(() => div.remove(), 3000);
+    setTimeout(() => div.remove(), 3500);
   }
 
-  // Write base64 data to a given Capacitor directory.
-  // Returns the absolute URI string, or null on failure.
-  async function writeToDir(base64Data, filename, directory) {
+  // Write blob to Directory.EXTERNAL (app-scoped, no permission needed, permanent).
+  // Returns the file:// URI string, or null on failure.
+  async function writeExternal(base64Data, filename) {
     try {
       const result = await Capacitor.Plugins[FS].writeFile({
         path: filename,
         data: base64Data,
-        directory: directory,
+        directory: 'EXTERNAL',
         recursive: true
       });
-      return result.uri;
+      console.log('[CapBridge] Saved to EXTERNAL:', result.uri);
+      return result.uri; // file:///sdcard/Android/data/.../files/<filename>
     } catch (err) {
-      console.warn('[CapBridge] writeFile to', directory, 'failed:', err);
+      console.error('[CapBridge] writeFile EXTERNAL failed:', err);
       return null;
     }
   }
 
-  // Try to open a file with the system viewer via FileOpener.
-  // Returns true if it succeeded, false otherwise.
-  async function tryOpenFile(uri, mime) {
-    try {
-      await Capacitor.Plugins[FO].openFile({ path: uri, mimeType: mime });
-      return true;
-    } catch (err) {
-      console.warn('[CapBridge] FileOpener failed for', mime, ':', err);
-      return false;
-    }
-  }
-
-  // Try the native Share sheet so the user can save to Files / Drive / etc.
-  // Returns true if Share plugin is available and share() was called.
-  async function tryShare(uri, filename, mime) {
+  // Show native share sheet for a file:// URI.
+  // Share plugin converts it to content:// via FileProvider internally.
+  async function shareFile(fileUri, filename) {
     const plugin = Capacitor.Plugins[SH];
     if (!plugin || typeof plugin.share !== 'function') {
       console.warn('[CapBridge] Share plugin not available');
@@ -128,75 +97,41 @@
     try {
       await plugin.share({
         title: filename,
-        url: uri,
-        dialogTitle: 'Save or share ' + filename
+        url: fileUri,
+        dialogTitle: 'Save ' + filename
       });
       return true;
     } catch (err) {
-      console.warn('[CapBridge] Share failed:', err);
+      // User dismissed the sheet — that's fine, file is already saved to EXTERNAL
+      console.warn('[CapBridge] Share dismissed or failed:', err);
       return false;
     }
   }
 
-  // Main export handler — called for every intercepted blob download.
+  // Main handler called for every intercepted blob download
   async function saveAndOpen(blob, filename) {
-    const mime = mimeFromFilename(filename);
-    const isPDF = mime === 'application/pdf';
-
-    // Encode blob once
+    // Encode blob
     let base64Data;
     try {
       base64Data = await blobToBase64(blob);
     } catch (err) {
       console.error('[CapBridge] blobToBase64 failed:', err);
-      notify('Export failed: could not read file data');
+      notify('Export failed — could not read file data');
       return;
     }
 
-    // --- TXT path: write to CACHE, open with FileOpener ---
-    if (!isPDF) {
-      const cacheUri = await writeToDir(base64Data, filename, 'CACHE');
-      if (!cacheUri) {
-        notify('Export failed: could not write file');
-        return;
-      }
-      const opened = await tryOpenFile(cacheUri, mime);
-      if (!opened) notify('Saved — install a text viewer app to open .txt files');
+    // Write to permanent EXTERNAL location first
+    const fileUri = await writeExternal(base64Data, filename);
+    if (!fileUri) {
+      notify('Export failed — could not write file');
       return;
     }
 
-    // --- PDF path: dual-write, FileOpener → Share fallback ---
+    // Confirm saved (file is already on device regardless of what happens next)
+    notify('Saved: ' + filename);
 
-    // 1. Write to CACHE (for FileOpener / immediate viewing)
-    const cacheUri = await writeToDir(base64Data, filename, 'CACHE');
-    if (!cacheUri) {
-      notify('Export failed: could not write PDF to cache');
-      return;
-    }
-
-    // 2. Also write to External app directory (permanent copy, survives regardless)
-    //    Accessible via: Android/data/com.threecats.lsp.dplanner/files/
-    const extUri = await writeToDir(base64Data, filename, 'EXTERNAL');
-    if (extUri) {
-      console.log('[CapBridge] PDF also saved to External:', extUri);
-    }
-
-    // 3. Try FileOpener first (opens PDF viewer if installed)
-    const opened = await tryOpenFile(cacheUri, mime);
-    if (opened) return; // success — viewer opened
-
-    // 4. FileOpener failed — try Share sheet as fallback
-    //    Share sheet lets user save to Files, Drive, email, etc.
-    notify('Opening share options…');
-    const shared = await tryShare(cacheUri, filename, mime);
-    if (shared) return;
-
-    // 5. Both failed — but the file IS saved permanently to External
-    if (extUri) {
-      notify('PDF saved to Android/data/com.threecats.lsp.dplanner/files/' + filename);
-    } else {
-      notify('PDF saved to app cache — use a file manager to retrieve it');
-    }
+    // Open share sheet so user can also send to Downloads / Drive / etc.
+    await shareFile(fileUri, filename);
   }
 
   // Patch HTMLAnchorElement.prototype.click to intercept blob downloads
@@ -215,5 +150,5 @@
     _origClick.call(this);
   };
 
-  console.log('[CapBridge] Filesystem bridge active (Cache + External dual-write for PDF)');
+  console.log('[CapBridge] Bridge active — EXTERNAL write + Share sheet');
 })();
