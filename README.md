@@ -4,7 +4,27 @@ A technical dive decompression planner for recreational and mixed-gas technical 
 
 🌐 **Live App**: https://three-cats-lsp.github.io/LSP_D-planner/
 
-📱 **Android APK**: [Download LSP_D-planner.apk](https://three-cats-lsp.github.io/LSP_D-planner/download.html)
+---
+
+## Android App
+
+LSP D-Planner is available as a native Android app built with Capacitor by Ionic.
+
+📲 **[Download APK](https://three-cats-lsp.github.io/LSP_D-planner/download.html)**
+
+> Direct download page: https://three-cats-lsp.github.io/LSP_D-planner/download.html
+
+**Installation:**
+1. Open the download page on your Android device
+2. Tap **Download APK**
+3. Open the downloaded file from your Downloads folder
+4. If prompted, allow *Install from unknown sources* in Settings
+5. Install and launch LSP D-Planner
+
+**What the app includes:**
+- Full offline operation — no internet required after install
+- Export dive plans as TXT and PDF directly to your Downloads folder
+- Dark/light theme, all algorithms, all tools
 
 ---
 
@@ -141,7 +161,7 @@ CNS: 36.2% OTU: 73 PrT: 21.7
 TRT = Total Run Time (reads from totals row, full MM'SS" format). Same footer format in both deco and emergency slates.
 
 ### TXT Export
-Full plan text including settings, deco table, and gas consumption. Header: `DECO PLAN` / `EMERGENCY PLAN` with date/time stamp and divider.
+Full plan text including settings, deco table, and gas consumption. Header: `DECO PLAN` / `EMERGENCY PLAN` with date/time stamp and divider. Saved to device Downloads folder on Android.
 
 ### PDF Export (Dive Plan)
 Section picker dialog before export. Available sections:
@@ -151,7 +171,7 @@ Section picker dialog before export. Available sections:
 - GF Curve
 - Tissue Saturation
 
-All sections use DejaVu Sans Unicode font. 9-column deco table (Phase / Depth / Stop / Run / Mix / EAD / END / PPO2 / CNS%). Proper ✓ ✗ ⚠ rendering.
+All sections use DejaVu Sans Unicode font. 9-column deco table (Phase / Depth / Stop / Run / Mix / EAD / END / PPO2 / CNS%). Proper ✓ ✗ ⚠ rendering. Saved to device Downloads folder on Android.
 
 ### PDF Export (Emergency Plan)
 Section picker dialog before export. Available sections:
@@ -238,11 +258,16 @@ python3 audit.py index.html
 | Path | Purpose |
 |------|---------|
 | `index.html` | Self-contained web app — the entire planner in one file |
+| `capacitor-bridge.js` | Android native file export bridge (Capacitor) |
+| `sw.js` | Service worker — offline caching, network-first for HTML |
+| `download.html` | Android APK download page |
 | `audit.py` | Static analysis script |
 | `vpmb.py` | VPM-B Python reference engine |
 | `VpmbEngine.java` | VPM-B Java engine |
 | `VpmbGfsEngine.java` | VPM-B/GF hybrid Java engine |
 | `VpmbGfsPlanner.java` | VPM-B/GF planner Java |
+| `android/` | Capacitor Android project |
+| `Android Apk/` | Latest built APK (auto-updated by CI) |
 | `Knowledge Base/` | 18 reference PDFs (Baker FORTRAN source, EUBS proceedings, published Bühlmann/VPM comparisons) |
 
 ### Knowledge Base
@@ -283,7 +308,7 @@ python3 audit.py index.html
 
 Static single-file app. GitHub Pages serves `index.html` directly from `main`. No build tools, no dependencies, no network calls at runtime.
 
-To deploy a new version: replace `index.html` on `main`.
+Android APK is built automatically by GitHub Actions on every push to `main` and committed back to `Android Apk/LSP_D-planner.apk`.
 
 ---
 
