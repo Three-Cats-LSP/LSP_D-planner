@@ -1,59 +1,103 @@
 // LSP D-Planner — Service Worker
-// Cache-first strategy for offline use.
-// Bump CACHE_VERSION when deploying a new app version to force cache refresh.
+// Network-first for HTML (always fresh), cache-first for static assets.
+// Bump CACHE_VERSION on every deploy to force old SW replacement.
 
-const CACHE_VERSION = 'lsp-dplanner-v2.9.1c';
-const ASSETS = [
-  '/LSP_D-planner/',
-  '/LSP_D-planner/index.html'
+const CACHE_VERSION = 'lsp-dplanner-v2.9.2';
+
+// These are never cached — always fetched live or passed through
+const NEVER_CACHE = [
+  '.apk',
+  '.aab',
+  'raw.githubusercontent.com'
 ];
 
-// Install — pre-cache core assets
+function shouldNeverCache(url) {
+  return NEVER_CACHE.some(pattern => url.href.includes(pattern));
+}
+
+function isHTMLRequest(request) {
+  const accept = request.headers.get('Accept') || '';
+  return accept.includes('text/html');
+}
+
+// Install — skip waiting immediately so new SW takes over fast
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_VERSION)
-      .then(cache => cache.addAll(ASSETS))
+      .then(cache => cache.addAll([
+        '/LSP_D-planner/index.html'
+      ]))
       .then(() => self.skipWaiting())
   );
 });
 
-// Activate — delete old caches
+// Activate — delete ALL old caches, claim clients immediately
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
       .then(keys => Promise.all(
         keys
           .filter(key => key !== CACHE_VERSION)
-          .map(key => caches.delete(key))
+          .map(key => {
+            console.log('[SW] Deleting old cache:', key);
+            return caches.delete(key);
+          })
       ))
       .then(() => self.clients.claim())
   );
 });
 
-// Fetch — cache-first, fall back to network, then cached index
+// Fetch strategy:
+//   - APK / external URLs: pass through, never intercept
+//   - HTML (index.html, navigation): network-first, cache fallback
+//   - Everything else (JS, CSS, fonts, etc.): cache-first, network fallback
 self.addEventListener('fetch', event => {
-  // Only handle GET requests for our own origin
   if (event.request.method !== 'GET') return;
-  const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin) return;
 
+  const url = new URL(event.request.url);
+
+  // Never intercept cross-origin or APK requests
+  if (url.origin !== self.location.origin) return;
+  if (shouldNeverCache(url)) return;
+
+  // Network-first for HTML — ensures index.html is always up to date
+  if (isHTMLRequest(event.request) || url.pathname.endsWith('.html') || url.pathname.endsWith('/')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response.ok) {
+            // Update cache with fresh version
+            const clone = response.clone();
+            caches.open(CACHE_VERSION).then(cache => {
+              const key = new Request(url.origin + url.pathname);
+              cache.put(key, clone);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Network failed — serve cached version as offline fallback
+          return caches.match(event.request, { ignoreSearch: true })
+            || caches.match('/LSP_D-planner/index.html', { ignoreSearch: true });
+        })
+    );
+    return;
+  }
+
+  // Cache-first for all other static assets
   event.respondWith(
-    // ignoreSearch: true so cache-busted URLs (e.g. index.html?ts=123) still
-    // hit the cached entry — important for test harnesses that append timestamps.
     caches.match(event.request, { ignoreSearch: true })
       .then(cached => {
         if (cached) return cached;
         return fetch(event.request)
           .then(response => {
-            // Cache successful responses for our scope (store by pathname, no query)
             if (response.ok && url.pathname.startsWith('/LSP_D-planner/')) {
               const clone = response.clone();
               const cacheKey = new Request(url.origin + url.pathname);
               caches.open(CACHE_VERSION).then(cache => cache.put(cacheKey, clone));
             }
             return response;
-          })
-          .catch(() => caches.match('/LSP_D-planner/index.html', { ignoreSearch: true }));
+          });
       })
   );
 });
