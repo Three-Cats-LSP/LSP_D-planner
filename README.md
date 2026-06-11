@@ -8,28 +8,6 @@ A technical dive decompression planner for recreational and mixed-gas technical 
 
 ---
 
-## What's New in v2.9.0
-
-- **PDF Export Dialog** — section picker for both Dive Plan PDF and Emergency Plan PDF; choose which sections to include before exporting
-- **Emergency PDF Export** — new full PDF export for contingency plans: emergency gas consumption, ascent schedule, dive profile graph, GF curve, tissue saturation, and emergency slate; same dialog-driven section picker as the main PDF
-- **Consistent PDF rendering** — both PDFs now use identical helper structure (same fonts, layout, header/footer format, section title style); only theme colors differ (blue vs red)
-- **DejaVu Sans Unicode font** — all PDFs use DejaVu Sans (regular + bold) as the single font; proper rendering of ✓ ✗ ⚠ ↑ ↓ ← → and all Unicode symbols throughout
-- **⚠ icon in Emergency PDF** — `[!]` replaced with the proper Unicode warning triangle `⚠` in the emergency PDF header bar and scenario info box
-- **Collapsible cards with right-side caret** — Gas Consumption, Contingency Plans, Dive Graph, Tissue Saturation, GF Gradient Factor Curve cards all collapsible; caret positioned on the right side of each card header
-- **Card reorder** — result cards now appear in logical order: Dive Profile → Gas Consumption → Contingency Plans → Dive Graph → Tissue Saturation → GF Curve
-- **Tissue Saturation card** — new format matching web view (per-compartment bars); exported correctly to PDF
-- **END column in Deco Table PDF** — all 9 deco table columns exported to PDF (Phase / Depth / Stop / Run / Mix / EAD / END / PPO2 / CNS%)
-- **Copy modal** — copy button now opens a preview modal (same style as the Slate modal) showing the full plan text before copying; both Deco Plan and Emergency Plan copy functions use this modal
-- **Timestamps on all exports** — date/time stamp (`YYYY/DD/MM HH:MM`) added as a separate line in all copy, slate, and TXT exports
-- **Export header labels** — `DECO PLAN` / `EMERGENCY PLAN` title lines added to all copy and text exports; `LSP D-PLANNER` prefix removed from slate headers
-- **Two-line copy footer** — copy function footer split into two lines: `Run Time:MM'SS" Deco:MM'SS"` on line 1, `CNS:x% OTU:x PrT:x` on line 2; applied to all copy paths (deco, emergency, VPM, VPM fallback)
-- **Slate footer rework** — slate footer now shows `TRT: MM'SS" | DECO: MM'SS"` (Total Run Time, full seconds format) + second line `CNS: x% OTU: x PrT: x`; TRT reads from the totals row run time, DECO from the totals row deco time
-- **TRT label** — renamed from TBT to TRT (Total Run Time) to avoid confusion with BT (Bottom Time)
-- **Divider rows** — separator line added after the date/time row in both copy and text exports
-- **Math Verification Suite** (`tests-verify.html`) — new standalone verification page: ZHL-16C Bühlmann + VPM-B cross-check against Baker/FORTRAN reference; sections A–H covering pinned regression, Baker Python cross-check, Maiken invariants, coefficient verification, physics constants, determinism, MultiDeco/V-Planner compatibility; 4 bugs fixed in test harness (gfs double-division, WATER_VAPOR NaN-safe re-sync, ZHL16C fallback path, dead stops() code)
-
----
-
 ## Overview
 
 LSP D-Planner supports two modes: **Rec** for recreational divers using PADI-based NDL tables, and **Tec** for technical divers requiring full decompression planning with trimix, multiple deco gases, and advanced algorithms. Everything runs client-side in a single `index.html` file with no external dependencies.
