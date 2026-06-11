@@ -1,30 +1,21 @@
 /**
  * capacitor-bridge.js
  *
- * Intercepts ALL blob download attempts — both exportTXT (uses a.click()) and
- * exportPDF via jsPDF 2.5.1 (uses a.dispatchEvent(new MouseEvent('click'))).
+ * Intercepts ALL blob download attempts from exportTXT() and exportPDF().
  *
- * On the web / PWA this file does nothing.
+ * jsPDF 2.5.1 uses a.dispatchEvent(new MouseEvent('click')) — NOT a.click().
+ * So we patch BOTH methods on HTMLAnchorElement.
  *
- * HOW jsPDF doc.save() WORKS INTERNALLY (jsPDF 2.5.1):
- *   1. Calls output('blob') to get the PDF as a Blob
- *   2. Creates <a href=blob: download=filename>
- *   3. Calls a.dispatchEvent(new MouseEvent('click'))  ← NOT a.click()
- *   So patching HTMLAnchorElement.prototype.click is NOT enough for PDF.
- *   We must ALSO patch dispatchEvent.
+ * FILES ARE SAVED TO:
+ *   Primary:  /storage/emulated/0/Download/<filename>   (public Downloads folder)
+ *             Uses Directory.EXTERNAL_STORAGE + path 'Download/<filename>'
+ *             Requires WRITE_EXTERNAL_STORAGE (declared in manifest, maxSdkVersion=32)
+ *             On Android 10+ (API 29+) this uses scoped storage — same visible result.
+ *   Fallback: Directory.EXTERNAL (app-scoped, USB-visible, no permission needed)
+ *   Last:     Directory.CACHE
  *
- * WHAT WE PATCH:
- *   - HTMLAnchorElement.prototype.click         → catches exportTXT
- *   - HTMLAnchorElement.prototype.dispatchEvent → catches exportPDF (jsPDF)
- *
- * WHERE FILES ARE SAVED:
- *   We use Directory.EXTERNAL (getExternalFilesDir) which is app-scoped,
- *   needs no runtime permission on any Android version, and is accessible
- *   via USB at: Android/data/com.threecats.lsp.dplanner/files/
- *
- *   After saving we open the Share sheet (ACTION_SEND via @capacitor/share)
- *   so the user can also send to Downloads, Drive, email, etc.
- *   The Share plugin handles FileProvider content:// URI conversion internally.
+ * After saving, the Share sheet opens so user can also forward the file.
+ * On web/PWA this entire file does nothing.
  */
 
 (function () {
@@ -64,40 +55,68 @@
     setTimeout(() => div.remove(), isError ? 5000 : 3500);
   }
 
-  // Write to EXTERNAL (app-scoped, no permission, USB-visible).
-  // Falls back to CACHE if EXTERNAL unavailable.
-  async function writeFile(base64Data, filename) {
-    for (const dir of ['EXTERNAL', 'CACHE']) {
-      try {
-        const result = await Capacitor.Plugins[FS].writeFile({
-          path: filename,
-          data: base64Data,
-          directory: dir,
-          recursive: true
-        });
-        console.log('[CapBridge] writeFile OK dir=' + dir + ' uri=' + result.uri);
-        return { uri: result.uri, dir };
-      } catch (err) {
-        console.warn('[CapBridge] writeFile FAILED dir=' + dir + ':', err && err.message ? err.message : err);
+  // Request storage permission (needed for EXTERNAL_STORAGE on Android ≤ 12).
+  // On Android 13+ this is a no-op (permission removed from system).
+  async function ensurePermission() {
+    const plugin = Capacitor.Plugins[FS];
+    if (!plugin || typeof plugin.requestPermissions !== 'function') return true;
+    try {
+      const result = await plugin.requestPermissions();
+      const status = result && result.publicStorage;
+      if (status === 'denied') {
+        notify('Storage permission denied — cannot save to Downloads', true);
+        return false;
       }
+      return true;
+    } catch (e) {
+      // Android 13+ throws here — that's fine, we don't need the permission
+      console.log('[CapBridge] requestPermissions threw (API 33+, expected):', e && e.message);
+      return true;
     }
+  }
+
+  // Try writing to a specific directory. Returns { uri, dir } or null.
+  async function tryWrite(base64Data, filename, directory, path) {
+    try {
+      const result = await Capacitor.Plugins[FS].writeFile({
+        path: path || filename,
+        data: base64Data,
+        directory: directory,
+        recursive: true
+      });
+      console.log('[CapBridge] writeFile OK dir=' + directory + ' uri=' + result.uri);
+      return { uri: result.uri, dir: directory };
+    } catch (err) {
+      console.warn('[CapBridge] writeFile FAILED dir=' + directory + ':', err && err.message ? err.message : err);
+      return null;
+    }
+  }
+
+  // Write to Downloads → app External → Cache (first success wins)
+  async function saveFile(base64Data, filename) {
+    // 1. Public Downloads folder (/sdcard/Download/)
+    //    Works on all Android versions with WRITE_EXTERNAL_STORAGE permission
+    let saved = await tryWrite(base64Data, filename, 'EXTERNAL_STORAGE', 'Download/' + filename);
+    if (saved) return { ...saved, label: 'Downloads folder' };
+
+    // 2. App-scoped external (Android/data/com.threecats.lsp.dplanner/files/)
+    //    No permission needed, USB-visible
+    saved = await tryWrite(base64Data, filename, 'EXTERNAL', filename);
+    if (saved) return { ...saved, label: 'Android/data/com.threecats.lsp.dplanner/files/' };
+
+    // 3. Last resort — app cache
+    saved = await tryWrite(base64Data, filename, 'CACHE', filename);
+    if (saved) return { ...saved, label: 'app cache (use Share to save permanently)' };
+
     return null;
   }
 
-  // Open native Share sheet
+  // Open native Share sheet for a file:// URI
   async function shareFile(fileUri, filename) {
     const plugin = Capacitor.Plugins[SH];
-    if (!plugin || typeof plugin.share !== 'function') {
-      notify('Share plugin not available — file saved to Android/data/com.threecats.lsp.dplanner/files/', false);
-      return;
-    }
+    if (!plugin || typeof plugin.share !== 'function') return;
     try {
-      console.log('[CapBridge] Share.share url=' + fileUri);
-      await plugin.share({
-        title: filename,
-        url: fileUri,
-        dialogTitle: 'Save ' + filename
-      });
+      await plugin.share({ title: filename, url: fileUri, dialogTitle: 'Open or share ' + filename });
     } catch (err) {
       const msg = (err && err.message ? err.message : String(err)).toLowerCase();
       if (!msg.includes('cancel') && !msg.includes('dismiss')) {
@@ -106,70 +125,63 @@
     }
   }
 
-  // ── core handler ─────────────────────────────────────────────────────────
+  // ── main handler ─────────────────────────────────────────────────────────
 
   async function handleBlobDownload(blob, filename) {
     let base64Data;
     try {
       base64Data = await blobToBase64(blob);
     } catch (err) {
-      notify('Export failed: cannot read file data — ' + err, true);
+      notify('Export failed: cannot read file — ' + err, true);
       return;
     }
 
-    const saved = await writeFile(base64Data, filename);
+    // Request permission first (shows dialog on Android ≤ 12 if not yet granted)
+    const ok = await ensurePermission();
+    if (!ok) return;
+
+    const saved = await saveFile(base64Data, filename);
     if (!saved) {
-      notify('Export failed — could not write file to device', true);
+      notify('Export failed — could not write to device', true);
       return;
     }
 
-    const where = saved.dir === 'EXTERNAL'
-      ? 'Android/data/com.threecats.lsp.dplanner/files/'
-      : 'app cache';
-    notify('Saved: ' + filename + '\n(' + where + ')');
+    notify('✓ Saved to ' + saved.label + ': ' + filename);
 
+    // Also open Share sheet so user can forward/open in viewer
     await shareFile(saved.uri, filename);
   }
 
-  // ── intercept a.click() — used by exportTXT ──────────────────────────────
+  // ── patch a.click() — used by exportTXT ──────────────────────────────────
 
   const _origClick = HTMLAnchorElement.prototype.click;
   HTMLAnchorElement.prototype.click = function () {
     if (this.download && this.href && this.href.startsWith('blob:')) {
-      console.log('[CapBridge] Intercepted a.click() download=' + this.download);
-      const href = this.href;
-      const dl   = this.download;
-      fetch(href)
-        .then(r => r.blob())
-        .then(blob => handleBlobDownload(blob, dl))
+      console.log('[CapBridge] a.click() intercepted:', this.download);
+      const href = this.href, dl = this.download;
+      fetch(href).then(r => r.blob()).then(b => handleBlobDownload(b, dl))
         .catch(err => { notify('Export error: ' + err, true); _origClick.call(this); });
       return;
     }
     _origClick.call(this);
   };
 
-  // ── intercept a.dispatchEvent(MouseEvent) — used by jsPDF doc.save() ────
+  // ── patch a.dispatchEvent() — used by jsPDF doc.save() ───────────────────
 
   const _origDispatch = HTMLAnchorElement.prototype.dispatchEvent;
   HTMLAnchorElement.prototype.dispatchEvent = function (event) {
     if (
-      event instanceof MouseEvent &&
-      event.type === 'click' &&
-      this.download &&
-      this.href &&
-      this.href.startsWith('blob:')
+      event instanceof MouseEvent && event.type === 'click' &&
+      this.download && this.href && this.href.startsWith('blob:')
     ) {
-      console.log('[CapBridge] Intercepted dispatchEvent click download=' + this.download);
-      const href = this.href;
-      const dl   = this.download;
-      fetch(href)
-        .then(r => r.blob())
-        .then(blob => handleBlobDownload(blob, dl))
+      console.log('[CapBridge] a.dispatchEvent(click) intercepted:', this.download);
+      const href = this.href, dl = this.download;
+      fetch(href).then(r => r.blob()).then(b => handleBlobDownload(b, dl))
         .catch(err => { notify('Export error: ' + err, true); _origDispatch.call(this, event); });
-      return true; // consumed
+      return true;
     }
     return _origDispatch.call(this, event);
   };
 
-  console.log('[CapBridge] Active — patched click() + dispatchEvent() for blob downloads');
+  console.log('[CapBridge] Active — saving to Downloads folder');
 })();
