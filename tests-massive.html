@@ -201,7 +201,7 @@ iframe { display: none; }
       <p>Massive regression suite v2.8.7 · 300+ engine plans · UI integration · gas table · slate · surf int · presets · END column · GF UI validation</p>
     </div>
     <div class="controls">
-      <button id="run-btn" onclick="startTests(false)">▶ Run All Tests</button>
+      <button id="run-btn" onclick="startTests(false)">▶ RUN ALL (incl. engine)</button>
       <button id="run-ui-btn" class="secondary-btn" onclick="startTests(true)" title="Skip Tier 1 engine tests — faster on mobile">▶ UI Only (skip engine)</button>
       <button class="secondary-btn" onclick="toggleFailOnly()" id="fail-toggle">Failures Only: Off</button>
       <button class="secondary-btn" onclick="collapseAll()">Collapse All</button>
@@ -3579,10 +3579,10 @@ async function startTests(skipTier1 = false) {
       if (win.ZHLEngine) win.ZHLEngine.calculate(_lv, [], _s);
       const _bMs = performance.now() - _bStart;
       document.getElementById('meta-version').textContent += '  ⚡' + Math.round(_bMs) + 'ms/call';
-      if (_bMs > 50 && !skipTier1) {
+      if (_bMs > 20 && !skipTier1) {
         _autoSkipTier1 = true;
         skipTier1 = true;
-        statusEl.textContent = '▶ Engine ready — slow CPU detected (' + Math.round(_bMs) + 'ms/call) — running UI tests only…';
+        statusEl.textContent = '⚠ Slow CPU (' + Math.round(_bMs) + 'ms/call) — Tier 1 engine tests skipped. Click RUN ALL TESTS to force.';
         const _uiBtn = document.getElementById('run-ui-btn'); if(_uiBtn){_uiBtn.style.background='var(--accent)';_uiBtn.style.color='#000';_uiBtn.title='Auto-selected: slow CPU detected';}
       }
     } catch(e) {}
@@ -3759,7 +3759,7 @@ function exportLog() {
 
 window.LAST_RESULTS_STORE = () => LAST_RESULTS; // debug access
 
-window.addEventListener('load', () => { if (location.protocol !== 'file:') setTimeout(startTests, 300); });
+window.addEventListener('load', () => { if (location.protocol !== 'file:') setTimeout(() => startTests(true), 300); }); // default: skip Tier1 engine tests (too slow for most browsers)
 </script>
 </body>
 </html>
