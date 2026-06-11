@@ -11581,7 +11581,7 @@ function renderTissueLoadChart() {
 
   // Column header
   html += '<div style="overflow-x:auto;">';
-  html += '<table style="width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:9px;">';
+  html += '<table style="width:100%;border-collapse:collapse;font-family:\'JetBrains Mono\',monospace;font-size:9px;">';
 
   // Header row
   html += '<thead><tr>';
@@ -11589,7 +11589,7 @@ function renderTissueLoadChart() {
   html += '<th style="text-align:left;color:var(--muted);padding:3px 6px 6px 0;white-space:nowrap;min-width:52px;">t&#189; (min)</th>';
   for (const s of decoSteps) {
     const depthDisplay = Math.round(s.depth * conv) + ' ' + uLbl;
-    const stopMin = s.dur >= 1 ? Math.round(s.dur) + ''' : '<1'';
+    const stopMin = s.dur >= 1 ? Math.round(s.dur) + "'" : "<1'";
     html += '<th style="text-align:center;padding:3px 4px 6px;white-space:nowrap;">';
     html += '<span style="color:var(--accent);">' + depthDisplay + '</span>';
     html += '<br><span style="color:var(--muted);font-size:8px;">' + stopMin + '</span>';
@@ -11648,13 +11648,13 @@ function renderTissueLoadChart() {
   html += '</tbody></table></div>';
 
   // Legend
-  html += '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);">';
+  html += '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-family:\'JetBrains Mono\',monospace;font-size:9px;color:var(--muted);">';
   html += '<span><span style="color:var(--green);">&#9632;</span> &lt;75% — clear</span>';
   html += '<span><span style="color:var(--yellow);">&#9632;</span> 75–90% — loaded</span>';
   html += '<span><span style="color:var(--orange);">&#9632;</span> 90–99% — near limit</span>';
   html += '<span><span style="color:var(--red);">&#9632;</span> &ge;100% — at/over M-value</span>';
   html += '</div>';
-  html += '<div style="margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);">% = tissue tension / GF-adjusted M-value at stop depth. &ge;100% would require a deeper/longer stop.</div>';
+  html += '<div style="margin-top:8px;font-family:\'JetBrains Mono\',monospace;font-size:9px;color:var(--muted);">% = tissue tension / GF-adjusted M-value at stop depth. &ge;100% would require a deeper/longer stop.</div>';
 
   chartEl.innerHTML = html;
 }
