@@ -2,11 +2,21 @@
  * capacitor-bridge.js
  *
  * Intercepts blob <a download> clicks produced by exportTXT() and exportPDF()
- * and saves the file to the device's Documents directory via @capacitor/filesystem
- * when running inside the Android app. After saving, immediately opens the file
- * with the system viewer via @capawesome-team/capacitor-file-opener.
+ * and saves the file via @capacitor/filesystem, then opens it with the system
+ * viewer via @capawesome-team/capacitor-file-opener.
  *
  * On the web / PWA this file does nothing — the normal <a download> path runs as-is.
+ *
+ * ANDROID STORAGE STRATEGY
+ * -------------------------
+ * Directory.Documents  — broken on Android 11+ (requires MANAGE_EXTERNAL_STORAGE)
+ * Directory.ExternalStorage — broken on Android 11+ (same issue)
+ * Directory.External   — app-scoped external dir, works but hard for users to find
+ * Directory.Cache      — always works, no permissions needed, any Android version ✓
+ *
+ * We write to Cache, then immediately open with FileOpener so the user can view
+ * the file and use "Save to Downloads / Share" from the system viewer.
+ * This is the standard pattern for modern Android export flows.
  *
  * HOW IT WORKS
  * ------------
@@ -24,7 +34,7 @@
  *   - the anchor has a `download` attribute, AND
  *   - the href is a blob: URL
  * we read the blob, base64-encode it, write it via Filesystem.writeFile to
- * Directory.DOCUMENTS, then open it with FileOpener.
+ * Directory.Cache, then open it with FileOpener.
  */
 
 (function () {
@@ -72,50 +82,39 @@
     setTimeout(() => div.remove(), 3000);
   }
 
-  // Save blob to Documents/<filename>, then open it with the system viewer
+  // Write blob to Cache directory, then open with system viewer.
+  // Cache works on all Android versions without any storage permissions.
+  // The user can Save / Share from the system viewer (PDF viewer, text editor, etc.)
   async function saveAndOpen(blob, filename) {
     const mime = mimeFromFilename(filename);
 
-    // 1 — Write to Documents
+    // 1 — Write to Cache (no permissions required on any Android version)
     let savedPath;
     try {
       const base64Data = await blobToBase64(blob);
       const result = await Capacitor.Plugins[FS].writeFile({
         path: filename,
         data: base64Data,
-        directory: 'DOCUMENTS',
+        directory: 'CACHE',   // was 'DOCUMENTS' — broken on Android 11+
         recursive: true
       });
       savedPath = result.uri; // absolute file:// URI returned by Filesystem
     } catch (err) {
       console.error('[CapBridge] writeFile failed:', err);
-      // Last-resort fallback: native share sheet
-      try {
-        const url = URL.createObjectURL(blob);
-        await Capacitor.Plugins['Share'].share({
-          title: filename,
-          url,
-          dialogTitle: 'Save or share file'
-        });
-        URL.revokeObjectURL(url);
-      } catch (shareErr) {
-        console.error('[CapBridge] share fallback failed:', shareErr);
-        notify('Save failed — try copying to clipboard instead');
-      }
+      notify('Export failed: ' + (err && err.message ? err.message : err));
       return;
     }
 
-    notify(`Saved: ${filename}`);
-
-    // 2 — Open the file immediately with the system viewer
+    // 2 — Open immediately with system viewer so user can save/share from there
     try {
       await Capacitor.Plugins[FO].openFile({
         path: savedPath,
         mimeType: mime
       });
     } catch (openErr) {
-      // Not fatal — file is already saved, viewer just didn't open
-      console.warn('[CapBridge] FileOpener failed (file still saved):', openErr);
+      // FileOpener failed but file is in cache — show path as fallback info
+      console.warn('[CapBridge] FileOpener failed:', openErr);
+      notify('File saved — could not open viewer');
     }
   }
 
@@ -135,5 +134,5 @@
     _origClick.call(this);
   };
 
-  console.log('[CapBridge] Filesystem + FileOpener bridge active');
+  console.log('[CapBridge] Filesystem bridge active (Cache directory)');
 })();
