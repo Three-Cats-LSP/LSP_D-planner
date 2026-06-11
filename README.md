@@ -28,6 +28,16 @@ LSP D-Planner is available as a native Android app built with Capacitor by Ionic
 
 ---
 
+## T-Viewer
+
+[T-Viewer](https://github.com/Three-Cats-LSP/T-Viewer) is a companion Android app for reading and viewing the dive plan TXT files exported by LSP D-Planner. It provides a clean, formatted view of exported plans directly on your device.
+
+📲 **[Download T-Viewer APK](https://three-cats-lsp.github.io/T-Viewer/download.html)**
+
+> Direct download page: https://three-cats-lsp.github.io/T-Viewer/download.html
+
+---
+
 ## Overview
 
 LSP D-Planner supports two modes: **Rec** for recreational divers using PADI-based NDL tables, and **Tec** for technical divers requiring full decompression planning with trimix, multiple deco gases, and advanced algorithms. Everything runs client-side in a single `index.html` file with no external dependencies.
@@ -161,7 +171,7 @@ CNS: 36.2% OTU: 73 PrT: 21.7
 TRT = Total Run Time (reads from totals row, full MM'SS" format). Same footer format in both deco and emergency slates.
 
 ### TXT Export
-Full plan text including settings, deco table, and gas consumption. Header: `DECO PLAN` / `EMERGENCY PLAN` with date/time stamp and divider. Saved to device Downloads folder on Android.
+Full plan text including settings, deco table, and gas consumption. Header: `DECO PLAN` / `EMERGENCY PLAN` with date/time stamp and divider. Saved to device Downloads folder on Android. Exported TXT files can be opened and viewed with [T-Viewer](https://github.com/Three-Cats-LSP/T-Viewer).
 
 ### PDF Export (Dive Plan)
 Section picker dialog before export. Available sections:
