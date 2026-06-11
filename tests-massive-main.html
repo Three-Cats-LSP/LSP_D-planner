@@ -2972,7 +2972,7 @@ async function runGroupsAsync(groups) {
       pb.style.width = pct + '%';
       const _elapsedS = ((performance.now() - (window._suiteT0||0)) / 1000).toFixed(0);
       pl.textContent = `${done} / ${total} — ${g.name}  [${_elapsedS}s]`;
-      await new Promise(r => requestAnimationFrame(() => setTimeout(r, 4))); // yield + paint
+      await new Promise(r => setTimeout(r, 8)); // yield — plain setTimeout works in background tabs (rAF doesn't)
     }
     results.push(groupResult);
   }
@@ -3033,13 +3033,14 @@ async function startTests() {
 
     statusEl.className = 'running';
     statusEl.textContent = '▶ Engine ready — running massive suite…';
-    // Pulse the status dot so user knows it's alive on slow machines
-    const _pulseInterval = setInterval(() => {
-      if (!statusEl.textContent.includes('running')) { clearInterval(_pulseInterval); return; }
+    // Pulse: use recursive setTimeout (setInterval stops in background tabs)
+    (function pulse() {
+      if (!statusEl.textContent.includes('running')) return;
       const dots = ['…', '· ·', '···'];
       const t = Math.floor(Date.now() / 600) % 3;
       statusEl.textContent = '▶ Engine ready — running massive suite' + dots[t];
-    }, 600);
+      setTimeout(pulse, 600);
+    })();
 
     // ── Pre-warm: headless engine call + stub DOM injection (NO blocking render) ──
     // win.runDecoSchedule() full render blocks the JS thread even with await yields.
