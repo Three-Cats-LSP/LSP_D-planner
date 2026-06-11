@@ -15236,10 +15236,12 @@ async function exportPDF(opts) {
             doc.setFont('NotoSans','normal'); doc.setTextColor(160,160,160);
             doc.text('run plan first', gx.suf+1, y+4.2);
           } else {
-            const stat3 = r.totalL>=r.reqL*1.10?'OK':r.totalL>=r.reqL?'TIGHT':'SHORT';
+            const stat3sym = r.totalL>=r.reqL*1.10?'✓':r.totalL>=r.reqL?'⚠':'✗';
+            const stat3txt = r.totalL>=r.reqL*1.10?' OK':r.totalL>=r.reqL?' TIGHT':' SHORT';
             const tc3 = r.totalL>=r.reqL*1.10?[0,130,60]:r.totalL>=r.reqL?[180,80,0]:[180,0,0];
+            pdfSym(doc, stat3sym, gx.suf+1, y+2.8, 7, tc3);
             doc.setFont('NotoSans','bold'); doc.setTextColor(...tc3);
-            doc.text(stat3, gx.suf+1, y+2.8);
+            doc.text(stat3txt, gx.suf+7, y+2.8);
             doc.setFont('NotoSans','normal'); doc.setFontSize(5.5); doc.setTextColor(100,100,100);
             doc.text(`need ${gpVolDisp(r.reqL)} ${pdfVolU}`, gx.suf+1, y+5.8);
           }
