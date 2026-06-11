@@ -12306,8 +12306,9 @@ async function buildGasPlanPDF() {
   function cleanPDF(s){
     if(!s) return '';
     s = s.replace(/·|•/g,'*').replace(/—/g,'--').replace(/–/g,'-');
-    s = s.replace(/[☀-⟿⬀-⯿⌀-⏿️]/g,'');
-    s = s.replace(/[^\x20-\x7E\xA0-ɏ]/g,'');
+    // Strip decorative emoji/icon blocks but preserve ✓✗⚠ and arrows ↑↓←→
+    s = s.replace(/[\u2600-\u269F\u26A1-\u26FF\u2700-\u2712\u2714-\u2716\u2718-\u27FF\u2B00-\u2BFF\u2300-\u23FF\uFE0F]/g,'');
+    s = s.replace(/[^\x20-\x7E\xA0-\u024F\u2190-\u2193\u2713\u2717\u26A0]/g,'');
     return s.trim();
   }
   function drawHeader() {
@@ -13722,7 +13723,7 @@ function calcContingency() {
         <button class="btn-export" onclick="copyDiveProfile('contingency')" title="Copy to clipboard"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
         <button class="btn-export" onclick="showContingencySlate()" title="Emergency slate (waterproof format)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="13" y2="16"/></svg></button>
         <button class="btn-export" onclick="exportTXT('contingency')" title="Download .txt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg></button>
-        <button class="btn-export" onclick="exportContingencyPDF()" title="Export PDF"><span style="display:inline-block;width:16px;height:16px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0px;line-height:16px;text-align:center;overflow:visible;white-space:nowrap;">PDF</span></button>
+        <button class="btn-export" onclick="showContingencyPDFDialog()" title="Export PDF"><span style="display:inline-block;width:16px;height:16px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0px;line-height:16px;text-align:center;overflow:visible;white-space:nowrap;">PDF</span></button>
       </div>
     </div>`;
 
@@ -13813,7 +13814,68 @@ async function loadPDFFonts(doc) {
     return false;
   }
 }
-async function exportContingencyPDF() {
+function showContingencyPDFDialog() {
+  const old = document.getElementById('contingencyPDFDialog');
+  if (old) old.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'contingencyPDFDialog';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;';
+
+  const box = document.createElement('div');
+  box.style.cssText = "background:var(--surface,#1a1e2e);border:1px solid var(--border,#2a3050);border-radius:12px;padding:24px 28px;width:340px;max-width:92vw;font-family:'Outfit',sans-serif;box-shadow:0 8px 40px rgba(0,0,0,0.5);";
+
+  const sections = [
+    { key:'gas',     label:'Emergency Gas Consumption', checked:true  },
+    { key:'slate',   label:'Emergency Ascent Schedule',  checked:true  },
+    { key:'profile', label:'Dive Profile Graph',         checked:true  },
+    { key:'gfCurve', label:'GF Gradient Factor Curve',   checked:false },
+    { key:'tissue',  label:'Tissue Saturation',          checked:false },
+    { key:'emSlate', label:'Emergency Slate',            checked:true  },
+  ];
+
+  const rows = sections.map(s => `
+    <label style="display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer;border-bottom:1px solid var(--border,#2a3050);">
+      <input type="checkbox" id="emPdfOpt_${s.key}" ${s.checked?'checked':''} style="width:15px;height:15px;accent-color:#ff4040;cursor:pointer;">
+      <span style="font-size:13px;color:var(--text,#e8eaf6);">${s.label}</span>
+    </label>`).join('');
+
+  box.innerHTML = `
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#ff4040;margin-bottom:16px;">[!] EMERGENCY PDF EXPORT</div>
+    <div style="font-size:11px;color:var(--muted,#8890b0);margin-bottom:14px;letter-spacing:0.5px;">SELECT SECTIONS TO INCLUDE</div>
+    <div style="margin-bottom:18px;">${rows}</div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="document.getElementById('contingencyPDFDialog').remove()"
+        style="padding:9px 18px;background:transparent;color:var(--muted,#8890b0);border:1px solid var(--border,#2a3050);border-radius:6px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;">
+        Cancel
+      </button>
+      <button onclick="(function(){
+        const opts={};
+        ['gas','slate','profile','gfCurve','tissue','emSlate'].forEach(k=>{
+          opts[k]=!!document.getElementById('emPdfOpt_'+k)?.checked;
+        });
+        document.getElementById('contingencyPDFDialog').remove();
+        exportContingencyPDF(opts);
+      })()"
+        style="padding:9px 18px;background:#cc0000;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;">
+        EXPORT PDF
+      </button>
+    </div>`;
+
+  overlay.appendChild(box);
+  overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+async function exportContingencyPDF(opts) {
+  opts = opts || {};
+  const _incGas     = opts.gas     !== false;
+  const _incSlate   = opts.slate   !== false;
+  const _incProfile = opts.profile !== false;
+  const _incGFCurve = opts.gfCurve !== false;
+  const _incTissue  = opts.tissue  !== false;
+  const _incEmSlate = opts.emSlate !== false;
+
   const { jsPDF } = window.jspdf;
   if (!jsPDF) { alert('PDF library not loaded.'); return; }
   const c = window._lastContingency;
@@ -13826,8 +13888,8 @@ async function exportContingencyPDF() {
   const timeStr = now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
   const isoDate = now.toISOString().split('T')[0];
   const du    = units === 'imperial' ? 'ft' : 'm';
-  const depth = document.getElementById('decoDepth')?.value || '—';
-  const bt    = document.getElementById('decoBT')?.value    || '—';
+  const depth = document.getElementById('decoDepth')?.value || '\u2014';
+  const bt    = document.getElementById('decoBT')?.value    || '\u2014';
   const scenarioName = (c.label||'Emergency').replace(/[^a-zA-Z0-9_\- ]/g,'').replace(/\s+/g,'_').substring(0,30);
   const fileName = `LSP_${isoDate}_Emergency_${depth}${du}_${bt}min_${scenarioName}.pdf`;
 
@@ -13836,12 +13898,12 @@ async function exportContingencyPDF() {
 
   function cleanPDF(s){
     if(!s) return '';
-    s = s.replace(/\u2192/g,'>').replace(/\u2190/g,'<').replace(/\u2191/g,'^').replace(/\u2193/g,'v');
     s = s.replace(/[\u2080-\u2089]/g, c => String.fromCharCode(c.charCodeAt(0)-0x2050));
     s = s.replace(/[\u00B2\u00B3\u00B9]/g, c => ({'\u00B2':'2','\u00B3':'3','\u00B9':'1'}[c]||c));
     s = s.replace(/\u00B7|\u2022|\u2027/g,'*').replace(/\u2014/g,'--').replace(/\u2013/g,'-').replace(/\u2018|\u2019/g,"'").replace(/\u201C|\u201D/g,'"');
-    s = s.replace(/[\u2600-\u27FF\u2B00-\u2BFF\u2300-\u23FF\uFE0F]/g,'');
-    s = s.replace(/[^\x20-\x7E\xA0-\u024F]/g,'');
+    // Strip decorative emoji/icon blocks but preserve \u2713\u2717\u26a0 and arrows \u2191\u2193\u2190\u2192
+    s = s.replace(/[\u2600-\u269F\u26A1-\u26FF\u2700-\u2712\u2714-\u2716\u2718-\u27FF\u2B00-\u2BFF\u2300-\u23FF\uFE0F]/g,'');
+    s = s.replace(/[^\x20-\x7E\xA0-\u024F\u2190-\u2193\u2713\u2717\u26A0]/g,'');
     return s.replace(/^\s*[!&*#^~]+\s*/,'').trim();
   }
   function checkY(n) { if(y+n>PH-MB){ doc.addPage(); y=MT; drawHeader(); } }
@@ -13877,7 +13939,7 @@ async function exportContingencyPDF() {
 
   drawHeader();
 
-  // Scenario info box
+  // ── Scenario info box ───────────────────────────────────────────────────
   doc.setFillColor(255,240,240); doc.setDrawColor(220,150,150);
   doc.roundedRect(ML,y,CW,16,2,2,'FD');
   doc.setFontSize(10); doc.setFont('DejaVuSans','bold'); doc.setTextColor(180,30,30);
@@ -13887,105 +13949,143 @@ async function exportContingencyPDF() {
   doc.setTextColor(150,0,0); doc.text(cleanPDF(c.msg||''), ML+3, y+14.5);
   doc.setTextColor(0,0,0); y+=19;
 
-  // Table
-  sectionTitle('EMERGENCY ASCENT SCHEDULE', cleanPDF(c.label));
-  const colW=[8,22,16,16,20,14,13,12,11];
-  const colX=[ML]; colW.forEach((w,i)=>{ if(i<colW.length-1) colX.push(colX[i]+colW[i]); });
-  doc.setFillColor(180,30,30); doc.rect(ML,y,CW,6,'F');
-  doc.setFontSize(7); doc.setFont('DejaVuSans','bold'); doc.setTextColor(255,255,255);
-  ['Phase','Depth','Stop','Run','Mix','EAD','END','PPO2','CNS%'].forEach((h,i)=>doc.text(h,colX[i]+colW[i]/2,y+4,{align:'center'}));
-  doc.setTextColor(0,0,0); y+=6;
-
-  document.querySelectorAll('#contingencyResult .deco-table tbody tr').forEach((tr,rowI)=>{
-    const phase=tr.dataset.phase;
-    const tds=Array.from(tr.querySelectorAll('td'));
-    const cv=tds.map(td=>td.textContent.trim());
-    checkY(5.5);
-    if(phase==='switch'){
-      const txt=tds.slice(1).map(td=>td.textContent.trim()).filter(Boolean).join(' ');
-      doc.setDrawColor(0,122,51); doc.setLineWidth(1);
-      doc.line(ML,y,ML+CW,y);
-      doc.setFillColor(255,215,0); doc.rect(ML,y,CW,5,'F');
-      doc.line(ML,y+5,ML+CW,y+5);
-      doc.setFontSize(7); doc.setFont('DejaVuSans','bold'); doc.setTextColor(0,100,40);
-      doc.text('>> '+cleanPDF(txt),ML+2,y+3.5); doc.setTextColor(0,0,0);
-      doc.setLineWidth(0.2); y+=5; return;
+  // ── SECTION: Emergency Gas Consumption ──────────────────────────────────
+  if (_incGas) {
+    const emGasEl = document.getElementById('emergencyGasConsumption');
+    const emGasRows = emGasEl ? Array.from(emGasEl.querySelectorAll('tbody tr')) : [];
+    if (emGasRows.length) {
+      checkY(10);
+      sectionTitle('EMERGENCY GAS CONSUMPTION','Gas required vs available per cylinder');
+      // Columns: GAS | REQUIRED | AVAILABLE | STATUS
+      const egcW=[30,38,38,76]; const egcX=[ML,ML+30,ML+68,ML+106];
+      doc.setFillColor(180,30,30); doc.rect(ML,y,CW,6,'F');
+      doc.setFontSize(7); doc.setFont('DejaVuSans','bold'); doc.setTextColor(255,255,255);
+      ['GAS','REQUIRED','AVAILABLE','STATUS'].forEach((h,i)=>doc.text(h,egcX[i]+egcW[i]/2,y+4,{align:'center'}));
+      doc.setTextColor(0,0,0); y+=6;
+      emGasRows.forEach((tr,ri)=>{
+        const cells=Array.from(tr.querySelectorAll('td'));
+        const cv=cells.map(td=>cleanPDF(td.textContent.trim()));
+        // Detect insufficient from cell color or text
+        const statusTxt=cv[3]||'';
+        const isShort=statusTxt.includes('short')||statusTxt.includes('\u2717');
+        ri%2===0?doc.setFillColor(255,250,250):doc.setFillColor(255,255,255);
+        doc.rect(ML,y,CW,5.5,'F');
+        doc.setFontSize(7); doc.setFont('DejaVuSans','bold');
+        doc.setTextColor(isShort?180:40,isShort?0:40,isShort?0:40);
+        doc.text(cv[0]||'',egcX[0]+2,y+3.8);
+        doc.setFont('DejaVuSans','normal');
+        doc.setTextColor(80,80,80); doc.text(cv[1]||'',egcX[1]+egcW[1]/2,y+3.8,{align:'center'});
+        doc.setTextColor(80,80,80); doc.text(cv[2]||'',egcX[2]+egcW[2]/2,y+3.8,{align:'center'});
+        // Status — colour-code
+        const stc=isShort?[180,0,0]:[0,130,60];
+        doc.setFont('DejaVuSans','bold'); doc.setTextColor(...stc);
+        doc.text(statusTxt,egcX[3]+egcW[3]/2,y+3.8,{align:'center'});
+        doc.setTextColor(0,0,0); y+=5.5;
+      });
+      y+=4;
     }
-    if(phase==='totals'){
-      const spans=tds[0]?.querySelectorAll('span')||[]; let t='';
-      spans.forEach(s=>{const v=s.textContent.trim();if(v)t+=(t?'  ':'')+v;});
-      if(!t&&tds[0]) t=tds[0].textContent.replace(/\s+/g,' ').trim();
-      doc.setFillColor(255,240,240); doc.rect(ML,y,CW,5.5,'F');
-      doc.setFontSize(7); doc.setFont('DejaVuSans','bold'); doc.setTextColor(150,0,0);
-      doc.text(cleanPDF(t),ML+2,y+3.8); doc.setTextColor(0,0,0); y+=5.5; return;
-    }
-    const isDeco=phase==='deco', isAsc=phase==='ascent', isBtm=phase==='bottom', isSafe=phase==='safety', isDes=phase==='descent';
-    const saE=tr.getAttribute('style')||'';
-    const hiE100=tr.hasAttribute('data-cnshi')&&(saE.includes('#ffff00')||(saE.includes('255,255,0')&&!saE.includes('0.25')));
-    const hiE80=tr.hasAttribute('data-cnshi')&&(saE.includes('rgba(255,255,0')||saE.includes('255,255,0,0.25'));
-    if(hiE100) doc.setFillColor(255,255,0);
-    else if(hiE80) doc.setFillColor(255,252,180);
-    else if(rowI%2===0) doc.setFillColor(255,250,250);
-    else doc.setFillColor(255,255,255);
-    doc.rect(ML,y,CW,5,'F');
-    const txC=(hiE100||hiE80)?[150,0,0]:isDeco?[180,0,0]:isAsc?[30,130,60]:isBtm?[0,60,160]:isSafe?[20,140,50]:[160,50,50];
-    const icon=isDeco?'Stp':isAsc?'Asc':isBtm?'Lvl':isSafe?'Stp':isDes?'Des':'---';
-    doc.setFontSize(7); doc.setFont('DejaVuSans','normal');
-    doc.setTextColor(...txC); doc.text(icon,colX[0]+colW[0]/2,y+3.5,{align:'center'});
-    [cv[1],cv[2],cv[3],cv[4],cv[5],cv[6],cv[7],cv[8]].forEach((v,i)=>{
-      const cv2=cleanPDF(v||''); if(cv2&&cv2!=='-') doc.text(cv2,colX[i+1]+colW[i+1]/2,y+3.5,{align:'center'});
-    });
-    doc.setTextColor(0,0,0); y+=5;
-  });
-  y+=3;
-
-  // Legend
-  checkY(7); doc.setFontSize(7); doc.setFont('DejaVuSans','normal');
-  const leg=['Des = Descent','Lvl = Bottom','Asc = Ascent','Stp = Deco/Safety Stop','>> = Gas Switch'];
-  const lc=[[160,50,50],[0,100,200],[30,130,60],[180,0,0],[100,0,150]];
-  let lx=ML; leg.forEach((l,i)=>{doc.setTextColor(...lc[i]);doc.text(l,lx,y+3.5);lx+=doc.getTextWidth(l)+5;});
-  doc.setTextColor(0,0,0); y+=8;
-
-  // HIGH CNS% alert if applicable
-  const _emCNSpct = c.totalCNS ? parseFloat(c.totalCNS) : 0;
-  if (_emCNSpct >= 80) {
-    checkY(10);
-    doc.setFillColor(255,255,0); doc.setDrawColor(180,180,0);
-    const _cnsMsg = `HIGH CNS%. Emergency CNS oxygen load ${_emCNSpct.toFixed(0)}% exceeds 80%. Extreme caution.`;
-    const _cnsLines = doc.splitTextToSize(_cnsMsg, CW-4);
-    const _cnsH = 5.5*_cnsLines.length+2;
-    doc.roundedRect(ML,y,CW,_cnsH,1.5,1.5,'FD');
-    doc.setFontSize(7.5); doc.setFont('DejaVuSans','bold'); doc.setTextColor(17,17,17);
-    doc.text(_cnsLines,ML+2,y+4);
-    doc.setTextColor(0,0,0); y+=_cnsH+4;
   }
 
-  // Profile graph
-  try {
-    const saved = document.getElementById('decoTableBody').innerHTML;
-    document.getElementById('decoTableBody').innerHTML = c.newRows;
-    drawDecoProfile();
-    const pc = document.getElementById('decoProfileCanvas');
-    if (pc) {
-      doc.addPage(); drawHeader();
-      sectionTitle('EMERGENCY DIVE PROFILE GRAPH', `${depth}${du} / ${bt}min / ${cleanPDF(c.label)}`);
-      const imgData = pc.toDataURL('image/png');
-      const imgH = CW * pc.height / pc.width;
-      doc.addImage(imgData,'PNG',ML,y,CW,imgH);
-      y += imgH+4;
-      y = drawGraphLegend(doc, y, ML, CW, checkY);
-    }
-    document.getElementById('decoTableBody').innerHTML = saved;
-    drawDecoProfile();
-  } catch(e) { console.warn('Emergency graph failed',e); }
+  // ── SECTION: Emergency Ascent Schedule ──────────────────────────────────
+  if (_incSlate) {
+    sectionTitle('EMERGENCY ASCENT SCHEDULE', cleanPDF(c.label));
+    const colW=[8,22,16,16,20,14,13,12,11];
+    const colX=[ML]; colW.forEach((w,i)=>{ if(i<colW.length-1) colX.push(colX[i]+colW[i]); });
+    doc.setFillColor(180,30,30); doc.rect(ML,y,CW,6,'F');
+    doc.setFontSize(7); doc.setFont('DejaVuSans','bold'); doc.setTextColor(255,255,255);
+    ['Phase','Depth','Stop','Run','Mix','EAD','END','PPO2','CNS%'].forEach((h,i)=>doc.text(h,colX[i]+colW[i]/2,y+4,{align:'center'}));
+    doc.setTextColor(0,0,0); y+=6;
 
-  // ── GF Curve ─────────────────────────────────────────────────────────────
+    document.querySelectorAll('#contingencyResult .deco-table tbody tr').forEach((tr,rowI)=>{
+      const phase=tr.dataset.phase;
+      const tds=Array.from(tr.querySelectorAll('td'));
+      const cv=tds.map(td=>td.textContent.trim());
+      checkY(5.5);
+      if(phase==='switch'){
+        const txt=tds.slice(1).map(td=>td.textContent.trim()).filter(Boolean).join(' ');
+        doc.setFillColor(243,232,255); doc.rect(ML,y,CW,5,'F');
+        doc.setFontSize(7); doc.setFont('DejaVuSans','bold'); doc.setTextColor(122,0,160);
+        doc.text('>> '+cleanPDF(txt),ML+2,y+3.5); doc.setTextColor(0,0,0);
+        y+=5; return;
+      }
+      if(phase==='totals'){
+        const spans=tds[0]?.querySelectorAll('span')||[]; let t='';
+        spans.forEach(s=>{const v=s.textContent.trim();if(v)t+=(t?'  ':'')+v;});
+        if(!t&&tds[0]) t=tds[0].textContent.replace(/\s+/g,' ').trim();
+        doc.setFillColor(255,240,240); doc.rect(ML,y,CW,5.5,'F');
+        doc.setFontSize(7); doc.setFont('DejaVuSans','bold'); doc.setTextColor(150,0,0);
+        doc.text(cleanPDF(t),ML+2,y+3.8); doc.setTextColor(0,0,0); y+=5.5; return;
+      }
+      const isDeco=phase==='deco', isAsc=phase==='ascent', isBtm=phase==='bottom', isSafe=phase==='safety', isDes=phase==='descent';
+      const saE=tr.getAttribute('style')||'';
+      const hiE100=tr.hasAttribute('data-cnshi')&&(saE.includes('#ffff00')||(saE.includes('255,255,0')&&!saE.includes('0.25')));
+      const hiE80=tr.hasAttribute('data-cnshi')&&(saE.includes('rgba(255,255,0')||saE.includes('255,255,0,0.25'));
+      if(hiE100) doc.setFillColor(255,255,0);
+      else if(hiE80) doc.setFillColor(255,252,180);
+      else if(rowI%2===0) doc.setFillColor(255,250,250);
+      else doc.setFillColor(255,255,255);
+      doc.rect(ML,y,CW,5,'F');
+      const txC=(hiE100||hiE80)?[150,0,0]:isDeco?[180,0,0]:isAsc?[30,130,60]:isBtm?[0,60,160]:isSafe?[20,140,50]:[160,50,50];
+      const icon=isDeco?'Stp':isAsc?'Asc':isBtm?'Lvl':isSafe?'Stp':isDes?'Des':'---';
+      doc.setFontSize(7); doc.setFont('DejaVuSans','normal');
+      doc.setTextColor(...txC); doc.text(icon,colX[0]+colW[0]/2,y+3.5,{align:'center'});
+      [cv[1],cv[2],cv[3],cv[4],cv[5],cv[6],cv[7],cv[8]].forEach((v,i)=>{
+        const cv2=cleanPDF(v||''); if(cv2&&cv2!=='-') doc.text(cv2,colX[i+1]+colW[i+1]/2,y+3.5,{align:'center'});
+      });
+      doc.setTextColor(0,0,0); y+=5;
+    });
+    y+=3;
+
+    // Legend
+    checkY(7); doc.setFontSize(7); doc.setFont('DejaVuSans','normal');
+    const leg=['Des = Descent','Lvl = Bottom','Asc = Ascent','Stp = Deco/Safety Stop','>> = Gas Switch'];
+    const lc=[[160,50,50],[0,100,200],[30,130,60],[180,0,0],[100,0,150]];
+    let lx=ML; leg.forEach((l,i)=>{doc.setTextColor(...lc[i]);doc.text(l,lx,y+3.5);lx+=doc.getTextWidth(l)+5;});
+    doc.setTextColor(0,0,0); y+=8;
+
+    // HIGH CNS% alert
+    const _emCNSpct = c.totalCNS ? parseFloat(c.totalCNS) : 0;
+    if (_emCNSpct >= 80) {
+      checkY(10);
+      doc.setFillColor(255,255,0); doc.setDrawColor(180,180,0);
+      const _cnsMsg = `HIGH CNS%. Emergency CNS oxygen load ${_emCNSpct.toFixed(0)}% exceeds 80%. Extreme caution.`;
+      const _cnsLines = doc.splitTextToSize(_cnsMsg, CW-4);
+      const _cnsH = 5.5*_cnsLines.length+2;
+      doc.roundedRect(ML,y,CW,_cnsH,1.5,1.5,'FD');
+      doc.setFontSize(7.5); doc.setFont('DejaVuSans','bold'); doc.setTextColor(17,17,17);
+      doc.text(_cnsLines,ML+2,y+4);
+      doc.setTextColor(0,0,0); y+=_cnsH+4;
+    }
+  }
+
+  // ── SECTION: Dive Profile Graph ─────────────────────────────────────────
+  if (_incProfile) {
+    try {
+      const saved = document.getElementById('decoTableBody').innerHTML;
+      document.getElementById('decoTableBody').innerHTML = c.newRows;
+      drawDecoProfile();
+      const pc = document.getElementById('decoProfileCanvas');
+      if (pc) {
+        doc.addPage(); drawHeader();
+        sectionTitle('EMERGENCY DIVE PROFILE GRAPH', `${depth}${du} / ${bt}min / ${cleanPDF(c.label)}`);
+        const imgData = pc.toDataURL('image/png');
+        const imgH = CW * pc.height / pc.width;
+        doc.addImage(imgData,'PNG',ML,y,CW,imgH);
+        y += imgH+4;
+        y = drawGraphLegend(doc, y, ML, CW, checkY);
+      }
+      document.getElementById('decoTableBody').innerHTML = saved;
+      drawDecoProfile();
+    } catch(e) { console.warn('Emergency graph failed',e); }
+  }
+
+  // ── SECTION: GF Gradient Factor Curve ───────────────────────────────────
   const isVPMem = (document.getElementById('algorithmSelect')?.value||'ZHLC_GF') !== 'ZHLC_GF';
-  if(!isVPMem){
+  if (_incGFCurve && !isVPMem) {
     drawGFCurve();
-    doc.addPage(); drawHeader();
     const gc2=document.getElementById('gfCurveCanvas');
     if(gc2){
+      doc.addPage(); drawHeader();
       sectionTitle('GRADIENT FACTOR CURVE',`GF Low ${mGF.low}%  GF High ${mGF.high}%`);
       const gd2=gc2.toDataURL('image/png'); const gh2=CW*gc2.height/gc2.width;
       doc.addImage(gd2,'PNG',ML,y,CW,gh2); y+=gh2+4;
@@ -14018,33 +14118,40 @@ async function exportContingencyPDF() {
         y+=4;
       }
     }
-    // ── Tissue Saturation ──────────────────────────────────────────────────
-    if(lastTissues&&lastTissues.length){
-      doc.addPage(); drawHeader();
-      sectionTitle('TISSUE SATURATION','Buhlmann ZH-L16C - N2 compartment loading at end of dive');
-      const gfFem=mGF.high/100;
-      lastTissues.forEach((t0lp,i)=>{
-        const pN2lp=t0lp.pN2; const pHelp=t0lp.pHe||0; const pN2=pN2lp; const pTotlp=pN2lp+pHelp;
-        checkY(7);
-        const [ht,a_n,b_n]=ZHL16C[i];
-        let a=a_n,b=b_n;
-        if(pHelp>0&&pTotlp>0){a=(pN2lp*a_n+pHelp*ZHL16C_HE_AB[i][0])/pTotlp;b=(pN2lp*b_n+pHelp*ZHL16C_HE_AB[i][1])/pTotlp;}
-        const mv=a*gfFem+altSurfaceP/b;
-        const pct=Math.min(100,Math.round((pTotlp/mv)*100));
-        const cr=pct>=100?[220,0,0]:pct>=85?[200,80,0]:pct>=70?[180,150,0]:[20,160,60];
-        doc.setFontSize(6.5); doc.setFont('DejaVuSans','normal'); doc.setTextColor(100,100,120);
-        doc.text(`${i+1}`,ML+3,y+4,{align:'center'});
-        doc.text(`${ht}min`,ML+14,y+4);
-        const barX=ML+30,barW=CW-55,barH=5;
-        doc.setFillColor(230,232,240); doc.roundedRect(barX,y+0.5,barW,barH,1,1,'F');
-        doc.setFillColor(...cr); doc.roundedRect(barX,y+0.5,barW*pct/100,barH,1,1,'F');
-        doc.setFontSize(6.5); doc.setTextColor(...cr); doc.setFont('DejaVuSans','bold');
-        doc.text(`${pct}%`,ML+CW-3,y+4,{align:'right'});
-        doc.setTextColor(0,0,0); y+=6.5;
-      });
-      y+=4;
-    }
-    // ── Compartment Detail ────────────────────────────────────────────────
+  }
+
+  // ── SECTION: Tissue Saturation ───────────────────────────────────────────
+  if (_incTissue && !isVPMem && lastTissues && lastTissues.length) {
+    doc.addPage(); drawHeader();
+    sectionTitle('TISSUE SATURATION','Buhlmann ZH-L16C \u2014 loading at end of dive');
+    const gfFem=mGF.high/100;
+
+    // Surface Snapshot: 16 compartment bars
+    checkY(8);
+    doc.setFontSize(7); doc.setFont('DejaVuSans','bold'); doc.setTextColor(180,30,30);
+    doc.text('SURFACE SNAPSHOT', ML, y+4.8); y+=7;
+    lastTissues.forEach((t0lp,i)=>{
+      const pN2lp=t0lp.pN2; const pHelp=t0lp.pHe||0; const pTotlp=pN2lp+pHelp;
+      checkY(7);
+      const [ht,a_n,b_n]=ZHL16C[i];
+      let a=a_n,b=b_n;
+      if(pHelp>0&&pTotlp>0){a=(pN2lp*a_n+pHelp*ZHL16C_HE_AB[i][0])/pTotlp;b=(pN2lp*b_n+pHelp*ZHL16C_HE_AB[i][1])/pTotlp;}
+      const mv=a*gfFem+altSurfaceP/b;
+      const pct=Math.min(100,Math.round((pTotlp/mv)*100));
+      const cr=pct>=100?[220,0,0]:pct>=85?[200,80,0]:pct>=70?[180,150,0]:[20,160,60];
+      doc.setFontSize(6.5); doc.setFont('DejaVuSans','normal'); doc.setTextColor(100,100,120);
+      doc.text(`${i+1}`,ML+3,y+4,{align:'center'});
+      doc.text(`${ht}min`,ML+14,y+4);
+      const barX=ML+30,barW=CW-55,barH=5;
+      doc.setFillColor(230,232,240); doc.roundedRect(barX,y+0.5,barW,barH,1,1,'F');
+      doc.setFillColor(...cr); doc.roundedRect(barX,y+0.5,barW*pct/100,barH,1,1,'F');
+      doc.setFontSize(6.5); doc.setTextColor(...cr); doc.setFont('DejaVuSans','bold');
+      doc.text(`${pct}%`,ML+CW-3,y+4,{align:'right'});
+      doc.setTextColor(0,0,0); y+=6.5;
+    });
+    y+=4;
+
+    // Compartment Detail table
     const ttbEm=document.getElementById('tissueTableBody');
     if(ttbEm&&ttbEm.rows.length===0&&lastTissues) updateTissueViz(lastTissues,mGF.high);
     if(ttbEm&&ttbEm.rows.length){
@@ -14066,23 +14173,53 @@ async function exportContingencyPDF() {
         cells.forEach((v,i)=>doc.text(cleanPDF(v),tx3[i]+tw3[i]/2,y+3.5,{align:'center'}));
         doc.setTextColor(0,0,0);y+=5;
       });
+      y+=4;
+    }
+
+    // Per-Stop Ascent Profile (grid)
+    if(typeof _lastPlan !== 'undefined' && _lastPlan && _lastPlan.steps && _lastPlan.steps.some(s=>s._tissues)){
+      doc.addPage(); drawHeader();
+      sectionTitle('PER-STOP ASCENT PROFILE','Compartment loading at each deco stop');
+      const stopSteps=_lastPlan.steps.filter(s=>s._tissues&&(s.phase==='deco'||s.phase==='safety'||s.phase==='ascent'));
+      const COLS=4; const cellW=CW/COLS; const cellH=20;
+      stopSteps.forEach((step,si)=>{
+        if(si%COLS===0){ checkY(cellH+6); }
+        const cx2=ML+(si%COLS)*cellW;
+        const cy2=y;
+        const depLbl=units==='imperial'?`${Math.round(step.depth*3.28084)}ft`:`${Math.round(step.depth)}m`;
+        doc.setFontSize(6); doc.setFont('DejaVuSans','bold'); doc.setTextColor(180,30,30);
+        doc.text(`${depLbl} ${step.phase==='safety'?'Safety':''} ${step.run?step.run+"'":""}`.trim(),cx2+1,cy2+4);
+        const tissues=step._tissues;
+        const bW=(cellW-4)/16; const bMaxH=cellH-8;
+        tissues.forEach((t,ti)=>{
+          const pT=Math.min(1,(t.pN2+(t.pHe||0))/(t.mv||1));
+          const bH=Math.max(0.5,bMaxH*pT);
+          const tc2=pT>=1?[220,0,0]:pT>=0.85?[200,80,0]:pT>=0.7?[180,150,0]:[20,160,60];
+          doc.setFillColor(...tc2);
+          doc.rect(cx2+2+ti*bW, cy2+cellH-bH-2, bW*0.75, bH, 'F');
+        });
+        if(si%COLS===COLS-1||si===stopSteps.length-1){ y+=cellH+2; }
+      });
+      y+=4;
     }
   }
 
-  // ── DECO SLATE section ──────────────────────────
-  const slateText = buildContingencySlateText();
-  if (slateText) {
-    checkY(10);
-    doc.setFillColor(30,30,60); doc.rect(ML,y,CW,6,'F');
-    doc.setFontSize(7); doc.setFont('DejaVuSans','bold'); doc.setTextColor(255,255,255);
-    doc.text('EMERGENCY SLATE', ML+2, y+4);
-    doc.setTextColor(0,0,0); y+=8;
-    doc.setFont('DejaVuSans','normal'); doc.setFontSize(7);
-    slateText.split('\n').forEach(line => {
-      checkY(5);
-      doc.text(cleanPDF(line), ML, y); y+=4.5;
-    });
-    y+=4;
+  // ── SECTION: Emergency Slate ─────────────────────────────────────────────
+  if (_incEmSlate) {
+    const slateText = buildContingencySlateText();
+    if (slateText) {
+      checkY(10);
+      doc.setFillColor(30,30,60); doc.rect(ML,y,CW,6,'F');
+      doc.setFontSize(7); doc.setFont('DejaVuSans','bold'); doc.setTextColor(255,255,255);
+      doc.text('EMERGENCY SLATE', ML+2, y+4);
+      doc.setTextColor(0,0,0); y+=8;
+      doc.setFont('DejaVuSans','normal'); doc.setFontSize(7);
+      slateText.split('\n').forEach(line => {
+        checkY(5);
+        doc.text(cleanPDF(line), ML, y); y+=4.5;
+      });
+      y+=4;
+    }
   }
 
   const totalPages=doc.getNumberOfPages();
@@ -14090,6 +14227,7 @@ async function exportContingencyPDF() {
   doc.save(fileName);
   showExportToast();
 }
+
 
 function calcCNS() {
   const depth  = parseFloat(document.getElementById('cnsDepth')?.value) || 0;
@@ -14907,12 +15045,12 @@ async function exportPDF(opts) {
 
   function cleanPDF(s){
     if(!s) return '';
-    s = s.replace(/→/g,'>').replace(/←/g,'<').replace(/↑/g,'^').replace(/↓/g,'v');
     s = s.replace(/[₀-₉]/g, c => String.fromCharCode(c.charCodeAt(0)-0x2050));
     s = s.replace(/[²³¹]/g, c => ({'\u00B2':'2','\u00B3':'3','\u00B9':'1'}[c]||c));
     s = s.replace(/—/g,'--').replace(/–/g,'-').replace(/‘|’/g,"'").replace(/“|”/g,'"');
-    s = s.replace(/[☀-⟿⬀-⯿⌀-⏿️]/g,'');
-    s = s.replace(/[^\x20-\x7E\xA0-\u024F]/g,'');
+    // Strip decorative emoji/icon blocks but preserve ✓✗⚠ and arrows ↑↓←→
+    s = s.replace(/[\u2600-\u269F\u26A1-\u26FF\u2700-\u2712\u2714-\u2716\u2718-\u27FF\u2B00-\u2BFF\u2300-\u23FF\uFE0F]/g,'');
+    s = s.replace(/[^\x20-\x7E\xA0-\u024F\u2190-\u2193\u2713\u2717\u26A0]/g,'');
     return s.replace(/^\s*[!&*#^~]+\s*/,'').trim();
   }
   function checkY(n) { if(y+n>PH-MB){ doc.addPage(); y=MT; drawHeader(); } }
