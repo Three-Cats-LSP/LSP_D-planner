@@ -3508,6 +3508,7 @@ const ZHL16C = [
   [305.0, 0.2835, 0.9477],[390.0, 0.2610, 0.9544],[498.0, 0.2480, 0.9602],
   [635.0, 0.2327, 0.9653],
 ];
+if (typeof window !== "undefined") window.ZHL16C = ZHL16C;
 
 // He half-times for global Bühlmann engine (trimix support)
 // Two variants: Baker 1998 (VPM-B canonical, ht[0]=1.88) and Bühlmann 2003 (ht[0]=1.51)
@@ -3580,6 +3581,7 @@ if (typeof window !== 'undefined') {
   });
 }
 let WATER_VAPOR = 0.0627; // alveolar water vapor pressure (bar) — updated by waterVapor setting
+window.WATER_VAPOR = WATER_VAPOR; // expose for test harnesses
 
 // Water density pressure factors (bar per metre)
 const WATER_DENSITY = {
@@ -3953,6 +3955,7 @@ function setAllowO2AtMOD(val) {
 function updateWaterVapor() {
   const val = parseFloat(document.getElementById('waterVapor')?.value) || 0.0627;
   WATER_VAPOR = val;
+  window.WATER_VAPOR = val; // keep window reference in sync
 }
 
 function updateHeHalfTime() {
