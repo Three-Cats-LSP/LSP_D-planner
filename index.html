@@ -15321,58 +15321,199 @@ async function exportPDF(opts) {
       }
     }
     } // end if(_incGFCurve)
-    const ttb=document.getElementById('tissueTableBody');
     if(_incTissue){
-    if(ttb&&ttb.rows.length===0&&lastTissues) updateTissueViz(lastTissues, mGF.high);
-    if(lastTissues&&lastTissues.length){
-      doc.addPage(); drawHeader();
-      sectionTitle('TISSUE SATURATION','Buhlmann ZH-L16C - N2 compartment loading at end of dive');
-      const gfF = mGF.high/100;
-      lastTissues.forEach((t0pdf,i)=>{
-        const pN2pdf=t0pdf.pN2; const pHepdf=t0pdf.pHe||0; const pTotpdf=pN2pdf+pHepdf;
+      // Ensure tissue data is populated
+      const ttb=document.getElementById('tissueTableBody');
+      if(ttb&&ttb.rows.length===0&&lastTissues) updateTissueViz(lastTissues, mGF.high);
+
+      if(lastTissues&&lastTissues.length){
+        doc.addPage(); drawHeader();
+        sectionTitle('TISSUE SATURATION — SURFACE SNAPSHOT','Bühlmann ZH-L16C · GF High applied · end-of-dive compartment loading');
+
+        // ── Section 1: Surface Saturation bars ──
+        const gfF = mGF.high/100;
+        const BAR_X=ML+28, BAR_W=CW-52, BAR_H=5, ROW=6.5;
+        // Column headers
         checkY(7);
-        const [ht,a_n2pdf,b_n2pdf]=ZHL16C[i];
-        let a=a_n2pdf,b=b_n2pdf;
-        if(pHepdf>0&&pTotpdf>0){a=(pN2pdf*a_n2pdf+pHepdf*ZHL16C_HE_AB[i][0])/pTotpdf;b=(pN2pdf*b_n2pdf+pHepdf*ZHL16C_HE_AB[i][1])/pTotpdf;}
-        const mv=a*gfF+altSurfaceP/b;
-        const pct=Math.min(100,Math.round((pTotpdf/mv)*100));
-        const cr=pct>=100?[220,0,0]:pct>=85?[200,80,0]:pct>=70?[180,150,0]:[20,160,60];
-        // Row label
-        doc.setFontSize(6.5); doc.setFont('NotoSans','normal'); doc.setTextColor(100,100,120);
-        doc.text(`${i+1}`,ML+3,y+4,{align:'center'});
-        doc.text(`${ht}min`,ML+14,y+4);
-        // Bar background
-        const barX=ML+30, barW=CW-55, barH=5;
-        doc.setFillColor(230,232,240); doc.roundedRect(barX,y+0.5,barW,barH,1,1,'F');
-        // Bar fill
-        doc.setFillColor(...cr); doc.roundedRect(barX,y+0.5,barW*pct/100,barH,1,1,'F');
-        // Pct label
-        doc.setFontSize(6.5); doc.setTextColor(...cr); doc.setFont('NotoSans','bold');
-        doc.text(`${pct}%`,ML+CW-3,y+4,{align:'right'});
-        doc.setTextColor(0,0,0); y+=6.5;
-      });
-      y+=4;
-    }
-    if(ttb&&ttb.rows.length){
-      doc.addPage(); drawHeader();
-      sectionTitle('COMPARTMENT DETAIL','Buhlmann ZH-L16C - End of dive N2 loading');
-      const th2=['#','Half-time (min)','N₂ Load (bar)','M-value (bar)','Saturation %','Status'];
-      const tw=[8,30,28,28,28,30]; const tx2=[ML]; tw.forEach((w,i)=>{if(i<tw.length-1)tx2.push(tx2[i]+tw[i]);});
-      doc.setFillColor(0,85,170);doc.rect(ML,y,CW,6,'F');
-      doc.setFontSize(7);doc.setFont('NotoSans','bold');doc.setTextColor(255,255,255);
-      th2.forEach((h,i)=>doc.text(h,tx2[i]+tw[i]/2,y+4,{align:'center'}));
-      doc.setTextColor(0,0,0);y+=6;
-      Array.from(ttb.rows).forEach((tr,ri)=>{
-        checkY(5); const cells=Array.from(tr.cells).map(td=>td.textContent.trim());
-        const pct=parseFloat(cells[4])||0;
-        const cr=pct>=100?[200,0,0]:pct>=85?[180,80,0]:pct>=70?[150,120,0]:[20,140,50];
-        ri%2===0?doc.setFillColor(248,249,255):doc.setFillColor(255,255,255);
-        doc.rect(ML,y,CW,5,'F');
-        doc.setFontSize(7);doc.setFont('NotoSans','normal');doc.setTextColor(...cr);
-        cells.forEach((v,i)=>doc.text(v,tx2[i]+tw[i]/2,y+3.5,{align:'center'}));
-        doc.setTextColor(0,0,0);y+=5;
-      });
-    }
+        doc.setFontSize(6); doc.setFont('NotoSans','bold'); doc.setTextColor(100,100,140);
+        doc.text('#',   ML+2,  y+4);
+        doc.text('t½',  ML+14, y+4);
+        doc.text('Saturation vs GF-adjusted M-value at surface', BAR_X+2, y+4);
+        doc.text('%',   ML+CW-3, y+4, {align:'right'});
+        doc.setTextColor(0,0,0); y+=6;
+
+        lastTissues.forEach((t0pdf,i)=>{
+          const pN2pdf=t0pdf.pN2; const pHepdf=t0pdf.pHe||0; const pTotpdf=pN2pdf+pHepdf;
+          checkY(ROW);
+          const [ht,a_n2pdf,b_n2pdf]=ZHL16C[i];
+          let a=a_n2pdf, b=b_n2pdf;
+          if(pHepdf>0&&pTotpdf>0){
+            a=(pN2pdf*a_n2pdf+pHepdf*ZHL16C_HE_AB[i][0])/pTotpdf;
+            b=(pN2pdf*b_n2pdf+pHepdf*ZHL16C_HE_AB[i][1])/pTotpdf;
+          }
+          const mv=a*gfF+altSurfaceP/b;
+          const pct=Math.min(100,Math.round((pTotpdf/mv)*100));
+          const cr=pct>=100?[220,0,0]:pct>=90?[200,80,0]:pct>=75?[180,150,0]:[20,160,60];
+          // Labels
+          doc.setFontSize(6.5); doc.setFont('NotoSans','normal'); doc.setTextColor(100,100,120);
+          doc.text(`${i+1}`, ML+4, y+4, {align:'center'});
+          doc.text(`${ht}`, ML+18, y+4, {align:'center'});
+          // Bar bg
+          doc.setFillColor(220,222,235); doc.roundedRect(BAR_X,y+0.5,BAR_W,BAR_H,1,1,'F');
+          // Bar fill
+          doc.setFillColor(...cr); doc.roundedRect(BAR_X,y+0.5,BAR_W*pct/100,BAR_H,1,1,'F');
+          // Pct
+          doc.setFontSize(6.5); doc.setTextColor(...cr); doc.setFont('NotoSans','bold');
+          doc.text(`${pct}%`, ML+CW-2, y+4, {align:'right'});
+          doc.setTextColor(0,0,0); y+=ROW;
+        });
+
+        // Color legend
+        y+=2; checkY(5);
+        doc.setFontSize(6); doc.setFont('NotoSans','normal');
+        const legItems=[[20,160,60,'<75% clear'],[180,150,0,'75-90% loaded'],[200,80,0,'90-99% near limit'],[220,0,0,'>=100% at M-value']];
+        let lx=ML;
+        legItems.forEach(([r,g,b2,lbl])=>{
+          doc.setFillColor(r,g,b2); doc.roundedRect(lx,y+1,3,3,0.5,0.5,'F');
+          doc.setTextColor(80,80,100); doc.text(lbl,lx+5,y+4);
+          lx+=doc.getTextWidth(lbl)+11;
+        });
+        doc.setTextColor(0,0,0); y+=7;
+
+        // ── Section 2: Compartment Detail table ──
+        checkY(12);
+        doc.setFillColor(220,228,248); doc.rect(ML,y,CW,5,'F');
+        doc.setFontSize(7); doc.setFont('NotoSans','bold'); doc.setTextColor(30,50,120);
+        doc.text('COMPARTMENT DETAIL', ML+2, y+3.5);
+        doc.setFontSize(6); doc.setFont('NotoSans','normal'); doc.setTextColor(80,90,130);
+        doc.text('exact N₂/He loads, M-values, and saturation status at surfacing', ML+CW-2, y+3.5, {align:'right'});
+        doc.setTextColor(0,0,0); y+=6;
+
+        const th2=['#','t½ (min)','N₂+He (bar)','M-val (bar)','Sat %','Status'];
+        const tw=[8,22,30,28,22,28]; const tx2=[ML]; tw.forEach((w,i)=>{if(i<tw.length-1)tx2.push(tx2[i]+tw[i]);});
+        checkY(6);
+        doc.setFillColor(0,85,170); doc.rect(ML,y,CW,5.5,'F');
+        doc.setFontSize(6.5); doc.setFont('NotoSans','bold'); doc.setTextColor(255,255,255);
+        th2.forEach((h,i)=>doc.text(h, tx2[i]+tw[i]/2, y+3.8, {align:'center'}));
+        doc.setTextColor(0,0,0); y+=5.5;
+
+        lastTissues.forEach((t0pdf,i)=>{
+          checkY(5);
+          const pN2pdf=t0pdf.pN2; const pHepdf=t0pdf.pHe||0; const pTotpdf=pN2pdf+pHepdf;
+          const [ht,a_n2pdf,b_n2pdf]=ZHL16C[i];
+          let a=a_n2pdf, b=b_n2pdf;
+          if(pHepdf>0&&pTotpdf>0){
+            a=(pN2pdf*a_n2pdf+pHepdf*ZHL16C_HE_AB[i][0])/pTotpdf;
+            b=(pN2pdf*b_n2pdf+pHepdf*ZHL16C_HE_AB[i][1])/pTotpdf;
+          }
+          const mv=a*gfF+altSurfaceP/b;
+          const pct=Math.min(100,Math.round((pTotpdf/mv)*100));
+          const cr=pct>=100?[200,0,0]:pct>=90?[180,80,0]:pct>=75?[150,120,0]:[20,140,50];
+          const status=pct>=100?'LIMIT':pct>=90?'HIGH':pct>=75?'MED':'OK';
+          const loadStr=pHepdf>0?`${pTotpdf.toFixed(3)} (${pN2pdf.toFixed(2)}+${pHepdf.toFixed(2)})`:pTotpdf.toFixed(3);
+          i%2===0?doc.setFillColor(248,249,255):doc.setFillColor(255,255,255);
+          doc.rect(ML,y,CW,5,'F');
+          doc.setFontSize(6.5); doc.setFont('NotoSans','normal');
+          doc.setTextColor(80,80,100); doc.text(`${i+1}`,      tx2[0]+tw[0]/2, y+3.5, {align:'center'});
+          doc.setTextColor(80,80,100); doc.text(`${ht}`,        tx2[1]+tw[1]/2, y+3.5, {align:'center'});
+          doc.setTextColor(60,60,100); doc.text(loadStr,        tx2[2]+1,       y+3.5);
+          doc.setTextColor(60,60,100); doc.text(mv.toFixed(3),  tx2[3]+tw[3]/2, y+3.5, {align:'center'});
+          doc.setFont('NotoSans','bold'); doc.setTextColor(...cr);
+          doc.text(`${pct}%`,  tx2[4]+tw[4]/2, y+3.5, {align:'center'});
+          doc.text(status,     tx2[5]+tw[5]/2, y+3.5, {align:'center'});
+          doc.setTextColor(0,0,0); y+=5;
+        });
+        y+=4;
+
+        // ── Section 3: Per-Stop Saturation ──
+        const lp=window._lastPlan;
+        if(lp&&lp.steps){
+          const decoSteps=lp.steps.filter(s=>(s.type==='deco'||s.type==='safety')&&s._tissues&&s._tissues.length===16);
+          if(decoSteps.length>0){
+            doc.addPage(); drawHeader();
+            sectionTitle('TISSUE SATURATION — PER-STOP ASCENT PROFILE','Each column = one deco stop · each row = one compartment · bars = tension / GF-adjusted M-value at stop depth');
+
+            const dU=units==='metric'; const conv=dU?1:3.28084; const uLbl=dU?'m':'ft';
+            const gfApplied=mGF.high/100;
+            const nStops=decoSteps.length;
+
+            // Layout: comp col + t½ col + one col per stop
+            const COMP_W=10, HT_W=14;
+            const stopColW=Math.min(16, Math.floor((CW-COMP_W-HT_W)/nStops));
+            const totalW=COMP_W+HT_W+stopColW*nStops;
+            const startX=ML+(CW-totalW)/2; // center the table
+
+            // Header row — stop depths
+            checkY(12);
+            doc.setFontSize(5.5); doc.setFont('NotoSans','bold');
+            doc.setFillColor(20,30,60); doc.rect(startX,y,totalW,10,'F');
+            doc.setTextColor(150,180,220);
+            doc.text('C#',  startX+COMP_W/2, y+4, {align:'center'});
+            doc.text('t½',  startX+COMP_W+HT_W/2, y+4, {align:'center'});
+            decoSteps.forEach((s,si)=>{
+              const cx=startX+COMP_W+HT_W+si*stopColW;
+              const depthD=Math.round(s.depth*conv);
+              const stopM=s.dur>=1?Math.round(s.dur)+"'":'<1'';
+              doc.setTextColor(0,200,255);
+              doc.text(`${depthD}${uLbl}`, cx+stopColW/2, y+3.5, {align:'center'});
+              doc.setTextColor(120,150,180);
+              doc.text(stopM, cx+stopColW/2, y+8, {align:'center'});
+            });
+            doc.setTextColor(0,0,0); y+=11;
+
+            // One row per compartment
+            const CROW=7.5;
+            for(let i=0;i<16;i++){
+              checkY(CROW);
+              const [htN2,a_n2r,b_n2r]=ZHL16C[i];
+              i%2===0?doc.setFillColor(245,247,252):doc.setFillColor(252,252,255);
+              doc.rect(startX,y,totalW,CROW,'F');
+              // Comp # and half-time
+              doc.setFontSize(6); doc.setFont('NotoSans','normal');
+              doc.setTextColor(100,110,140);
+              doc.text(`C${i+1}`, startX+COMP_W/2, y+4.5, {align:'center'});
+              doc.text(`${htN2}`, startX+COMP_W+HT_W/2, y+4.5, {align:'center'});
+              // Bar per stop
+              decoSteps.forEach((s,si)=>{
+                const t=s._tissues[i];
+                const pN2r=t.pN2||0; const pHer=t.pHe||0; const pTr=pN2r+pHer;
+                const pAmb=altSurfaceP+s.depth/10.078;
+                let ar=a_n2r, br=b_n2r;
+                if(pTr>0&&pHer>0){
+                  const wN2=pN2r/pTr, wHe=pHer/pTr;
+                  ar=wN2*a_n2r+wHe*ZHL16C_HE_AB[i][0];
+                  br=wN2*b_n2r+wHe*ZHL16C_HE_AB[i][1];
+                }
+                const mValR=pAmb/br+ar*gfApplied;
+                const pctR=mValR>0?Math.round((pTr/mValR)*100):0;
+                const clampR=Math.max(0,Math.min(120,pctR));
+                const barPctR=Math.min(100,clampR);
+                const crR=clampR>=100?[220,0,0]:clampR>=90?[200,80,0]:clampR>=75?[180,150,0]:[20,160,60];
+                const cx=startX+COMP_W+HT_W+si*stopColW;
+                const bx=cx+1, bw=stopColW-2, bh=4;
+                // Bar bg
+                doc.setFillColor(210,215,230); doc.roundedRect(bx,y+0.8,bw,bh,0.8,0.8,'F');
+                // Bar fill
+                if(barPctR>0){ doc.setFillColor(...crR); doc.roundedRect(bx,y+0.8,bw*barPctR/100,bh,0.8,0.8,'F'); }
+                // Pct label
+                doc.setFontSize(5); doc.setTextColor(...crR); doc.setFont('NotoSans','bold');
+                doc.text(`${clampR}%`, cx+stopColW/2, y+6.8, {align:'center'});
+              });
+              doc.setTextColor(0,0,0); y+=CROW;
+            }
+            // Legend
+            y+=3; checkY(5);
+            doc.setFontSize(6); doc.setFont('NotoSans','normal');
+            let lx2=ML;
+            [[20,160,60,'<75% clear'],[180,150,0,'75-90% loaded'],[200,80,0,'90-99% near limit'],[220,0,0,'>=100% at M-value']].forEach(([r,g,b2,lbl])=>{
+              doc.setFillColor(r,g,b2); doc.roundedRect(lx2,y+1,3,3,0.5,0.5,'F');
+              doc.setTextColor(80,80,100); doc.text(lbl,lx2+5,y+4);
+              lx2+=doc.getTextWidth(lbl)+11;
+            });
+            doc.setTextColor(0,0,0); y+=7;
+          }
+        }
+      }
     } // end if(_incTissue)
   } else {
     if(_incTissue||_incGFCurve){
