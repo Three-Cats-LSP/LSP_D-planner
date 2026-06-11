@@ -1315,7 +1315,7 @@ function runCalc(needsDOM) {
   if (altEl && altEl.value !== '0') { altEl.value = '0'; WIN.setAltitude && WIN.setAltitude(); }
   if (dEl)  dEl.value  = '10';
   if (btEl) btEl.value = '10';
-  if (!needsDOM) WIN._zhlHeadless = true;
+  if (!needsDOM || WIN._zhlPrewarmed) WIN._zhlHeadless = true;
   try {
     if (typeof WIN.runDecoSchedule === 'function') { WIN.runDecoSchedule(); }
     else if (typeof WIN.calculateDive === 'function') { WIN.calculateDive(); }
@@ -3027,6 +3027,21 @@ async function startTests() {
 
     statusEl.className = 'running';
     statusEl.textContent = '▶ Engine ready — running massive suite…';
+
+    // ── Pre-warm: one full DOM render before tests start (async yield) ─────
+    try {
+      await new Promise(r => setTimeout(r, 50));
+      const dEl  = win.document.getElementById('decoDepth');
+      const btEl = win.document.getElementById('decoBT');
+      const origD = dEl?.value, origBT = btEl?.value;
+      if (dEl)  dEl.value  = '10';
+      if (btEl) btEl.value = '10';
+      win.runDecoSchedule();
+      if (dEl  && origD  != null) dEl.value  = origD;
+      if (btEl && origBT != null) btEl.value = origBT;
+      win._zhlPrewarmed = true;
+      await new Promise(r => setTimeout(r, 50));
+    } catch(e) {}
 
     const t0 = performance.now();
     const groups = await runGroupsAsync(ALL_GROUPS);

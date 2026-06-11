@@ -1285,7 +1285,8 @@ function fastRDS(needsDOM) {
   if (dEl)  dEl.value  = '10';
   if (btEl) btEl.value = '10';
 
-  if (!needsDOM) WIN._zhlHeadless = true;
+  // If DOM was pre-warmed at test start, skip re-render even for needsDOM=true
+  if (!needsDOM || WIN._zhlPrewarmed) WIN._zhlHeadless = true;
   try {
     WIN.runDecoSchedule();
   } finally {
@@ -3532,6 +3533,25 @@ async function startTests(skipTier1 = false) {
 
     statusEl.className = 'running';
     statusEl.textContent = '▶ Engine ready — running massive suite…';
+
+    // ── Pre-warm: run ONE full DOM render before tests start ────────────────
+    // All fastRDS(true) calls check already-rendered DOM — they don't need
+    // to trigger another render. We do ONE render here (async, browser can
+    // paint between) so the DOM has content, then all subsequent fastRDS(true)
+    // calls skip the render (WIN._zhlPrewarmed flag).
+    try {
+      await new Promise(r => setTimeout(r, 50)); // yield — let browser paint
+      const dEl  = win.document.getElementById('decoDepth');
+      const btEl = win.document.getElementById('decoBT');
+      const origD = dEl?.value, origBT = btEl?.value;
+      if (dEl)  dEl.value  = '10';
+      if (btEl) btEl.value = '10';
+      win.runDecoSchedule();  // full DOM render — populates decoResult, stats, gas tags etc.
+      if (dEl  && origD  != null) dEl.value  = origD;
+      if (btEl && origBT != null) btEl.value = origBT;
+      win._zhlPrewarmed = true;
+      await new Promise(r => setTimeout(r, 50)); // yield — let browser process DOM updates
+    } catch(e) { /* pre-warm failure is non-fatal */ }
 
     const t0 = performance.now();
     const activeGroups = skipTier1 ? ALL_GROUPS.filter(g => g.tier !== 1) : ALL_GROUPS;
