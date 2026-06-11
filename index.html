@@ -10353,11 +10353,12 @@ function _drawDiveProfileCore(canvasId, waypoints, opts) {
     const flagTopY = PAD.top + row * (flagH + 3) + 1;
 
     // Dashed vertical line from flag bottom to switch depth
+    // Gas switch colour: #FFD700 bg / #007A33 text — matches deco table switch row (nitrox sticker convention)
     ctx.save();
-    ctx.strokeStyle = accent;
+    ctx.strokeStyle = '#FFD700';
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
-    ctx.globalAlpha = 0.45;
+    ctx.globalAlpha = 0.7;
     ctx.beginPath();
     ctx.moveTo(x, flagTopY + flagH);
     ctx.lineTo(x, yDepth);
@@ -10371,12 +10372,12 @@ function _drawDiveProfileCore(canvasId, waypoints, opts) {
     const fx = nearRight ? x - flagW : x + 1;
 
     ctx.save();
-    ctx.fillStyle = accent;
-    ctx.globalAlpha = 0.85;
+    ctx.fillStyle = '#FFD700';
+    ctx.globalAlpha = 0.95;
     if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(fx, flagTopY, flagW, flagH, 2); ctx.fill(); }
     else { ctx.fillRect(fx, flagTopY, flagW, flagH); }
 
-    ctx.fillStyle = isLight ? '#002244' : '#001520';
+    ctx.fillStyle = '#007A33';
     ctx.globalAlpha = 1;
     ctx.font = `700 ${isMobile ? 6 : 7}px "JetBrains Mono",monospace`;
     ctx.textAlign = 'left';
@@ -14097,10 +14098,13 @@ async function exportContingencyPDF(opts) {
       checkY(5.5);
       if(phase==='switch'){
         const txt=tds.slice(1).map(td=>td.textContent.trim()).filter(Boolean).join(' ');
-        doc.setFillColor(243,232,255); doc.rect(ML,y,CW,5,'F');
-        doc.setFontSize(7); doc.setFont('DejaVuSans','bold'); doc.setTextColor(122,0,160);
+        doc.setDrawColor(0,122,51); doc.setLineWidth(1);
+        doc.line(ML,y,ML+CW,y);
+        doc.setFillColor(255,215,0); doc.rect(ML,y,CW,5,'F');
+        doc.line(ML,y+5,ML+CW,y+5);
+        doc.setFontSize(7); doc.setFont('DejaVuSans','bold'); doc.setTextColor(0,100,40);
         doc.text('>> '+cleanPDF(txt),ML+2,y+3.5); doc.setTextColor(0,0,0);
-        y+=5; return;
+        doc.setLineWidth(0.2); y+=5; return;
       }
       if(phase==='totals'){
         const spans=tds[0]?.querySelectorAll('span')||[]; let t='';
@@ -15795,7 +15799,7 @@ async function exportPDF(opts) {
     document.querySelectorAll('#contingencyResult .deco-table tbody tr').forEach((tr,ri)=>{
       const ph=tr.dataset.phase; const tds2=Array.from(tr.querySelectorAll('td')); const cv=tds2.map(td=>td.textContent.trim());
       checkY(5.5);
-      if(ph==='switch'){const t=tds2.slice(1).map(td=>td.textContent.trim()).filter(Boolean).join(' ');doc.setFillColor(243,232,255);doc.rect(ML,y,CW,5,'F');doc.setFontSize(7);doc.setFont('DejaVuSans','bold');doc.setTextColor(122,0,160);doc.text('>> '+cleanPDF(t),ML+2,y+3.5);doc.setTextColor(0,0,0);y+=5;return;}
+      if(ph==='switch'){const t=tds2.slice(1).map(td=>td.textContent.trim()).filter(Boolean).join(' ');doc.setDrawColor(0,122,51);doc.setLineWidth(1);doc.line(ML,y,ML+CW,y);doc.setFillColor(255,215,0);doc.rect(ML,y,CW,5,'F');doc.line(ML,y+5,ML+CW,y+5);doc.setFontSize(7);doc.setFont('DejaVuSans','bold');doc.setTextColor(0,100,40);doc.text('>> '+cleanPDF(t),ML+2,y+3.5);doc.setTextColor(0,0,0);doc.setLineWidth(0.2);y+=5;return;}
       if(ph==='totals'){const sps=tds2[0]?.querySelectorAll('span')||[];let t='';sps.forEach(s=>{const v=s.textContent.trim();if(v)t+=(t?'  ':'')+v;});if(!t&&tds2[0])t=tds2[0].textContent.replace(/\s+/g,' ').trim();doc.setFillColor(255,240,240);doc.rect(ML,y,CW,5.5,'F');doc.setFontSize(7);doc.setFont('DejaVuSans','bold');doc.setTextColor(150,0,0);doc.text(t,ML+2,y+3.8);doc.setTextColor(0,0,0);y+=5.5;return;}
       const id2=ph==='deco',ia=ph==='ascent',ib=ph==='bottom',is2=ph==='safety',id3=ph==='descent';
       ri%2===0?doc.setFillColor(255,250,250):doc.setFillColor(255,255,255);doc.rect(ML,y,CW,5,'F');
