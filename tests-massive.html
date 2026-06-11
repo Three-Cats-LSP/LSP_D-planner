@@ -3472,7 +3472,9 @@ async function runGroupsAsync(groups) {
       const pct = Math.round(done / total * 100);
       pb.style.width = pct + '%';
       pl.textContent = `${done} / ${total} — ${g.name}`;
-      await new Promise(r => setTimeout(r, 0)); // yield after every test (keeps mobile browser responsive)
+      // Yield to let the browser paint the progress bar update.
+      // setTimeout(0) doesn't guarantee a paint frame — use rAF + small delay.
+      await new Promise(r => requestAnimationFrame(() => setTimeout(r, 4)));
     }
     results.push(groupResult);
   }

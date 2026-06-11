@@ -2966,7 +2966,7 @@ async function runGroupsAsync(groups) {
       const pct = Math.round(done / total * 100);
       pb.style.width = pct + '%';
       pl.textContent = `${done} / ${total} — ${g.name}`;
-      if (done % 5 === 0) await new Promise(r => setTimeout(r, 0)); // yield
+      await new Promise(r => requestAnimationFrame(() => setTimeout(r, 4))); // yield + paint
     }
     results.push(groupResult);
   }
