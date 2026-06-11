@@ -8,11 +8,13 @@ Use these as a base and adapt tone/length to the platform.
 ## Post A — Full Feature Overview
 
 **Title:**
-LSP D-Planner — free open-source decompression planner (Bühlmann ZHL-16C + VPM-B + VPM-B/GFS)
+LSP D-Planner — free open-source decompression planner (Bühlmann ZHL-16C + VPM-B + VPM-B/GFS) with native Android app
 
 **Body:**
 
-LSP D-Planner is a free dive planning app by Three Cats LSP. Runs in any browser and as a native Android APK — completely offline, no account, no ads, no subscription.
+LSP D-Planner is a free dive planning app by Three Cats LSP. Runs in any browser and as a native Android app — completely offline, no account, no ads, no subscription.
+
+📱 **Android APK download:** https://three-cats-lsp.github.io/LSP_D-planner/download.html
 
 ---
 
@@ -71,8 +73,8 @@ Technical:
 
 - Copy — preview modal before clipboard write; two-line footer (Run/Deco + CNS/OTU/PrT)
 - Deco Slate — compact monospaced waterproof format; header, stops-only table, TRT/DECO footer
-- TXT export — full plan with settings, deco table, gas consumption
-- PDF (Dive Plan) — section picker dialog; Gas Consumption, Dive Profile, Deco Slate, GF Curve, Tissue Saturation; 9-column deco table; Unicode font
+- TXT export — full plan with settings, deco table, gas consumption; saved to Downloads folder on Android
+- PDF (Dive Plan) — section picker dialog; Gas Consumption, Dive Profile, Deco Slate, GF Curve, Tissue Saturation; 9-column deco table; Unicode font; saved to Downloads folder on Android
 - PDF (Emergency Plan) — same section picker; Emergency Gas Consumption, Ascent Schedule, Dive Profile, GF Curve, Tissue Saturation, Emergency Slate; red theme
 
 ---
@@ -92,9 +94,9 @@ Save and recall up to 20 full dive setups (algorithm, GF, all gases, cylinders, 
 ---
 
 **Links:**
-- Web: https://three-cats-lsp.github.io/LSP_D-planner/
-- Android APK: https://github.com/Three-Cats-LSP/LSP_D-planner/raw/main/Android%20Apk/LSP_D-planner.apk
-- GitHub: https://github.com/Three-Cats-LSP/LSP_D-planner
+- 🌐 Web app: https://three-cats-lsp.github.io/LSP_D-planner/
+- 📱 Android APK: https://three-cats-lsp.github.io/LSP_D-planner/download.html
+- 💻 GitHub: https://github.com/Three-Cats-LSP/LSP_D-planner
 
 Free, open source, runs entirely offline.
 
@@ -108,22 +110,23 @@ LSP D-Planner — free, open-source deco planner for recreational and technical 
 
 Bühlmann ZHL-16C + GF · VPM-B · VPM-B/GFS hybrid
 Trimix · travel gas · altitude · repetitive dives
-Gas consumption with rule of thirds · deco slate · PDF export
-Runs offline in any browser or as an Android APK — no account, no ads.
+Gas consumption with rule of thirds · deco slate · PDF & TXT export
+Runs offline in any browser or as a native Android app — no account, no ads.
 
-Web: https://three-cats-lsp.github.io/LSP_D-planner/
-GitHub: https://github.com/Three-Cats-LSP/LSP_D-planner
+🌐 https://three-cats-lsp.github.io/LSP_D-planner/
+📱 Android APK: https://three-cats-lsp.github.io/LSP_D-planner/download.html
+💻 https://github.com/Three-Cats-LSP/LSP_D-planner
 
 ---
 
 ## Post C — Algorithm-Focused (Reddit / dive forums)
 
 **Title:**
-Open-source deco planner — Bühlmann ZHL-16C, VPM-B, and VPM-B/GFS hybrid, with a Math Verification Suite
+Open-source deco planner — Bühlmann ZHL-16C, VPM-B, and VPM-B/GFS hybrid, with native Android app and Math Verification Suite
 
 **Body:**
 
-LSP D-Planner is a client-side decompression planning app — single HTML file, no dependencies, runs offline in any browser or as an Android APK.
+LSP D-Planner is a client-side decompression planning app — single HTML file, no dependencies, runs offline in any browser or as a native Android app (Capacitor).
 
 **Three algorithms, switchable at any time:**
 
@@ -137,9 +140,12 @@ LSP D-Planner is a client-side decompression planning app — single HTML file, 
 
 **Math Verification Suite** (`tests-verify.html`) — standalone page that runs the live engine in an iframe and cross-checks outputs against Baker/FORTRAN reference values. Covers pinned regression (ZHL and VPM-B), Baker Python cross-check, Maiken ordering invariants, coefficient verification (all 16 compartments vs canonical Bühlmann 2003), physics constants, determinism, and MultiDeco/V-Planner compatibility.
 
+**Export** — TXT and PDF (section picker with dive plan and emergency plan variants) saved directly to the device Downloads folder on Android.
+
 **Links:**
-- Web: https://three-cats-lsp.github.io/LSP_D-planner/
-- Math Verification Suite: https://three-cats-lsp.github.io/LSP_D-planner/tests-verify.html
-- GitHub: https://github.com/Three-Cats-LSP/LSP_D-planner
+- 🌐 Web: https://three-cats-lsp.github.io/LSP_D-planner/
+- 📱 Android APK: https://three-cats-lsp.github.io/LSP_D-planner/download.html
+- 🔬 Math Verification Suite: https://three-cats-lsp.github.io/LSP_D-planner/tests-verify.html
+- 💻 GitHub: https://github.com/Three-Cats-LSP/LSP_D-planner
 
 Free and open source. Happy to go deep on algorithm implementation, the VPM-B/GFS hybrid, or the verification methodology.
