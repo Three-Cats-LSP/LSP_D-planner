@@ -2317,8 +2317,10 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
             <button class="btn-export" onclick="exportPDF()" title="Export PDF"><span style="display:inline-block;width:16px;height:16px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0px;line-height:16px;text-align:center;overflow:visible;white-space:nowrap;">PDF</span></button>
           </div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <button id="tableViewToggle" onclick="toggleTableView()" style="display:none;padding:8px 12px;background:var(--card2);color:var(--muted);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-weight:600;font-size:11px;letter-spacing:0.5px;" title="Switch table view">⊞ Cards</button>
+          <button id="tissueChartToggleBtn" onclick="(function(){ const card=document.getElementById('tissueLoadCard'); const body=document.getElementById('tissueLoadBody'); if(card && card.style.display!=='none'){ if(body && body.style.display==='none'){toggleTissueChart();} card.scrollIntoView({behavior:'smooth',block:'nearest'}); } })()" style="display:none;padding:8px 12px;background:rgba(0,200,255,0.08);color:var(--accent);border:1px solid rgba(0,200,255,0.25);border-radius:4px;cursor:pointer;font-weight:600;font-size:11px;letter-spacing:0.5px;" title="Tissue saturation chart">📊 Tissue Sat</button>
+          <button id="contingencyJumpBtn" onclick="(function(){ const card=document.getElementById('contingencyCard'); if(card && card.style.display!=='none'){ card.scrollIntoView({behavior:'smooth',block:'start'}); } })()" style="display:none;padding:8px 12px;background:rgba(255,71,87,0.08);color:var(--red);border:1px solid rgba(255,71,87,0.25);border-radius:4px;cursor:pointer;font-weight:600;font-size:11px;letter-spacing:0.5px;" title="Scroll to Contingency Plans">⚠ Contingency</button>
 
         </div>
       </div>
@@ -2350,6 +2352,22 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
       </div>
       <!-- Alerts — populated by both Bühlmann and VPM renderers -->
       <div id="decoAlerts" style="margin-top:0;"></div>
+    </div>
+  </div>
+
+
+  <!-- ── Tissue Loading Chart ── -->
+  <div id="tissueLoadCard" style="display:none;">
+    <div class="card">
+      <button type="button" onclick="toggleTissueChart()" id="tissueLoadToggle"
+        style="width:100%;display:flex;justify-content:space-between;align-items:center;background:none;border:none;padding:0;cursor:pointer;color:var(--text);margin-bottom:0;">
+        <div class="card-title" style="margin:0;">Tissue Saturation</div>
+        <span id="tissueLoadCaret" style="color:var(--accent);font-size:14px;">▾</span>
+      </button>
+      <div id="tissueLoadBody" style="display:none;margin-top:12px;">
+        <div class="info-box" style="margin-top:0;">Bühlmann ZHL-16C tissue saturation at each deco stop. Bars show load relative to the GF-adjusted M-value ceiling at that depth. Red = at or over ceiling limit. Trimix-weighted a/b values applied where He is present.</div>
+        <div id="tissueLoadChart"></div>
+      </div>
     </div>
   </div>
 
@@ -3938,10 +3956,11 @@ function setAlgo(a) {
   document.body.classList.toggle('algo-tools', isTools);
 
   // ── Clear all result cards on every algo switch ──
-  ['decoResult','gasConsumptionSummary','contingencyCard','contingencyResult','diveGraphCard',
+  ['decoResult','gasConsumptionSummary','contingencyCard','contingencyResult','diveGraphCard','tissueLoadCard',
    'plannerProfileCanvas-wrap','recSurfIntContainer','tecSurfIntContainer'].forEach(id => {
     const el = document.getElementById(id); if (el) el.style.display = 'none';
   });
+  { const _tBtn=document.getElementById('tissueChartToggleBtn'); const _cBtn=document.getElementById('contingencyJumpBtn'); if(_tBtn)_tBtn.style.display='none'; if(_cBtn)_cBtn.style.display='none'; }
   const _pr2 = document.getElementById('plannerResult'); if(_pr2){_pr2.style.display='none';_pr2.innerHTML='';}
   const _mr2 = document.getElementById('multiResult'); if (_mr2) _mr2.style.display = 'none';
 
@@ -5823,6 +5842,7 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
 
   // Surface Interval panel (collapsed) — pre-fill Dive 1 from this dive
   if (!_contingencyRunning) renderSurfIntPanel('tecSurfIntContainer', 'tecSi', depthM, bt);
+  if (!_contingencyRunning) renderTissueLoadChart();
 
   // ── POST-RENDER: show/hide same cards as Bühlmann ────────────────────────
   // Dive graph — works for VPM (reads table rows)
@@ -8258,7 +8278,7 @@ function runDecoSchedule() {
         }
       }
       const mustStopDisplay = (mdCompatMode && !isFirstDecoStop) ? stopT + transitDur : stopT;
-      steps.push({ type: 'deco', depth: cur, dur: mustStopDisplay, gas: gasLabel, pO2: ppO2Check(cur, stopFN2, stopFHe), fN2: stopFN2, fHe: stopFHe });
+      steps.push({ type: 'deco', depth: cur, dur: mustStopDisplay, gas: gasLabel, pO2: ppO2Check(cur, stopFN2, stopFHe), fN2: stopFN2, fHe: stopFHe, _tissues: tissues.map(t => ({ pN2: t.pN2, pHe: t.pHe })) });
     } else if (minStopT > 0 && minStopZoneDepth !== null && cur <= minStopZoneDepth && cur !== lastStop) {
       decoZoneEntered = true;
       let stopT = 0;
@@ -8298,7 +8318,7 @@ function runDecoSchedule() {
       }
       if (stopT > 0) {
         const minStopDisplay = (mdCompatMode && !isFirstDecoStop) ? stopT + transitDur : stopT;
-        steps.push({ type: 'deco', depth: cur, dur: minStopDisplay, gas: gasLabel, pO2: ppO2Check(cur, stopFN2, stopFHe), fN2: stopFN2, fHe: stopFHe });
+        steps.push({ type: 'deco', depth: cur, dur: minStopDisplay, gas: gasLabel, pO2: ppO2Check(cur, stopFN2, stopFHe), fN2: stopFN2, fHe: stopFHe, _tissues: tissues.map(t => ({ pN2: t.pN2, pHe: t.pHe })) });
       }
     } else if (cur === lastStop) {
       const isDecoNeeded = steps.some(s => s.type === 'deco');
@@ -8332,7 +8352,7 @@ function runDecoSchedule() {
         rt += stopT;
       }
       const lastStopDisplay = mdCompatMode ? stopT + transitToLastStop : stopT;
-      steps.push({ type: stopType, depth: cur, dur: lastStopDisplay, gas: gasLabel, pO2: ppO2Check(cur, stopFN2, stopFHe), fN2: stopFN2, fHe: stopFHe });
+      steps.push({ type: stopType, depth: cur, dur: lastStopDisplay, gas: gasLabel, pO2: ppO2Check(cur, stopFN2, stopFHe), fN2: stopFN2, fHe: stopFHe, _tissues: tissues.map(t => ({ pN2: t.pN2, pHe: t.pHe })) });
     }
     // No stop needed and not lastStop — continue ascending
   }
@@ -8806,6 +8826,7 @@ function runDecoSchedule() {
   </tr>`;
 
   document.getElementById('decoResult').style.display = 'block';
+  { const _tBtn=document.getElementById('tissueChartToggleBtn'); const _cBtn=document.getElementById('contingencyJumpBtn'); if(_tBtn)_tBtn.style.display='inline-block'; if(_cBtn)_cBtn.style.display='inline-block'; }
 
   // ── END column (Feature): inject cells + apply toggle state ──
   applyEndColumn();
@@ -8969,6 +8990,8 @@ function runDecoSchedule() {
     setTimeout(() => { drawGFCurve(); attachGFCurveInteraction(); }, 250);
     // Surface Interval panel (collapsed) — pre-fill Dive 1 from this dive
     renderSurfIntPanel('tecSurfIntContainer', 'tecSi', depthM, bt);
+    if (!_contingencyRunning) renderTissueLoadChart();
+    { const _tBtn=document.getElementById('tissueChartToggleBtn'); const _cBtn=document.getElementById('contingencyJumpBtn'); if(_tBtn)_tBtn.style.display='inline-block'; if(_cBtn)_cBtn.style.display='inline-block'; }
   }
   } catch(err) {
     console.error('[Deco] Error:', err);
@@ -11512,6 +11535,131 @@ function toggleSurfIntPanel(prefix) {
     calcSurfInt(prefix);
   }
 }
+
+// ── Tissue Loading Chart ─────────────────────────────────────────────────────
+// Renders per-stop tissue saturation bars using _tissues stored on each step.
+// Shows GF-adjusted M-value ceiling at the stop depth for ZHLC_GF dives,
+// or raw M-value for VPM-B (where GF concept doesn't apply directly).
+
+function toggleTissueChart() {
+  const body = document.getElementById('tissueLoadBody');
+  const caret = document.getElementById('tissueLoadCaret');
+  if (!body) return;
+  const open = body.style.display === 'none';
+  body.style.display = open ? 'block' : 'none';
+  if (caret) caret.textContent = open ? '\u25b4' : '\u25be';
+}
+
+function renderTissueLoadChart() {
+  const card = document.getElementById('tissueLoadCard');
+  const chartEl = document.getElementById('tissueLoadChart');
+  if (!card || !chartEl) return;
+
+  const lp = window._lastPlan;
+  if (!lp || !lp.steps) { card.style.display = 'none'; return; }
+
+  // Collect deco stops that have _tissues
+  const decoSteps = lp.steps.filter(s =>
+    (s.type === 'deco' || s.type === 'safety') && s._tissues && s._tissues.length === 16
+  );
+
+  if (decoSteps.length === 0) { card.style.display = 'none'; return; }
+
+  card.style.display = 'block';
+
+  const dU = units === 'metric';
+  const conv = dU ? 1 : 3.28084;
+  const uLbl = dU ? 'm' : 'ft';
+
+  // Read current GF for M-value calculation
+  const gfHigh = (parseFloat(document.getElementById('gfHighSel')?.value) || 80) / 100;
+  const algo = document.getElementById('algoSel')?.value || 'ZHLC_GF';
+  const useGF = algo === 'ZHLC_GF';
+
+  // Build HTML: header row of stop depths, then 16 bar rows
+  let html = '';
+
+  // Column header
+  html += '<div style="overflow-x:auto;">';
+  html += '<table style="width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:9px;">';
+
+  // Header row
+  html += '<thead><tr>';
+  html += '<th style="text-align:left;color:var(--muted);padding:3px 6px 6px 0;white-space:nowrap;min-width:52px;">Comp</th>';
+  html += '<th style="text-align:left;color:var(--muted);padding:3px 6px 6px 0;white-space:nowrap;min-width:52px;">t&#189; (min)</th>';
+  for (const s of decoSteps) {
+    const depthDisplay = Math.round(s.depth * conv) + ' ' + uLbl;
+    const stopMin = s.dur >= 1 ? Math.round(s.dur) + ''' : '<1'';
+    html += '<th style="text-align:center;padding:3px 4px 6px;white-space:nowrap;">';
+    html += '<span style="color:var(--accent);">' + depthDisplay + '</span>';
+    html += '<br><span style="color:var(--muted);font-size:8px;">' + stopMin + '</span>';
+    html += '</th>';
+  }
+  html += '</tr></thead><tbody>';
+
+  // One row per compartment
+  for (let i = 0; i < 16; i++) {
+    const [htN2, a_n2, b_n2] = ZHL16C[i];
+    html += '<tr style="border-top:1px solid var(--border)">';
+    html += '<td style="color:var(--muted);padding:4px 6px 4px 0;white-space:nowrap;">C' + (i + 1) + '</td>';
+    html += '<td style="color:var(--muted);padding:4px 6px 4px 0;white-space:nowrap;">' + htN2 + '</td>';
+
+    for (const s of decoSteps) {
+      const t = s._tissues[i];
+      const pN2 = t.pN2 || 0;
+      const pHe = t.pHe || 0;
+      const pTotal = pN2 + pHe;
+
+      // Compute GF-adjusted M-value at this stop depth
+      const pAmb = altSurfaceP + s.depth / 10.078;
+      let a, b;
+      if (pTotal > 0 && pHe > 0) {
+        // Trimix: weighted a/b
+        const wN2 = pN2 / pTotal;
+        const wHe = pHe / pTotal;
+        a = wN2 * a_n2 + wHe * ZHL16C_HE_AB[i][0];
+        b = wN2 * b_n2 + wHe * ZHL16C_HE_AB[i][1];
+      } else {
+        a = a_n2; b = b_n2;
+      }
+
+      // GF-adjusted ceiling M-value at this depth
+      const gfApplied = useGF ? gfHigh : 1.0;
+      const mVal = pAmb / b + a * gfApplied;
+
+      // Saturation percent relative to M-value
+      const pct = mVal > 0 ? Math.round((pTotal / mVal) * 100) : 0;
+      const clampedPct = Math.max(0, Math.min(120, pct));
+      const barPct = Math.min(100, clampedPct);
+      const barCol = clampedPct >= 100 ? 'var(--red)' : clampedPct >= 90 ? 'var(--orange)' : clampedPct >= 75 ? 'var(--yellow)' : 'var(--green)';
+      const textCol = clampedPct >= 100 ? 'var(--red)' : clampedPct >= 90 ? 'var(--orange)' : clampedPct >= 75 ? 'var(--yellow)' : 'var(--muted)';
+
+      html += '<td style="padding:4px 4px;">';
+      html += '<div style="min-width:52px;max-width:80px;">';
+      html += '<div style="background:var(--card2);border-radius:3px;height:10px;overflow:hidden;margin-bottom:2px;">';
+      html += '<div style="width:' + barPct + '%;height:100%;background:' + barCol + ';transition:width 0.3s;"></div>';
+      html += '</div>';
+      html += '<span style="font-size:8px;color:' + textCol + ';">' + clampedPct + '%</span>';
+      html += '</div></td>';
+    }
+    html += '</tr>';
+  }
+
+  html += '</tbody></table></div>';
+
+  // Legend
+  html += '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);">';
+  html += '<span><span style="color:var(--green);">&#9632;</span> &lt;75% — clear</span>';
+  html += '<span><span style="color:var(--yellow);">&#9632;</span> 75–90% — loaded</span>';
+  html += '<span><span style="color:var(--orange);">&#9632;</span> 90–99% — near limit</span>';
+  html += '<span><span style="color:var(--red);">&#9632;</span> &ge;100% — at/over M-value</span>';
+  html += '</div>';
+  html += '<div style="margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);">% = tissue tension / GF-adjusted M-value at stop depth. &ge;100% would require a deeper/longer stop.</div>';
+
+  chartEl.innerHTML = html;
+}
+
+
 
 // Init tools on tab open
 function switchTool(name, btn) {
