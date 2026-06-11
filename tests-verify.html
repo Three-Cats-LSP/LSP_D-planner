@@ -128,7 +128,11 @@ function zhlCalc(depth,bt,o2=21,he=0,gfLo=30,gfHi=85) {
 }
 function stops(r) {
   const out={};
-  (r.stops||[]).forEach(s=>{out[Math.round(s.depth)]=Math.round(isFinite(s.dur)?s.dur:0);});
+  // VPMEngine stops use .time; ZHLEngine stops use .dur — handle both
+  (r.stops||[]).forEach(s=>{
+    const t = isFinite(s.dur) ? s.dur : isFinite(s.time) ? s.time : 0;
+    out[Math.round(s.depth)] = Math.round(t);
+  });
   return out;
 }
 function firstStop(r) {
