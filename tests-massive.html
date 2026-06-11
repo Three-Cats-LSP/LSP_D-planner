@@ -3471,7 +3471,8 @@ async function runGroupsAsync(groups) {
       done++;
       const pct = Math.round(done / total * 100);
       pb.style.width = pct + '%';
-      pl.textContent = `${done} / ${total} — ${g.name}`;
+      const _elapsedS = ((performance.now() - (window._suiteT0||0)) / 1000).toFixed(0);
+      pl.textContent = `${done} / ${total} — ${g.name}  [${_elapsedS}s]`;
       // Yield to let the browser paint the progress bar update.
       // setTimeout(0) doesn't guarantee a paint frame — use rAF + small delay.
       await new Promise(r => requestAnimationFrame(() => setTimeout(r, 4)));
@@ -3535,6 +3536,13 @@ async function startTests(skipTier1 = false) {
 
     statusEl.className = 'running';
     statusEl.textContent = '▶ Engine ready — running massive suite…';
+    // Pulse the status dot so user knows it's alive on slow machines
+    const _pulseInterval = setInterval(() => {
+      if (!statusEl.textContent.includes('running')) { clearInterval(_pulseInterval); return; }
+      const dots = ['…', '· ·', '···'];
+      const t = Math.floor(Date.now() / 600) % 3;
+      statusEl.textContent = '▶ Engine ready — running massive suite' + dots[t];
+    }, 600);
 
     // ── Pre-warm: headless engine call + stub DOM injection (NO blocking render) ──
     // win.runDecoSchedule() full render blocks the JS thread even with await yields.
@@ -3575,6 +3583,7 @@ async function startTests(skipTier1 = false) {
     } catch(e) { /* non-fatal */ }
 
     const t0 = performance.now();
+    window._suiteT0 = t0;
     const activeGroups = skipTier1 ? ALL_GROUPS.filter(g => g.tier !== 1) : ALL_GROUPS;
     if (skipTier1) statusEl.textContent = '▶ Engine ready — running UI/Scenario tests (Tier 1 skipped)…';
     const groups = await runGroupsAsync(activeGroups);
