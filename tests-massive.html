@@ -1248,12 +1248,10 @@ function getDoc() { return WIN && WIN.document; }
 // Temporarily sets a quick 30m/25min profile before calling runDecoSchedule,
 // then restores original values. Prevents mobile browser hang from heavy engine
 // calls on the default 40m/30min deco profile.
-function fastRDS() {
-  // Uses 10m/10min — guaranteed NDL at ALL altitudes and all algorithms.
-  // Also resets altitude to sea level before running and restores after,
-  // preventing altitude state leaking from T3-B tests from making this
-  // a deco dive (which would trigger full decompression table rendering
-  // and risk a "slow script" timeout on mobile).
+function fastRDS(needsDOM) {
+  // Runs a minimal 10m/10min NDL dive.
+  // needsDOM=true: full render (for tests that inspect innerHTML/textContent)
+  // needsDOM=false (default): headless — skips all DOM rendering, ~10x faster on mobile
   const d = getDoc();
   const dEl  = d && d.getElementById('decoDepth');
   const btEl = d && d.getElementById('decoBT');
@@ -1262,14 +1260,17 @@ function fastRDS() {
   const origBT  = btEl  ? btEl.value  : null;
   const origAlt = altEl ? altEl.value : null;
 
-  // Reset altitude to sea level to guarantee NDL
   if (altEl && altEl.value !== '0') { altEl.value = '0'; WIN.setAltitude && WIN.setAltitude(); }
-
   if (dEl)  dEl.value  = '10';
   if (btEl) btEl.value = '10';
-  WIN.runDecoSchedule();
 
-  // Restore original values
+  if (!needsDOM) WIN._zhlHeadless = true;
+  try {
+    WIN.runDecoSchedule();
+  } finally {
+    WIN._zhlHeadless = false;
+  }
+
   if (dEl  && origD  !== null) dEl.value  = origD;
   if (btEl && origBT !== null) btEl.value = origBT;
   if (altEl && origAlt !== null && origAlt !== altEl.value) {
@@ -1448,7 +1449,7 @@ const TIER2_GROUPS = [
       ['Stats bar exists', 'UI', function(){
         const d = getDoc();
         // Stats are rendered inside #decoSummary as a .stats div after calculation
-        fastRDS();
+        fastRDS(true);
         const found = d.querySelector('#decoSummary .stats') ||
                       d.querySelector('.stats-bar, #stats, #statsRow, [id*="stats"]');
         assert(found, 'No stats bar found');
@@ -1529,7 +1530,7 @@ const TIER2_GROUPS = [
         const d = getDoc();
         const el = d.getElementById('decoResult') || d.querySelector('[id*="decoResult"]');
         assert(el, 'decoResult not found');
-        fastRDS();
+        fastRDS(true);
         // Give it a tick
         const html = el.innerHTML || '';
         assert(html.length > 50, `decoResult seems empty (${html.length} chars)`);
@@ -1537,7 +1538,7 @@ const TIER2_GROUPS = [
       }],
       ['Stats bar shows runtime value', 'UI', function(){
         const d = getDoc();
-        fastRDS();
+        fastRDS(true);
         // Stats are in #decoSummary > .stats after a calculation
         const statsArea = d.querySelector('#decoSummary .stats') ||
                           d.querySelector('.stats-bar, #statsRow, [id*="stats"]');
@@ -1548,7 +1549,7 @@ const TIER2_GROUPS = [
       }],
       ['Gas tags bar has content after calc', 'UI', function(){
         const d = getDoc();
-        fastRDS();
+        fastRDS(true);
         const tagsEl = d.querySelector('[id*="gasTags"], [id*="gas-tags"], .gas-tags');
         if (!tagsEl) return 'gasTags element not found — may be integrated (warn)';
         assert(tagsEl.textContent.trim().length > 0, 'Gas tags empty');
@@ -1558,7 +1559,7 @@ const TIER2_GROUPS = [
         const d = getDoc();
         const modEl = d.getElementById('cylBot_mod') || d.querySelector('[id*="cylBot"][id*="mod"]');
         if (!modEl) return 'cylBot_mod not found — may render inline (warn)';
-        fastRDS();
+        fastRDS(true);
         const txt = modEl.textContent.trim();
         assert(txt.length > 0, 'MOD display empty');
         return `MOD="${txt}" ✓`;
@@ -1953,7 +1954,7 @@ const TIER2_GROUPS = [
     tests: [
       ['END column header present after run', 'UI', function(){
         const d = getDoc();
-        try { fastRDS(); } catch(e){}
+        try { fastRDS(true); } catch(e){}
         const out = d.getElementById('decoResult');
         if (!out) return 'decoResult not found (warn)';
         const headers = Array.from(out.querySelectorAll('th, thead td')).map(h => (h.textContent||'').trim());
@@ -1966,7 +1967,7 @@ const TIER2_GROUPS = [
       }],
       ['END column values numeric after run', 'UI', function(){
         const d = getDoc();
-        try { fastRDS(); } catch(e){}
+        try { fastRDS(true); } catch(e){}
         const out = d.getElementById('decoResult');
         if (!out) return 'decoResult not found (warn)';
         const m = out.innerHTML.match(/END[\s\S]{0,400}?(\d{1,3})/i);
@@ -2069,7 +2070,7 @@ const TIER3_GROUPS = [
       }],
       ['runDecoSchedule works with travel gas active', 'SCN', function(){
         WIN.addTravelGas();
-        fastRDS();
+        fastRDS(true);
         const out = getDoc().getElementById('decoResult');
         assert(out && out.innerHTML.length > 50, 'Output empty with travel gas');
         return 'rendered ✓';
@@ -2085,7 +2086,7 @@ const TIER3_GROUPS = [
       }],
       ['Travel gas → descent table has 2 rows (orange + blue)', 'SCN', function(){
         WIN.addTravelGas();
-        fastRDS();
+        fastRDS(true);
         const d = getDoc();
         const rows = d.querySelectorAll('#decoResult tr, #diveTable tr, [id*="plan"] tr');
         // Look for orange color in table cells
@@ -2196,7 +2197,7 @@ const TIER3_GROUPS = [
           WIN.setAltitude();
         }
         setAlt('1000');
-        fastRDS();
+        fastRDS(true);
         const d = WIN.document;
         const html = (d.getElementById('decoSummary') || {innerHTML:''}).innerHTML;
         const found = /alt|1000.*m|elev/i.test(html);
@@ -2268,11 +2269,11 @@ const TIER3_GROUPS = [
       }],
       ['Imperial: runDecoSchedule() works after unit switch', 'SCN', function(){
         WIN.setUnits('imperial');
-        fastRDS();
+        fastRDS(true);
         const out = getDoc().getElementById('decoResult');
         const ok = out && out.innerHTML.length > 50;
         WIN.setUnits('metric');
-        fastRDS();
+        fastRDS(true);
         assert(ok, 'decoResult empty in imperial mode');
         return 'imperial calc + metric reset ✓';
       }],
@@ -2298,20 +2299,20 @@ const TIER3_GROUPS = [
       }],
       ['Imperial: gas consumption card shows cu ft not L', 'SCN', function(){
         WIN.setUnits('imperial');
-        fastRDS();
+        fastRDS(true);
         const d = getDoc();
         // Gas consumption cards are inside #gasConsumption or similar
         const gasEl = d.getElementById('gasConsumption') || d.querySelector('[id*="gasConsump"], [id*="gas-cons"]');
         if (!gasEl || gasEl.style.display === 'none' || !gasEl.innerHTML.trim()) {
           WIN.setUnits('metric');
-          fastRDS();
+          fastRDS(true);
           return 'gasConsumption element not visible after imperial run — skipping (warn)';
         }
         const html = gasEl.innerHTML;
         const hasLitres = /\d+\s*L(?!\s*\/|\s*m|iter)/.test(html);  // standalone L but not L/min or L/m
         const hasCuFt  = /cu\s*ft/i.test(html);
         WIN.setUnits('metric');
-        fastRDS();
+        fastRDS(true);
         if (hasLitres && !hasCuFt) return `Gas card shows L in imperial mode — volUnit display bug present`;
         assert(hasCuFt, `Gas card has neither L nor cu ft in imperial mode — cannot verify`);
         return 'Gas card shows cu ft in imperial mode ✓';
@@ -2389,7 +2390,7 @@ const TIER3_GROUPS = [
     tests: [
       ['Deco export row order: Copy, SLATE, TXT, PDF', 'SCN', function(){
         const d = getDoc();
-        try { fastRDS(); } catch(e){}
+        try { fastRDS(true); } catch(e){}
         const btns = Array.from(d.querySelectorAll('.btn-export'));
         if (btns.length < 2) return `only ${btns.length} .btn-export buttons found (warn)`;
         const labels = btns.map(b => (b.textContent || '').trim().toUpperCase());
@@ -2404,7 +2405,7 @@ const TIER3_GROUPS = [
       }],
       ['SLATE button wired to showSlateModal', 'SCN', function(){
         const d = getDoc();
-        try { fastRDS(); } catch(e){}
+        try { fastRDS(true); } catch(e){}
         const btns = Array.from(d.querySelectorAll('.btn-export, button'));
         const slate = btns.find(b => /SLATE/i.test(b.textContent || ''));
         if (!slate) return 'SLATE button not found (warn)';
@@ -2432,7 +2433,7 @@ const TIER3_GROUPS = [
       }],
       ['SLATE button uses .btn-export class (same size)', 'SCN', function(){
         const d = getDoc();
-        try { fastRDS(); } catch(e){}
+        try { fastRDS(true); } catch(e){}
         const slate = Array.from(d.querySelectorAll('button')).find(b => /SLATE/i.test(b.textContent || ''));
         if (!slate) return 'SLATE button not found (warn)';
         assert(slate.classList.contains('btn-export'), `SLATE button missing .btn-export class: "${slate.className}"`);
@@ -3483,6 +3484,23 @@ async function startTests(skipTier1 = false) {
     }
 
     E = engine; WIN = win;
+
+    // ── Reset app state to known baseline before tests run ───────────────────
+    // Altitude: app may have loaded with altitude from localStorage.
+    // Reset to sea level so ZHLEngine + fastRDS() always run at 1.013 bar.
+    try {
+      const altEl = win.document.getElementById('altitudeSelect');
+      if (altEl && altEl.value !== '0') {
+        altEl.value = '0';
+        if (typeof win.setAltitude === 'function') win.setAltitude();
+      }
+    } catch(e) {}
+
+    // Units: reset to metric
+    try {
+      if (typeof win.setUnits === 'function' && win.units !== 'metric') win.setUnits('metric');
+    } catch(e) {}
+
     SURF = isFinite(win.altSurfaceP) ? win.altSurfaceP : (isFinite(win.SURFACE_P) ? win.SURFACE_P : 1.01325);
     const rawBAR = win.BAR_PER_METRE;
     BAR = (rawBAR !== undefined && rawBAR !== null && isFinite(rawBAR)) ? ((rawBAR > 1) ? (1/rawBAR) : rawBAR) : (1/10.078);
