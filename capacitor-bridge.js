@@ -92,21 +92,50 @@
     }
   }
 
+  // Check if a file already exists in a directory using Filesystem.stat().
+  async function fileExists(path, directory) {
+    try {
+      await Capacitor.Plugins[FS].stat({ path, directory });
+      return true;
+    } catch (e) {
+      return false; // stat throws if file not found
+    }
+  }
+
+  // Return a unique filename by appending (1), (2), ... if the file already exists.
+  // e.g. 'LSP_plan.pdf' → 'LSP_plan (1).pdf' → 'LSP_plan (2).pdf'
+  async function uniqueFilename(filename, directory, dirPath) {
+    const dot = filename.lastIndexOf('.');
+    const base = dot > -1 ? filename.slice(0, dot) : filename;
+    const ext  = dot > -1 ? filename.slice(dot)    : '';
+    const checkPath = p => fileExists(dirPath ? dirPath + p : p, directory);
+
+    if (!(await checkPath(filename))) return filename;
+    for (let i = 1; i <= 999; i++) {
+      const candidate = `${base} (${i})${ext}`;
+      if (!(await checkPath(candidate))) return candidate;
+    }
+    return filename; // fallback — should never reach here
+  }
+
   // Write to Downloads → app External → Cache (first success wins)
   async function saveFile(base64Data, filename) {
     // 1. Public Downloads folder (/sdcard/Download/)
     //    Works on all Android versions with WRITE_EXTERNAL_STORAGE permission
-    let saved = await tryWrite(base64Data, filename, 'EXTERNAL_STORAGE', 'Download/' + filename);
-    if (saved) return { ...saved, label: 'Downloads folder' };
+    const dlName = await uniqueFilename(filename, 'EXTERNAL_STORAGE', 'Download/');
+    let saved = await tryWrite(base64Data, dlName, 'EXTERNAL_STORAGE', 'Download/' + dlName);
+    if (saved) return { ...saved, label: 'Downloads folder', finalName: dlName };
 
     // 2. App-scoped external (Android/data/com.threecats.lsp.dplanner/files/)
     //    No permission needed, USB-visible
-    saved = await tryWrite(base64Data, filename, 'EXTERNAL', filename);
-    if (saved) return { ...saved, label: 'Android/data/com.threecats.lsp.dplanner/files/' };
+    const extName = await uniqueFilename(filename, 'EXTERNAL', '');
+    saved = await tryWrite(base64Data, extName, 'EXTERNAL', extName);
+    if (saved) return { ...saved, label: 'Android/data/com.threecats.lsp.dplanner/files/', finalName: extName };
 
     // 3. Last resort — app cache
-    saved = await tryWrite(base64Data, filename, 'CACHE', filename);
-    if (saved) return { ...saved, label: 'app cache (use Share to save permanently)' };
+    const cacheName = await uniqueFilename(filename, 'CACHE', '');
+    saved = await tryWrite(base64Data, cacheName, 'CACHE', cacheName);
+    if (saved) return { ...saved, label: 'app cache (use Share to save permanently)', finalName: cacheName };
 
     return null;
   }
@@ -146,7 +175,7 @@
       return;
     }
 
-    notify('✓ Saved to ' + saved.label + ': ' + filename);
+    notify('✓ Saved to ' + saved.label + ': ' + (saved.finalName || filename));
 
     // Also open Share sheet so user can forward/open in viewer
     await shareFile(saved.uri, filename);
