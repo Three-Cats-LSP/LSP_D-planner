@@ -12706,7 +12706,8 @@ function buildExportText(mode) {
 
       // Totals row — use values already read from table footer (runTimeVal etc.)
       lines.push(shr);
-      lines.push(`Run Time:${runTimeVal} Deco:${decoTimeVal} CNS:${cnsExpVal} OTU:${otuExpVal} PrT:${prtExpVal}`);
+      lines.push(`Run Time:${runTimeVal} Deco:${decoTimeVal}`);
+      lines.push(`CNS:${cnsExpVal} OTU:${otuExpVal} PrT:${prtExpVal}`);
       lines.push('');
     }
 
@@ -12894,7 +12895,8 @@ function buildExportText(mode) {
         const otuM = t.match(/OTU:\s*(\d+)/i);
         const prtM = t.match(/PrT:\s*([\d.]+)/i);
         lines.push('-'.repeat(49));
-        lines.push(`Run Time:${runM?.[1]||'-'} Deco:${decM?.[1]||'-'} CNS:${cnsM?.[1]||'-'} OTU:${otuM?.[1]||'-'} PrT:${prtM?.[1]||'-'}`);
+        lines.push(`Run Time:${runM?.[1]||'-'} Deco:${decM?.[1]||'-'}`);
+        lines.push(`CNS:${cnsM?.[1]||'-'} OTU:${otuM?.[1]||'-'} PrT:${prtM?.[1]||'-'}`);
       }
       lines.push('');
     }
@@ -13441,13 +13443,15 @@ function buildMessengerText(mode) {
     const otuM = t.match(/OTU:\s*(\d+)/i);
     const prtM = t.match(/PrT:\s*([\d.]+)/i);
     result.push('-'.repeat(28));
-    result.push(`Run Time:${runM?.[1]||'-'} Deco:${decM?.[1]||'-'} CNS:${cnsM?.[1]||'-'} OTU:${otuM?.[1]||'-'} PrT:${prtM?.[1]||'-'}`);
+    result.push(`Run Time:${runM?.[1]||'-'} Deco:${decM?.[1]||'-'}`);
+    result.push(`CNS:${cnsM?.[1]||'-'} OTU:${otuM?.[1]||'-'} PrT:${prtM?.[1]||'-'}`);
   } else if (_isVPMCopy) {
     const vx2 = window._lastVPMExport;
     if (vx2) {
       const toMMSS = (n) => { const m = Math.floor(n), s = Math.round((n - m) * 60); return `${m}'${String(s).padStart(2,'0')}"`; };
       result.push('-'.repeat(28));
-      result.push(`Run Time:${toMMSS(vx2.rt)} Deco:${toMMSS(vx2.deco)} CNS:${vx2.cns} OTU:${vx2.otu} PrT:${vx2.prt}`);
+      result.push(`Run Time:${toMMSS(vx2.rt)} Deco:${toMMSS(vx2.deco)}`);
+      result.push(`CNS:${vx2.cns} OTU:${vx2.otu} PrT:${vx2.prt}`);
     } else {
       const rtV  = document.getElementById('decoRunTimeDisplay')?.textContent?.trim().replace(/['\s]/g,'') || '-';
       const dtV  = document.getElementById('decoDecoTimeDisplay')?.textContent?.trim().replace(/\s*min\s*/,'') || '-';
@@ -13455,7 +13459,8 @@ function buildMessengerText(mode) {
       const otuV = document.getElementById('decoOTUDisplay')?.textContent?.trim() || '-';
       const prtN = (parseFloat(document.getElementById('decoDepth')?.value||'0') / 10.078) * Math.sqrt(parseFloat(document.getElementById('decoBT')?.value||'0'));
       result.push('-'.repeat(28));
-      result.push(`Run Time:${rtV}'00" Deco:${dtV}'00" CNS:${cnsV} OTU:${otuV} PrT:${isNaN(prtN)?'-':prtN.toFixed(1)}`);
+      result.push(`Run Time:${rtV}'00" Deco:${dtV}'00"`);
+      result.push(`CNS:${cnsV} OTU:${otuV} PrT:${isNaN(prtN)?'-':prtN.toFixed(1)}`);
     }
   }
 
