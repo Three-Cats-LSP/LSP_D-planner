@@ -1315,6 +1315,8 @@ function runCalc(needsDOM) {
   if (altEl && altEl.value !== '0') { altEl.value = '0'; WIN.setAltitude && WIN.setAltitude(); }
   if (dEl)  dEl.value  = '10';
   if (btEl) btEl.value = '10';
+  const _prevCC = WIN._lastContingency;
+  WIN._lastContingency = null;
   // Force Bühlmann — runVPMSchedule has no _zhlHeadless guard
   const _algoEl2 = d && d.getElementById('algorithmSelect');
   const _origAlgo2 = _algoEl2?.value;
@@ -3008,19 +3010,25 @@ async function startTests() {
     E = engine; WIN = win;
 
     // ── Reset app state to known baseline before tests run ───────────────────
-    // Altitude: app may have loaded with altitude from localStorage.
-    // Reset to sea level so ZHLEngine + fastRDS() always run at 1.013 bar.
+    // Clear _lastContingency FIRST — setUnits() calls calcContingency() which
+    // calls runDecoSchedule() (full DOM render) if _lastContingency is set.
+    // This creates an infinite cascade on app load with saved contingency state.
+    try { win._lastContingency = null; } catch(e) {}
+    // Also stub calcContingency during reset to prevent any trigger
     try {
+      const _origCC = win.calcContingency;
+      win.calcContingency = function(){};
+      
+      // Altitude reset
       const altEl = win.document.getElementById('altitudeSelect');
       if (altEl && altEl.value !== '0') {
         altEl.value = '0';
         if (typeof win.setAltitude === 'function') win.setAltitude();
       }
-    } catch(e) {}
-
-    // Units: reset to metric
-    try {
+      // Units reset
       if (typeof win.setUnits === 'function' && win.units !== 'metric') win.setUnits('metric');
+      
+      win.calcContingency = _origCC;
     } catch(e) {}
 
     SURF = isFinite(win.altSurfaceP) ? win.altSurfaceP : (isFinite(win.SURFACE_P) ? win.SURFACE_P : 1.01325);
@@ -3058,6 +3066,7 @@ async function startTests() {
       const _algoEl = _d.getElementById('algorithmSelect');
       const _origAlgo = _algoEl?.value;
       if (_algoEl) _algoEl.value = 'ZHLC_GF';
+      win._lastContingency = null; // prevent calcContingency cascade during headless run
       win._zhlHeadless = true;
       try { win.runDecoSchedule(); } finally {
         win._zhlHeadless = false;
