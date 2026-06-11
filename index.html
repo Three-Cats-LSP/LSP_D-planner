@@ -2390,47 +2390,12 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
   </div>
 
 
-  <!-- ── Tissue Loading Chart ── -->
-  <div id="tissueLoadCard" style="display:none;">
-    <div class="card collapsible card-open" id="tissueLoadInnerCard">
-      <div class="card-title" onclick="toggleCard(this)">Tissue Saturation<span class="tip-icon" onclick="event.stopPropagation();showTip('Tissue Saturation','Tissue saturation shows how loaded each of the 16 Bühlmann tissue compartments is relative to its decompression limit (M-value).\n\nThe card has three sections:\n\n1. Surface Saturation — snapshot at the moment you reach the surface. Shows how much of each compartment\'s M-value is used up after completing the full deco schedule.\n\n2. Compartment Detail — same surface snapshot in table form with exact numbers: N₂/He partial pressure (bar), M-value ceiling (bar), saturation %, and status.\n\n3. Per-Stop Saturation — shows saturation at every deco stop through the ascent. Each column is one stop (depth / stop time); each row is one compartment. Lets you see which compartments are controlling each stop and how the load evolves during ascent.\n\nColor coding (all sections):\n  Green  < 75% — well within limits\n  Yellow  75–90% — moderately loaded\n  Orange  90–99% — near the ceiling\n  Red  ≥ 100% — at or over M-value (would need a deeper or longer stop)')" style="margin-left:6px;"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span><span class="card-caret">▾</span></div>
-      <div class="card-collapsible-body">
-
-        <!-- Section 1: surface saturation bars (end-of-dive snapshot) -->
-        <div style="margin-bottom:16px;">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;">Surface Saturation — End of Dive<span class="tip-icon" onclick="showTip('Surface Saturation — End of Dive','Snapshot of all 16 tissue compartments at the moment you surface after completing the deco schedule.\n\nEach bar = tissue tension ÷ GF-adjusted M-value at surface pressure.\n\nGF High is applied here — this is the same limit your deco algorithm used to decide when you could surface. A bar at 100% means that compartment is exactly at its allowed ceiling; above 100% would mean the algorithm needed a longer or deeper stop (should not happen in a valid plan).\n\nUses trimix-weighted a/b values when helium is present.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></div>
-          <div class="info-box" style="margin-top:0;margin-bottom:10px;">All 16 compartments at surfacing. Bars show saturation vs GF-adjusted M-value at surface pressure.</div>
-          <div id="tissueGrid" style="padding:4px 0;"></div>
-        </div>
-
-        <!-- Section 2: detailed table with exact bar values -->
-        <div style="margin-bottom:16px;">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;">Compartment Detail<span class="tip-icon" onclick="showTip('Compartment Detail','Detailed table of the end-of-dive tissue snapshot — same data as the surface saturation bars but with exact numerical values.\n\nColumns:\n  # — compartment number (1 = fastest, 16 = slowest)\n  Half-time — N₂ half-time in minutes. Faster compartments load and offgas quickly (relevant on short dives); slower compartments dominate on long or repetitive dives.\n  N₂ Load (bar) — total inert gas tension (N₂ + He) in that compartment at surfacing. Shows combined partial pressure; trimix dives display N₂ and He contributions separately.\n  M-value (bar) — GF-adjusted maximum tolerated tension at surface pressure. The algorithm will not surface you above this limit.\n  Sat % — N₂ load ÷ M-value × 100. The controlling compartment (highest %) determined your last stop.\n  Status — OK < 70% / MED 70–85% / HIGH 85–99% / LIMIT ≥ 100%')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></div>
-          <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-            <table class="deco-table tissue-table table-view">
-              <thead><tr><th>#</th><th>Half-time</th><th>N&#x2082; Load (bar)</th><th>M-value (bar)</th><th>Sat %</th><th>Status</th></tr></thead>
-              <tbody id="tissueTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Section 3: per-stop saturation chart through the ascent -->
-        <div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;">Per-Stop Saturation — Ascent Profile<span class="tip-icon" onclick="showTip('Per-Stop Saturation — Ascent Profile','Shows tissue saturation at each deco stop through the entire ascent, not just at the surface.\n\nLayout:\n  Columns = each deco stop, labelled with depth and stop time\n  Rows = all 16 tissue compartments\n  Each bar = tissue tension ÷ GF-adjusted M-value at that stop depth\n\nAt each stop, the M-value ceiling is calculated at the ambient pressure of that depth (not surface pressure), so the absolute bar value of the M-value increases with depth — this is why bars near the surface may appear higher than at deeper stops even with less total gas load.\n\nWhat to look for:\n  Deep stops — which fast compartments (C1–C4) are controlling? High loading here means the algorithm placed a stop to protect fast tissue.\n  Shallow stops — slow compartments (C10–C16) typically dominate here. These are the ones that keep you at 6 m and 3 m longest.\n  GF-adjusted limits — uses GF High interpolated linearly from GF Low at first stop to GF High at surface.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></div>
-          <div class="info-box" style="margin-top:0;margin-bottom:10px;">Saturation at each deco stop depth. Columns = stops (depth / time), rows = compartments. Bars relative to GF-adjusted M-value at that stop depth. Trimix-weighted a/b values applied.</div>
-          <div id="tissueLoadChart"></div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
   <!-- ── Gas Consumption ── -->
   <div id="gasConsumptionSummary" style="display:none;"></div>
 
   <!-- ── Contingency Plans ── -->
   <div class="card collapsible card-open" id="contingencyCard" style="display:none;">
-    <div class="card-title" onclick="toggleCard(this)">⚠️ Contingency Plans<span class="card-caret">▾</span></div>
+    <div class="card-title" onclick="toggleCard(this)">⚠️ Contingency Plans<span class="tip-icon" onclick="event.stopPropagation();showTip('⚠️ Contingency Plans','Contingency planning lets you pre-calculate an emergency decompression schedule before your dive — so you are never caught off guard.\n\nGas Loss — simulate losing one of your gas supplies (bottom gas, deco gas 1 or 2). The plan recalculates using only your remaining gases, so you can see whether the dive is still viable and what extra deco time is required.\n\nExtended Bottom Time — add +3, +5 or +10 minutes to your planned bottom time and instantly see the updated deco obligation. Useful for planning bailout margins or conservative turnaround points.\n\nCombined scenarios — gas loss and extended bottom time can be combined simultaneously.\n\nThe resulting emergency plan shows the full deco schedule you would need to follow, along with gas sufficiency checks for the gases still available.')" style="margin-left:6px;"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span><span class="card-caret">▾</span></div>
     <div class="card-collapsible-body">
     <div class="info-box">Select a gas loss scenario and/or extended bottom time to calculate a combined emergency plan.</div>
 
@@ -2476,11 +2441,46 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
     </div><!-- /card-collapsible-body diveGraph -->
   </div><!-- close diveGraphCard -->
 
+  <!-- ── Tissue Loading Chart ── -->
+  <div id="tissueLoadCard" style="display:none;">
+    <div class="card collapsible card-open" id="tissueLoadInnerCard">
+      <div class="card-title" onclick="toggleCard(this)">Tissue Saturation<span class="tip-icon" onclick="event.stopPropagation();showTip('Tissue Saturation','Tissue saturation shows how loaded each of the 16 Bühlmann tissue compartments is relative to its decompression limit (M-value).\n\nThe card has three sections:\n\n1. Surface Saturation — snapshot at the moment you reach the surface. Shows how much of each compartment\'s M-value is used up after completing the full deco schedule.\n\n2. Compartment Detail — same surface snapshot in table form with exact numbers: N₂/He partial pressure (bar), M-value ceiling (bar), saturation %, and status.\n\n3. Per-Stop Saturation — shows saturation at every deco stop through the ascent. Each column is one stop (depth / stop time); each row is one compartment. Lets you see which compartments are controlling each stop and how the load evolves during ascent.\n\nColor coding (all sections):\n  Green  < 75% — well within limits\n  Yellow  75–90% — moderately loaded\n  Orange  90–99% — near the ceiling\n  Red  ≥ 100% — at or over M-value (would need a deeper or longer stop)')" style="margin-left:6px;"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span><span class="card-caret">▾</span></div>
+      <div class="card-collapsible-body">
+
+        <!-- Section 1: surface saturation bars (end-of-dive snapshot) -->
+        <div style="margin-bottom:16px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;">Surface Saturation — End of Dive<span class="tip-icon" onclick="showTip('Surface Saturation — End of Dive','Snapshot of all 16 tissue compartments at the moment you surface after completing the deco schedule.\n\nEach bar = tissue tension ÷ GF-adjusted M-value at surface pressure.\n\nGF High is applied here — this is the same limit your deco algorithm used to decide when you could surface. A bar at 100% means that compartment is exactly at its allowed ceiling; above 100% would mean the algorithm needed a longer or deeper stop (should not happen in a valid plan).\n\nUses trimix-weighted a/b values when helium is present.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></div>
+          <div class="info-box" style="margin-top:0;margin-bottom:10px;">All 16 compartments at surfacing. Bars show saturation vs GF-adjusted M-value at surface pressure.</div>
+          <div id="tissueGrid" style="padding:4px 0;"></div>
+        </div>
+
+        <!-- Section 2: detailed table with exact bar values -->
+        <div style="margin-bottom:16px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;">Compartment Detail<span class="tip-icon" onclick="showTip('Compartment Detail','Detailed table of the end-of-dive tissue snapshot — same data as the surface saturation bars but with exact numerical values.\n\nColumns:\n  # — compartment number (1 = fastest, 16 = slowest)\n  Half-time — N₂ half-time in minutes. Faster compartments load and offgas quickly (relevant on short dives); slower compartments dominate on long or repetitive dives.\n  N₂ Load (bar) — total inert gas tension (N₂ + He) in that compartment at surfacing. Shows combined partial pressure; trimix dives display N₂ and He contributions separately.\n  M-value (bar) — GF-adjusted maximum tolerated tension at surface pressure. The algorithm will not surface you above this limit.\n  Sat % — N₂ load ÷ M-value × 100. The controlling compartment (highest %) determined your last stop.\n  Status — OK < 70% / MED 70–85% / HIGH 85–99% / LIMIT ≥ 100%')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></div>
+          <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+            <table class="deco-table tissue-table table-view">
+              <thead><tr><th>#</th><th>Half-time</th><th>N&#x2082; Load (bar)</th><th>M-value (bar)</th><th>Sat %</th><th>Status</th></tr></thead>
+              <tbody id="tissueTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Section 3: per-stop saturation chart through the ascent -->
+        <div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;">Per-Stop Saturation — Ascent Profile<span class="tip-icon" onclick="showTip('Per-Stop Saturation — Ascent Profile','Shows tissue saturation at each deco stop through the entire ascent, not just at the surface.\n\nLayout:\n  Columns = each deco stop, labelled with depth and stop time\n  Rows = all 16 tissue compartments\n  Each bar = tissue tension ÷ GF-adjusted M-value at that stop depth\n\nAt each stop, the M-value ceiling is calculated at the ambient pressure of that depth (not surface pressure), so the absolute bar value of the M-value increases with depth — this is why bars near the surface may appear higher than at deeper stops even with less total gas load.\n\nWhat to look for:\n  Deep stops — which fast compartments (C1–C4) are controlling? High loading here means the algorithm placed a stop to protect fast tissue.\n  Shallow stops — slow compartments (C10–C16) typically dominate here. These are the ones that keep you at 6 m and 3 m longest.\n  GF-adjusted limits — uses GF High interpolated linearly from GF Low at first stop to GF High at surface.')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span></div>
+          <div class="info-box" style="margin-top:0;margin-bottom:10px;">Saturation at each deco stop depth. Columns = stops (depth / time), rows = compartments. Bars relative to GF-adjusted M-value at that stop depth. Trimix-weighted a/b values applied.</div>
+          <div id="tissueLoadChart"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <!-- ── Tissue Saturation (inline) ── -->
   <!-- tissueInlineCard content merged into tissueLoadCard -->
   <!-- ── GF Curve (inline) ── -->
   <div class="card collapsible card-open" id="gfCurveInlineCard" style="display:none;">
-    <div class="card-title" onclick="toggleCard(this)">GF Gradient Factor Curve<span class="card-caret">▾</span></div>
+    <div class="card-title" onclick="toggleCard(this)">GF Gradient Factor Curve<span class="tip-icon" onclick="event.stopPropagation();showTip('GF Gradient Factor Curve','The GF curve shows how your gradient factor allowance changes at each deco stop during the ascent — from GF Low at the first (deepest) stop to GF High at the surface.\n\nWhat are Gradient Factors?\nGF Low controls where your first deco stop is placed (deeper = more conservative). GF High controls how saturated you are allowed to be at the surface.\n\nThe curve interpolates linearly between these two values as you ascend. At each stop the algorithm permits a fraction of the full M-value proportional to where that stop falls between GF Low (first stop) and GF High (surface).\n\nReading the chart:\n  X-axis — stop depth (deepest on left, surface on right)\n  Y-axis — gradient factor % allowed at that stop\n  Dots — your actual deco stops\n\nConservative divers use lower GF Low (e.g. 30/70) to add deep stops; aggressive technical divers may use 85/85. The curve lets you visualise the trade-off at a glance.')" style="margin-left:6px;"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5.5" cy="5.5" r="5" stroke="currentColor" stroke-width="1.1"/><path d="M4.1 3.8 Q4.1 2.4 5.5 2.4 Q6.9 2.4 6.9 3.7 Q6.9 4.6 5.5 5.3 L5.5 6.2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" fill="none"/><circle cx="5.5" cy="7.4" r="0.55" fill="currentColor"/></svg></span><span class="card-caret">▾</span></div>
     <div class="card-collapsible-body">
     <p style="color:var(--muted);font-size:12px;margin-bottom:16px;">Visualizes how gradient factors control the ascent ceiling at each deco stop. Interpolates linearly from GF Low (first stop) to GF High (surface).</p>
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
@@ -6053,13 +6053,12 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
     const gpNoteVPM = document.getElementById('gpResultNote');
     const ruleLblVPM = (_gasRule === 'half') ? 'HALF' : 'THIRDS';
     const sacUnitVPM2 = units === 'imperial' ? 'cu ft/min' : 'L/min';
-    let ghtml = `<div class="card" style="margin-top:8px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <div class="card-title" style="margin-bottom:0;">Gas Consumption</div>
-          <button onclick="showGasRuleInfo()" style="background:none;border:1px solid var(--border);border-radius:50%;width:16px;height:16px;font-size:9px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;flex-shrink:0;" title="About gas rules">?</button>
-        </div>
+    let ghtml = `<div class="card collapsible card-open" style="margin-top:8px;">
+      <div class="card-title" onclick="toggleCard(this)">Gas Consumption<span class="card-caret">▾</span></div>
+      <div class="card-collapsible-body">
+      <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:10px;">
         <div style="display:flex;gap:4px;align-items:center;">
+          <button onclick="showGasRuleInfo()" style="background:none;border:1px solid var(--border);border-radius:50%;width:16px;height:16px;font-size:9px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;flex-shrink:0;" title="About gas rules">?</button>
           <span style="font-size:10px;color:var(--muted);margin-right:4px;">Rule:</span>
           <button class="btn-export${_gasRule!=='half'?' active':''}" style="padding:3px 8px;font-size:11px;" onclick="setGasRule('thirds')" id="gasRuleTBtn">Thirds</button>
           <button class="btn-export${_gasRule==='half'?' active':''}" style="padding:3px 8px;font-size:11px;" onclick="setGasRule('half')" id="gasRuleHBtn">Half</button>
@@ -6082,7 +6081,7 @@ function renderVPMResults(result, settings, depthM, bt, bottomO2pct, bottomHePct
       </div>
       ${gpNoteVPM?.innerHTML ? `<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;">${gpNoteVPM.innerHTML}</div>` : ''}
       <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;letter-spacing:1px;">SAC bottom: ${sacBottom} ${sacUnitVPM2} · deco: ${sacDeco} ${sacUnitVPM2}</div>
-    </div>`;
+      </div></div>`;
     gasElVPM.innerHTML = ghtml;
     _applyGasWarningStyles(gasElVPM);
     gasElVPM.style.display = 'block';
@@ -8946,13 +8945,12 @@ function runDecoSchedule() {
       const gpNote = document.getElementById('gpResultNote');
       const ruleLblCard = (_gasRule === 'half') ? 'HALF' : 'THIRDS';
       const sacUnitBHL2 = units === 'imperial' ? 'cu ft/min' : 'L/min';
-      const html = `<div class="card" style="margin-top:8px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-          <div style="display:flex;align-items:center;gap:6px;">
-            <div class="card-title" style="margin-bottom:0;">${cardTitle}</div>
-            <button onclick="showGasRuleInfo()" style="background:none;border:1px solid var(--border);border-radius:50%;width:16px;height:16px;font-size:9px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;flex-shrink:0;" title="About gas rules">?</button>
-          </div>
+      const html = `<div class="card collapsible card-open" style="margin-top:8px;">
+        <div class="card-title" onclick="toggleCard(this)">${cardTitle}<span class="card-caret">▾</span></div>
+        <div class="card-collapsible-body">
+        <div style="display:flex;justify-content:flex-end;align-items:center;margin-bottom:10px;">
           <div style="display:flex;gap:4px;align-items:center;">
+            <button onclick="showGasRuleInfo()" style="background:none;border:1px solid var(--border);border-radius:50%;width:16px;height:16px;font-size:9px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;flex-shrink:0;" title="About gas rules">?</button>
             <span style="font-size:10px;color:var(--muted);margin-right:4px;">Rule:</span>
             <button class="btn-export${_gasRule!=='half'?' active':''}" style="padding:3px 8px;font-size:11px;" onclick="setGasRule('thirds')">Thirds</button>
             <button class="btn-export${_gasRule==='half'?' active':''}" style="padding:3px 8px;font-size:11px;" onclick="setGasRule('half')">Half</button>
@@ -8975,7 +8973,7 @@ function runDecoSchedule() {
         </div>
         ${gpNote ? gpNote.innerHTML ? `<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;">${gpNote.innerHTML}</div>` : '' : ''}
         <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;letter-spacing:1px;">SAC bottom: ${sacBottom} ${sacUnitBHL2} · deco: ${sacDeco} ${sacUnitBHL2}</div>
-      </div>`;
+        </div></div>`;
       gasEl.innerHTML = html;
       gasEl.style.display = 'block';
       _applyGasWarningStyles(gasEl);
@@ -9003,13 +9001,14 @@ function runDecoSchedule() {
         emergRows += `<tr><td style="font-weight:700;">${gas}</td><td style="color:${short2?'var(--red)':'var(--text)'};">${Math.round(reqL)} ${volUnitV2}</td><td style="color:${avail!=null?(short2?'var(--red)':'var(--green)'):'var(--muted)'};">${avail!=null?Math.round(avail)+' '+volUnitV2:'—'}</td><td style="color:${sufCol2};font-weight:700;">${sufTxt2}</td></tr>`;
         if (short2) emergWarn += `<div class="alert dang" style="margin-top:6px;"><span>⚠</span><div><strong>${gas} insufficient</strong> — need ${Math.round(reqL)} ${volUnitV2}, have ${Math.round(avail||0)} ${volUnitV2}.</div></div>`;
       });
-      const html2 = `<div class="card" style="margin-top:8px;">
-        <div class="card-title" style="margin-bottom:8px;">${cardTitle}</div>
+      const html2 = `<div class="card collapsible card-open" style="margin-top:8px;">
+        <div class="card-title" onclick="toggleCard(this)">${cardTitle}<span class="card-caret">▾</span></div>
+        <div class="card-collapsible-body">
         <div style="overflow-x:auto;"><table class="deco-table table-view" style="margin-top:0;">
           <thead><tr><th style="text-align:left;">GAS</th><th style="text-align:left;">REQUIRED</th><th style="text-align:left;">AVAILABLE</th><th style="text-align:left;">STATUS</th></tr></thead>
           <tbody>${emergRows}</tbody></table></div>
         ${emergWarn}
-      </div>`;
+        </div></div>`;
       gasEl.innerHTML = html2;
       gasEl.style.display = 'block';
     }
