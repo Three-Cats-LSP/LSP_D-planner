@@ -13079,7 +13079,7 @@ function buildSlateText() {
     out.push(`${dep}  ${run}  ${gas} ${ppo2}`);
   });
 
-  // Footer: TBT = total run time, DECO = deco time — read from totals row
+  // Footer: TRT = total run time, DECO = deco time — read from totals row
   const _stotRow = document.querySelector('#decoTableBody tr[data-phase="totals"] td');
   let tbt = '-', decoDisp = '-';
   if (_stotRow) {
@@ -13116,7 +13116,7 @@ function buildSlateText() {
     lines.push('  (no decompression stops)');
   }
   lines.push(bar);
-  lines.push(`TBT: ${tbt} min | DECO: ${decoDisp} min`);
+  lines.push(`TRT: ${tbt} min | DECO: ${decoDisp} min`);
   return lines.join('\n');
 }
 
@@ -13196,7 +13196,7 @@ function buildContingencySlateText() {
     const ppo2 = clean(tds[7]?.textContent).padStart(4);
     out.push(`${dep}  ${run}  ${gas} ${ppo2}`);
   });
-  // TBT = run time, DECO = deco time — from contingency data object
+  // TRT = run time, DECO = deco time — from contingency data object
   const _ecToMin = s => {
     if (!s && s !== 0) return '-';
     if (typeof s === 'number') return String(Math.round(s));
@@ -13214,7 +13214,7 @@ function buildContingencySlateText() {
   if (out.length) out.forEach(l => lines.push(l));
   else lines.push('  (no decompression stops)');
   lines.push(bar);
-  lines.push(`TBT: ${tbt} min | DECO: ${decoDisp} min`);
+  lines.push(`TRT: ${tbt} min | DECO: ${decoDisp} min`);
   return lines.join('\n');
 }
 
