@@ -2348,7 +2348,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td {
             <button class="btn-export" onclick="copyDiveProfile('deco')" title="Copy to clipboard"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
             <button class="btn-export" onclick="showSlate()" title="Deco slate (waterproof format)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="13" y2="16"/></svg></button>
             <button class="btn-export" onclick="exportTXT('deco')" title="Download .txt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg></button>
-            <button class="btn-export" onclick="exportPDF()" title="Export PDF"><span style="display:inline-block;width:16px;height:16px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0px;line-height:16px;text-align:center;overflow:visible;white-space:nowrap;">PDF</span></button>
+            <button class="btn-export" onclick="showPDFExportDialog()" title="Export PDF"><span style="display:inline-block;width:16px;height:16px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0px;line-height:16px;text-align:center;overflow:visible;white-space:nowrap;">PDF</span></button>
           </div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -14779,7 +14779,69 @@ function buildPdfGasCards(gcEl, titleColor) {
 }
 
 
-async function exportPDF() {
+
+function showPDFExportDialog() {
+  // Remove any existing dialog
+  const old = document.getElementById('pdfExportDialog');
+  if (old) old.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'pdfExportDialog';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;';
+
+  const box = document.createElement('div');
+  box.style.cssText = 'background:var(--surface,#1a1e2e);border:1px solid var(--border,#2a3050);border-radius:12px;padding:24px 28px;width:340px;max-width:92vw;font-family:\'Outfit\',sans-serif;box-shadow:0 8px 40px rgba(0,0,0,0.5);';
+
+  const sections = [
+    { key:'gas',     label:'Gas Consumption',       checked:true  },
+    { key:'profile', label:'Dive Profile Graph',     checked:true  },
+    { key:'slate',   label:'Deco Slate',             checked:true  },
+    { key:'gfCurve', label:'GF Gradient Factor Curve', checked:false },
+    { key:'tissue',  label:'Tissue Saturation',      checked:false },
+  ];
+
+  let rows = sections.map(s => `
+    <label style="display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer;border-bottom:1px solid var(--border,#2a3050);">
+      <input type="checkbox" id="pdfOpt_${s.key}" ${s.checked?'checked':''} style="width:15px;height:15px;accent-color:var(--accent,#00d9ff);cursor:pointer;">
+      <span style="font-size:13px;color:var(--text,#e8eaf6);">${s.label}</span>
+    </label>`).join('');
+
+  box.innerHTML = `
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--accent,#00d9ff);margin-bottom:16px;">PDF EXPORT</div>
+    <div style="font-size:11px;color:var(--muted,#8890b0);margin-bottom:14px;letter-spacing:0.5px;">SELECT SECTIONS TO INCLUDE</div>
+    <div style="margin-bottom:18px;">${rows}</div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="document.getElementById('pdfExportDialog').remove()"
+        style="padding:9px 18px;background:transparent;color:var(--muted,#8890b0);border:1px solid var(--border,#2a3050);border-radius:6px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;">
+        Cancel
+      </button>
+      <button onclick="(function(){
+        const opts={};
+        ['gas','profile','slate','gfCurve','tissue'].forEach(k=>{
+          opts[k]=document.getElementById('pdfOpt_'+k)?.checked!==false&&document.getElementById('pdfOpt_'+k)?.checked;
+        });
+        document.getElementById('pdfExportDialog').remove();
+        exportPDF(opts);
+      })()"
+        style="padding:9px 18px;background:var(--accent,#00d9ff);color:#000;border:none;border-radius:6px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;">
+        EXPORT PDF
+      </button>
+    </div>`;
+
+  overlay.appendChild(box);
+  // Click outside to cancel
+  overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+async function exportPDF(opts) {
+  opts = opts || {};
+  const _incGas      = opts.gas      !== false;
+  const _incProfile  = opts.profile  !== false;
+  const _incSlate    = opts.slate    !== false;
+  const _incGFCurve  = opts.gfCurve  !== false;
+  const _incTissue   = opts.tissue   !== false;
+
   const { jsPDF } = window.jspdf;
   if (!jsPDF) { alert('PDF library not loaded. Please check your internet connection.'); return; }
 
@@ -15042,7 +15104,7 @@ async function exportPDF() {
 
   // DECO SLATE section — compact waterproof-slate format (same as SLATE modal)
   const _pdfSlate = buildSlateText();
-  if (_pdfSlate) {
+  if (_incSlate && _pdfSlate) {
     checkY(14); sectionTitle('DECO SLATE','Compact waterproof-slate format');
     const _slLines = _pdfSlate.split('\n').slice(1); // drop title line (already in section header)
     doc.setFontSize(7.5); doc.setFont('NotoSans','normal'); doc.setTextColor(20,20,20);
@@ -15065,7 +15127,7 @@ async function exportPDF() {
   }
 
   const gasConsEl=document.getElementById('gasConsumptionSummary');
-  if(gasConsEl&&gasConsEl.style.display!=='none'){
+  if(_incGas&&gasConsEl&&gasConsEl.style.display!=='none'){
     calcGasPlan();
     const _gpPDF=window._lastGasPlan;
     if(_gpPDF&&_gpPDF.rows&&_gpPDF.rows.length){
@@ -15209,9 +15271,9 @@ async function exportPDF() {
     }
   }
 
-  drawDecoProfile();
+  if(_incProfile) drawDecoProfile();
   const pc=document.getElementById('decoProfileCanvas');
-  if(pc){
+  if(_incProfile&&pc){
     doc.addPage(); drawHeader();
     sectionTitle('DIVE PROFILE GRAPH',`${depthVal}${du} / ${btVal}min / ${algo} / ${gfStr}`);
     const id=pc.toDataURL('image/png'); const ih=CW*pc.height/pc.width;
@@ -15220,7 +15282,8 @@ async function exportPDF() {
   }
 
   if(!isVPM){
-    drawGFCurve();
+    if(_incGFCurve) drawGFCurve();
+    if(_incGFCurve){
     doc.addPage(); drawHeader();
     const gc=document.getElementById('gfCurveCanvas');
     if(gc){
@@ -15257,7 +15320,9 @@ async function exportPDF() {
         y+=4;
       }
     }
+    } // end if(_incGFCurve)
     const ttb=document.getElementById('tissueTableBody');
+    if(_incTissue){
     if(ttb&&ttb.rows.length===0&&lastTissues) updateTissueViz(lastTissues, mGF.high);
     if(lastTissues&&lastTissues.length){
       doc.addPage(); drawHeader();
@@ -15308,12 +15373,15 @@ async function exportPDF() {
         doc.setTextColor(0,0,0);y+=5;
       });
     }
+    } // end if(_incTissue)
   } else {
+    if(_incTissue||_incGFCurve){
     checkY(12);
     sectionTitle('TISSUE SATURATION & GF CURVE',`N/A for ${algo} - Buhlmann ZH-L16C only`);
     doc.setFontSize(8);doc.setTextColor(100,100,120);
     doc.text('Tissue saturation and gradient factor analysis require Bühlmann ZH-L16C algorithm.',ML,y+4);
     doc.setTextColor(0,0,0);y+=9;
+    } // end if(_incTissue||_incGFCurve)
   }
 
   // Emergency plan intentionally excluded from main deco PDF.
