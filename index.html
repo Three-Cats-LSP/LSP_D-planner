@@ -8362,6 +8362,11 @@ function runDecoSchedule() {
     steps: collapsed,
   };
 
+  // ── Headless mode early return: skip ceiling/graph/DOM work ─────────────
+  // Guard moved before ceiling waypoints — the intermediate saturate() calls
+  // for graph smoothing are expensive and unnecessary in headless engine tests.
+  if (window._zhlHeadless) return;
+
   // ── Store ceiling waypoints for graph overlay ──
   // Sample ceiling at finer resolution for smooth overlay line
   // Track ceiling from dive start (descent + bottom + deco ascent)
@@ -8473,11 +8478,6 @@ function runDecoSchedule() {
   const narcoStr = `N₂:${narcoticN2?'✓':'✗'} O₂:${narcoticO2?'✓':'✗'}`;
 
   // Update live END display in the settings card
-  // ── Headless mode early return: skip ALL DOM writes ──────────────────────
-  // Placed here — after _lastPlan+CNS/OTU are set, before any innerHTML writes.
-  // This skips the heavy decoSummary template, tbody construction, gas card, etc.
-  if (window._zhlHeadless) return;
-
   const endLive = document.getElementById('endDisplayLive');
   if (endLive) {
     endLive.textContent = `${endDisp} m  (${narcoStr})`;
