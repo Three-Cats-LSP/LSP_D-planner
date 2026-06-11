@@ -3774,10 +3774,10 @@ function setAltitude() {
   try { localStorage.setItem('lspAltitude', altitudeM); } catch(e) {}
   try { localStorage.setItem('lspAcclimatized', altAcclimatized ? 'yes' : 'no'); } catch(e) {}
 
-  // Re-run active calculation if result is showing
-  if (typeof renderNDLTable === 'function') renderNDLTable();
+  // Re-run active calculation if result is showing (skip in headless test mode)
+  if (!window._zhlHeadless && typeof renderNDLTable === 'function') renderNDLTable();
   const decoRes = document.getElementById('decoResult');
-  if (decoRes && decoRes.style.display !== 'none' && decoRes.innerHTML.trim()) {
+  if (!window._zhlHeadless && decoRes && decoRes.style.display !== 'none' && decoRes.innerHTML.trim()) {
     if (typeof runDecoSchedule === 'function') runDecoSchedule();
   }
   const planRes = document.getElementById('plannerResult');
@@ -4647,6 +4647,10 @@ function setUnits(u) {
 
   ndlUnits = u;
   multiUnits = u;
+
+  // Skip all recalculations in headless test mode
+  if (window._zhlHeadless) return;
+
   renderNDLTable?.();
   buildUnifiedPlan?.();
 

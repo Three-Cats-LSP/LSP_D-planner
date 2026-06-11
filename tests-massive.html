@@ -1281,9 +1281,16 @@ function fastRDS(needsDOM) {
   const origBT  = btEl  ? btEl.value  : null;
   const origAlt = altEl ? altEl.value : null;
 
-  if (altEl && altEl.value !== '0') { altEl.value = '0'; WIN.setAltitude && WIN.setAltitude(); }
-  if (dEl)  dEl.value  = '10';
-  if (btEl) btEl.value = '10';
+  // Set headless flag early — setAltitude() calls runDecoSchedule() if decoResult is visible,
+  // which would trigger a full render. Keep headless during all setup.
+  WIN._zhlHeadless = true;
+  try {
+    if (altEl && altEl.value !== '0') { altEl.value = '0'; WIN.setAltitude && WIN.setAltitude(); }
+    if (dEl)  dEl.value  = '10';
+    if (btEl) btEl.value = '10';
+  } finally {
+    WIN._zhlHeadless = false;
+  }
   // Clear contingency state — setUnits/runDecoSchedule call calcContingency()
   // which triggers runDecoSchedule() again if _lastContingency is set (infinite cascade)
   const _prevCC = WIN._lastContingency;
@@ -3531,13 +3538,20 @@ async function startTests(skipTier1 = false) {
       win.calcContingency = function(){};
       
       // Altitude reset
-      const altEl = win.document.getElementById('altitudeSelect');
-      if (altEl && altEl.value !== '0') {
-        altEl.value = '0';
-        if (typeof win.setAltitude === 'function') win.setAltitude();
+      // Keep headless during reset — setAltitude/setUnits both call runDecoSchedule()
+      // if decoResult is visible and has content
+      win._zhlHeadless = true;
+      try {
+        const altEl = win.document.getElementById('altitudeSelect');
+        if (altEl && altEl.value !== '0') {
+          altEl.value = '0';
+          if (typeof win.setAltitude === 'function') win.setAltitude();
+        }
+        // Units reset
+        if (typeof win.setUnits === 'function' && win.units !== 'metric') win.setUnits('metric');
+      } finally {
+        win._zhlHeadless = false;
       }
-      // Units reset
-      if (typeof win.setUnits === 'function' && win.units !== 'metric') win.setUnits('metric');
       
       win.calcContingency = _origCC;
     } catch(e) {}
