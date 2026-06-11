@@ -6,7 +6,10 @@ A technical dive decompression planner for mixed-gas deco diving. Runs entirely 
 
 🌐 **Live App**: https://three-cats-lsp.github.io/LSP_D-planner/
 
-📱 **Android APK**: [`Android Apk/LSP_D-planner.apk`](https://github.com/Three-Cats-LSP/LSP_D-planner/raw/main/Android%20Apk/LSP_D-planner.apk)
+📱 **Android APK** (direct download — no Google Play):
+[**⬇ Download LSP_D-planner.apk**](https://github.com/Three-Cats-LSP/LSP_D-planner/raw/main/Android%20Apk/LSP_D-planner.apk)
+
+> **Install instructions:** On your Android device, open the link above in Chrome or your browser. When prompted, tap **Download**. Then open your Downloads folder, tap the `.apk` file, and allow installation from unknown sources when asked. Built with [Capacitor by Ionic](https://capacitorjs.com/) — not a WebView wrapper.
 
 ---
 
