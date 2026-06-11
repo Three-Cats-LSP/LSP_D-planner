@@ -128,7 +128,7 @@ function zhlCalc(depth,bt,o2=21,he=0,gfLo=30,gfHi=85) {
 }
 function stops(r) {
   const out={};
-  (r.stops||[]).forEach(s=>{out[Math.round(s.depth)]=Math.round(isFinite(s.dur)?s.dur:(s.time||0));});
+  (r.stops||[]).forEach(s=>{out[Math.round(s.depth)]=Math.round(isFinite(s.dur)?s.dur:0);});
   return out;
 }
 function firstStop(r) {
@@ -581,7 +581,7 @@ const SECTIONS = [
     }],
     ['GF Hi monotone: lower GF Hi → longer RT (GFS 95→70 all decreasing)', () => {
       const vals = [95,90,85,80,75,70].map(hi =>
-        WIN.VPMEngine.calculate(lv(40,25),[],S({conservatism:0,gfs:hi/100}),'VPMB_GFS').totalRuntime
+        WIN.VPMEngine.calculate(lv(40,25),[],S({conservatism:0,gfs:hi}),'VPMB_GFS').totalRuntime
       );
       for(let i=1;i<vals.length;i++)
         assert(vals[i]>=vals[i-1], `GFS Hi decreasing: RT[${i}]=${vals[i]} < RT[${i-1}]=${vals[i-1]}`);
@@ -732,12 +732,12 @@ async function startVerify() {
     // updateWaterVapor() updates the local var but not window.WATER_VAPOR — re-sync
     if (typeof WIN.ZHL16C === 'undefined') {
       // Try to extract from ZHLEngine internals or re-expose
-      try { WIN.ZHL16C = WIN.ZHL16C || WIN.ZHL16C_N2 || WIN._ZHL16C; } catch(_){}
+      try { WIN.ZHL16C = WIN.ZHL16C || WIN.ZHLEngine?._ZHL16C || WIN.ZHL16C_N2 || WIN._ZHL16C; } catch(_){}
     }
     // Re-sync WATER_VAPOR in case updateWaterVapor() ran after the initial window assignment
     try {
       const wvEl = WIN.document.getElementById('waterVapor');
-      if (wvEl) WIN.WATER_VAPOR = parseFloat(wvEl.value) || WIN.WATER_VAPOR || 0.0627;
+      if (wvEl) { const _wv = parseFloat(wvEl.value); WIN.WATER_VAPOR = isNaN(_wv) ? (WIN.WATER_VAPOR || 0.0627) : _wv; }
     } catch(_){}
 
     document.getElementById('meta').textContent =
