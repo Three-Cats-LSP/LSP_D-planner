@@ -1952,7 +1952,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td { color: #007A33 !import
         <button class="btn-export" onclick="saveAsMyDefault()" id="saveMyDefaultBtn"
           title="Set current advanced settings as your personal defaults (used by Reset)"
           style="display:flex;align-items:center;gap:6px;flex:1;justify-content:center;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 3.2L18 4l.8 3.8L22 10l-2.4 3.2L22 16l-3.8.8L16 20l-3.2-2.4L10 20l-2.8-3.2L4 16l.8-3.8L2 10l2.4-3.2L2 4l3.8.8L8 2z"/><polyline points="8 12 11 15 16 9"/></svg>
           Set Default
         </button>
         <button class="btn-export btn-reset-red" onclick="resetToDefaults()"
@@ -5375,7 +5375,7 @@ function saveAsMyDefault() {
     const btn = document.getElementById('saveMyDefaultBtn');
     if (btn) {
       const orig = btn.innerHTML;
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Saved!';
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 3.2L18 4l.8 3.8L22 10l-2.4 3.2L22 16l-3.8.8L16 20l-3.2-2.4L10 20l-2.8-3.2L4 16l.8-3.8L2 10l2.4-3.2L2 4l3.8.8L8 2z"/><polyline points="8 12 11 15 16 9"/></svg> Saved!';
       btn.style.color = 'var(--green)';
       btn.style.borderColor = 'var(--green)';
       setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; btn.style.borderColor = ''; }, 1800);
