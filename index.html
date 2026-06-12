@@ -1786,6 +1786,23 @@ body.light-theme .deco-table tr[data-phase="switch"] td { color: #007A33 !import
           <option value="18">18 m/min</option>
         </select>
       </div>
+    </div><!-- end always-visible form-grid -->
+
+    <!-- ── Advanced Settings (collapsible) ─────────────────────────────── -->
+    <div id="advancedSettingsSection" style="margin-top:6px;">
+      <button id="advancedSettingsToggle" onclick="toggleAdvancedSettings()"
+        style="display:flex;align-items:center;gap:7px;width:100%;background:none;border:1px solid var(--border);
+               border-radius:6px;padding:7px 12px;cursor:pointer;color:var(--muted);font-family:inherit;
+               font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+               text-align:left;transition:all .2s;"
+        onmouseenter="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+        onmouseleave="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+        <span id="advancedSettingsChevron" style="transition:transform .25s;display:inline-block;">▶</span>
+        <span>Advanced Settings</span>
+        <span id="advancedSettingsSummary" style="margin-left:auto;font-size:10px;font-weight:400;letter-spacing:0;text-transform:none;opacity:.7;"></span>
+      </button>
+      <div id="advancedSettingsBody" style="display:none;">
+      <div class="form-grid" style="margin-top:8px;">
       <div class="field"><label>Deco Ascent Rate</label>
         <select id="decoAscentRate">
           <option value="3" selected>3 m/min</option>
@@ -1926,7 +1943,9 @@ body.light-theme .deco-table tr[data-phase="switch"] td { color: #007A33 !import
         <button class="btn-export" id="presetsHeaderBtn" onclick="openPresetModal()" title="Dive presets"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></button>
         <button class="btn-export btn-reset-red" onclick="resetToDefaults()" title="Reset all settings to defaults"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
       </div>
-    </div>
+    </div><!-- end form-grid inside advanced -->
+    </div><!-- end advancedSettingsBody -->
+    </div><!-- end advancedSettingsSection -->
 
     <!-- Gas Mix 1 — Bottom Gas -->
     <div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:10px;">
@@ -3294,7 +3313,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td { color: #007A33 !import
   }
 })();
 
-const APP_VERSION = '2.10.0';
+const APP_VERSION = '2.9.11';
 window.APP_VERSION = APP_VERSION;
 // _zhlPrewarmed: set true by test harness after first headless run to skip
 // DOM warm-up cost on subsequent calls. Kept as a no-op flag for compatibility.
@@ -5243,6 +5262,41 @@ function closeConfirmModal(ok) {
     _confirmCallback();
   }
   _confirmCallback = null;
+}
+
+// ── Advanced Settings collapse ───────────────────────────────────────────────
+function toggleAdvancedSettings(forceOpen) {
+  const body = document.getElementById('advancedSettingsBody');
+  const chevron = document.getElementById('advancedSettingsChevron');
+  const btn = document.getElementById('advancedSettingsToggle');
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  const open = forceOpen !== undefined ? forceOpen : !isOpen;
+  body.style.display = open ? '' : 'none';
+  if (chevron) chevron.style.transform = open ? 'rotate(90deg)' : '';
+  if (btn) {
+    btn.style.borderColor = open ? 'var(--accent)' : 'var(--border)';
+    btn.style.color = open ? 'var(--accent)' : 'var(--muted)';
+  }
+  _updateAdvancedSummary();
+  try { localStorage.setItem('lspAdvancedOpen', open ? '1' : '0'); } catch(e) {}
+}
+function _updateAdvancedSummary() {
+  // Show key non-default values in the collapsed summary line
+  const el = document.getElementById('advancedSettingsSummary');
+  if (!el) return;
+  const body = document.getElementById('advancedSettingsBody');
+  if (body && body.style.display !== 'none') { el.textContent = ''; return; }
+  const parts = [];
+  const dr = document.getElementById('descentRate')?.value; if (dr && dr !== '20') parts.push(dr+'↓m/min');
+  const ar = document.getElementById('ascentRate')?.value; if (ar && ar !== '10') parts.push(ar+'↑m/min');
+  const dar = document.getElementById('decoAscentRate')?.value; if (dar && dar !== '3') parts.push(dar+'↑deco');
+  const ls = document.getElementById('lastDecoStop')?.value; if (ls && ls !== '3') parts.push('last '+ls+'m');
+  const ms = document.getElementById('minStopTime')?.value; if (ms && ms !== '2') parts.push('min '+ms+'min');
+  const wv = document.getElementById('waterVapor')?.value; if (wv === '0.0627') parts.push('WV Bühl');
+  const tr = document.getElementById('decoTransitMode')?.value; if (tr === 'schreiner') parts.push('Schreiner');
+  const md = document.getElementById('minDecoProfileEnable')?.value; if (md === 'yes') parts.push('MinDeco on');
+  el.textContent = parts.length ? parts.join(' · ') : 'defaults';
 }
 
 function resetToDefaults() {
@@ -15238,6 +15292,7 @@ var appSettings = {
   // Save all current values
   save: function(verbose = true) {
     if (window._zhlHeadless) return; // skip during headless tests
+    _updateAdvancedSummary(); // keep collapsed summary in sync
     const values = {};
     const fields = this.getExistingFields();
     
@@ -15536,6 +15591,14 @@ document.addEventListener('DOMContentLoaded', function() {
   if (window.__lspInitDone) return;
   window.__lspInitDone = true;
   console.log('[LSP] DOMContentLoaded fired');
+
+  // ── Restore advanced settings collapse state ──────────────────────────────
+  try {
+    const adv = localStorage.getItem('lspAdvancedOpen');
+    // Default: collapsed (saves screen space on first load)
+    const open = adv === '1';
+    toggleAdvancedSettings(open);
+  } catch(e) { toggleAdvancedSettings(false); }
   const vEl = document.getElementById('appVersionLabel');
   if (vEl) vEl.textContent = 'Version ' + APP_VERSION;
   const vMain = document.getElementById('mainVersionLabel');
