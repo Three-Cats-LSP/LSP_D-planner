@@ -1765,7 +1765,6 @@ body.light-theme .deco-table tr[data-phase="switch"] td { color: #007A33 !import
       <div class="field"><label>BT Time (min)</label><input type="number" id="decoBT" value="30" min="1" max="300" step="1" oninput="if(window._lastContingency) calcContingency()"></div>
       <div class="field" style="display:flex;align-items:flex-end;gap:8px;">
         <button class="btn-export" id="presetsHeaderBtn" onclick="openPresetModal()" title="Dive presets — save &amp; load depth/BT/gas combinations"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></button>
-        <button class="btn-export btn-reset-red" onclick="resetToDefaults()" title="Reset all settings to defaults"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
       </div>
     </div><!-- end always-visible form-grid -->
 
@@ -1941,6 +1940,21 @@ body.light-theme .deco-table tr[data-phase="switch"] td { color: #007A33 !import
           <option value="on" selected>Allow at MOD</option>
           <option value="off">Strict ppO&#8322;</option>
         </select>
+      </div>
+      <!-- Advanced action buttons -->
+      <div class="field" style="display:flex;align-items:flex-end;gap:8px;grid-column:1/-1;margin-top:4px;">
+        <button class="btn-export" onclick="saveAsMyDefault()" id="saveMyDefaultBtn"
+          title="Save current advanced settings as your personal defaults — restored when you click Reset"
+          style="display:flex;align-items:center;gap:6px;flex:1;justify-content:center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          Set as My Default
+        </button>
+        <button class="btn-export btn-reset-red" onclick="resetToDefaults()"
+          title="Reset advanced settings to your saved defaults (or factory defaults if none saved)"
+          style="display:flex;align-items:center;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Reset
+        </button>
       </div>
     </div><!-- end form-grid inside advanced -->
     </div><!-- end advancedSettingsBody -->
@@ -5298,11 +5312,49 @@ function _updateAdvancedSummary() {
   el.textContent = parts.length ? parts.join(' · ') : 'defaults';
 }
 
-function resetToDefaults() {
-  showConfirm('Reset all settings to defaults?', () => { _doResetToDefaults(); });
+// ── User personal defaults ────────────────────────────────────────────────
+// The ADVANCED settings that "Set as My Default" persists.
+// Factory defaults are used as fallback when no user defaults are saved.
+const _ADV_FIELDS = [
+  'descentRate','ascentRate','decoAscentRate','surfaceAscentRate',
+  'decoStep','lastDecoStop','minStopTime','stopRounding','decoTransitMode',
+  'waterVapor','heHalfTimeMode','sacBottom','sacDeco',
+  'n2NarcSel','o2NarcSel','ppo2Bottom','ppo2Deco','o2AtMODSelect',
+  'minDecoProfileEnable','minDeco9m','minDeco6m'
+];
+
+function saveAsMyDefault() {
+  const snapshot = {};
+  _ADV_FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) snapshot[id] = el.value;
+  });
+  try {
+    localStorage.setItem('lspUserAdvDefaults', JSON.stringify(snapshot));
+    showToast('✓ Advanced settings saved as your personal defaults', 'preset');
+    // Update button to show it's been saved
+    const btn = document.getElementById('saveMyDefaultBtn');
+    if (btn) {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Saved!';
+      btn.style.color = 'var(--green)';
+      btn.style.borderColor = 'var(--green)';
+      setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; btn.style.borderColor = ''; }, 1800);
+    }
+  } catch(e) {
+    showToast('Could not save defaults — storage unavailable', 'error');
+  }
 }
 
-function _doResetToDefaults() {
+function resetToDefaults() {
+  showConfirm('Reset settings to defaults?', () => {
+    let ud = null;
+    try { ud = JSON.parse(localStorage.getItem('lspUserAdvDefaults') || 'null'); } catch(e) {}
+    _doResetToDefaults(ud);
+  });
+}
+
+function _doResetToDefaults(userDefaults) {
 
   // ApexDeco-matched defaults
   const defaults = {
@@ -5367,6 +5419,13 @@ function _doResetToDefaults() {
     // He half-time
     heHalfTimeMode:   'buhl2003',
   };
+
+  // Overlay user's personal advanced defaults on top of factory defaults (if any)
+  if (userDefaults && typeof userDefaults === 'object') {
+    Object.entries(userDefaults).forEach(([id, val]) => {
+      if (id in defaults) defaults[id] = val; // only allow known adv fields
+    });
+  }
 
   // Apply to all DOM fields
   Object.entries(defaults).forEach(([id, val]) => {
