@@ -4091,6 +4091,9 @@ function loadThemePreference() {
     if (icon) icon.textContent = '🌙';
   }
 
+  // Write cookie on startup so Java has it even on first cold launch after fresh install
+  document.cookie = 'diveTheme=' + (isLight ? 'light' : 'dark') + '; path=/; max-age=31536000';
+
   // Update theme-color meta on load for correct status bar icon color
   const _tcMeta = document.getElementById('theme-color-active');
   if (_tcMeta) _tcMeta.setAttribute('content', isLight ? '#f5f7f9' : '#030c18');
