@@ -4050,6 +4050,14 @@ function toggleTheme() {
   
   console.log('[LSP] Theme switched to:', isLight ? 'LIGHT' : 'DARK');
 
+  // Sync Android status bar color with theme (Capacitor native only)
+  try {
+    if (window.Capacitor?.isNativePlatform() && window.Capacitor?.Plugins?.StatusBar) {
+      window.Capacitor.Plugins.StatusBar.setStyle({ style: isLight ? 'DARK' : 'LIGHT' });
+      window.Capacitor.Plugins.StatusBar.setBackgroundColor({ color: isLight ? '#f0f4ff' : '#030c18' });
+    }
+  } catch(e) {}
+
   // Re-apply JS-forced warning row colors for new theme
   ['gasConsumptionSummary','emergencyGasConsumption'].forEach(id => {
     const el = document.getElementById(id);
