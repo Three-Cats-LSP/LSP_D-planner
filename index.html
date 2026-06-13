@@ -4043,6 +4043,8 @@ function toggleTheme() {
   
   // Save preference
   localStorage.setItem('diveTheme', isLight ? 'light' : 'dark');
+  // Also write to cookie so native Java can read theme on next startup
+  document.cookie = 'diveTheme=' + (isLight ? 'light' : 'dark') + '; path=/; max-age=31536000';
   
   // Update PWA theme color (target the active/non-media meta tag)
   const metaThemeColor = document.getElementById('theme-color-active');
