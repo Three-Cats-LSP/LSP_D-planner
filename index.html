@@ -4093,6 +4093,14 @@ function loadThemePreference() {
   const _tcMeta = document.getElementById('theme-color-active');
   if (_tcMeta) _tcMeta.setAttribute('content', isLight ? '#f5f7f9' : '#030c18');
 
+  // Ensure status bar is visible and styled correctly on startup
+  try {
+    if (window.Capacitor?.isNativePlatform() && window.Capacitor?.Plugins?.StatusBar) {
+      window.Capacitor.Plugins.StatusBar.show();
+      window.Capacitor.Plugins.StatusBar.setOverlaysWebView({ overlay: false });
+    }
+  } catch(e) {}
+
   // Sync Android status bar icon color with initial theme
   try {
     if (window.Capacitor?.isNativePlatform() && window.Capacitor?.Plugins?.StatusBar) {
