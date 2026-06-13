@@ -4175,15 +4175,18 @@ function setDecoAlgorithm(model, skipSave) {
   // Verified against ApexDeco and MultiDeco: both use 3m default
 
   // Update deco schedule info box
-  const decoInfoEl = document.querySelector('#deco .info-box');
-  if (decoInfoEl) {
-    if (isVPMB) {
-      decoInfoEl.innerHTML = 'Generates a full ascent profile using <strong>VPM-B</strong> (Variable Permeability Model). Bubble mechanics determine stop depths — conservatism 0–5 scales initial bubble radii. No gradient factors.';
-    } else if (isVPMBGFS) {
-      decoInfoEl.innerHTML = 'Generates a full ascent profile using <strong>VPM-B / GFS</strong>. VPM-B bubble model with Gradient Factor Surfacing — GF High applies a Bühlmann-style blend at shallow stops for a less aggressive surface obligation.';
-    } else {
-      decoInfoEl.innerHTML = 'Generates a full ascent profile with deco stops using Bühlmann ZH-L16C + Gradient Factors. Configure up to two decompression gases below — they switch automatically at the specified depths during ascent and are factored into tissue off-gassing.';
-    }
+  // Update card subtitle and tooltip with per-algo description
+  const _decoTip = document.querySelector('#deco .tip-icon[onclick*="Decompression Schedule"]');
+  let _decoDesc;
+  if (isVPMB) {
+    _decoDesc = 'Generates a full ascent profile using VPM-B (Variable Permeability Model). Bubble mechanics determine stop depths — conservatism 0–5 scales initial bubble radii. No gradient factors.';
+  } else if (isVPMBGFS) {
+    _decoDesc = 'VPM-B bubble model with Gradient Factor Surfacing. VPM-B sets deep stop depths; GF High applies a Bühlmann-style ceiling blend at shallow stops — less aggressive surface obligation than pure VPM-B.';
+  } else {
+    _decoDesc = 'Generates a full ascent profile with deco stops using Bühlmann ZH-L16C + Gradient Factors. Configure up to two decompression gases below — they switch automatically at the specified depths during ascent and are factored into tissue off-gassing.';
+  }
+  if (_decoTip) {
+    _decoTip.setAttribute('onclick', `showTip('Decompression Schedule','${_decoDesc.replace(/'/g, "\'")}')` );
   }
 
   if (!skipSave && typeof appSettings !== 'undefined' && appSettings.save) {
