@@ -1105,44 +1105,22 @@ body.light-theme .deco-table tr[data-phase="switch"] td { color: #007A33 !import
 }
 
 /* ── RESPONSIVE ── */
-@media(max-width:640px) { .stats { grid-template-columns:repeat(2,1fr); }
-.desktop-only { display:none !important; }
+@media(max-width:640px) {
+  .stats { grid-template-columns:repeat(2,1fr); }
+  .desktop-only { display:none !important; }
+  /* Banner: own full-width row, between logo (order:1) and mode (order:3) */
+  #headerBanner { flex:0 0 100% !important; order:2; padding:4px 14px; justify-content:center; }
+  #headerTopRow > div:first-child { order:1; }
+  #headerTopRow > div:last-child  { order:3; }
 }
-@media(min-width:641px) { .mobile-only { display:none !important; }
- header { flex-direction:column; align-items:flex-start; }
+@media(min-width:641px) { .mobile-only { display:none !important; } }
+@media(max-width:640px) {
+ /* Settings wrap on mobile */
+ .algo-switcher { flex-wrap: wrap !important; gap: 8px !important;
+   padding: 8px 14px !important; justify-content: flex-start !important; }
+ .algo-switcher > div { justify-content: flex-start !important; margin-left: 0 !important; }
  .brand-text h1 { font-size:22px; }
  .tabs-nav { flex-wrap:wrap; }
-
- /* Mobile header - center everything */
- header > div:first-child { width: 100%;
- flex-direction: column;
- gap: 12px;
- align-items: center;
- }
-
- /* Center brand on mobile */
- header > div:first-child > div:first-child { padding-left: 0;
- width: 100%;
- justify-content: center;
- }
-
- /* Center mode buttons on mobile */
- header > div:first-child > div:last-child { padding-right: 0;
- width: 100%;
- justify-content: center;
- }
-
- /* Settings wrap naturally on mobile */
- .algo-switcher { flex-wrap: wrap !important;
- gap: 8px !important;
- padding: 8px 14px !important;
- justify-content: flex-start !important;
- }
-
- /* Keep setting groups left-aligned on mobile */
- .algo-switcher > div { justify-content: flex-start !important;
- margin-left: 0 !important;
- }
 }
 
 
@@ -1182,10 +1160,11 @@ body.light-theme .deco-table tr[data-phase="switch"] td { color: #007A33 !import
 
 <!-- ══ HEADER ══ -->
 <header style="display:flex;flex-direction:column;width:100%;">
-  <!-- Top Row: Brand (Left) + Mode (Right) -->
-  <div style="display:flex;align-items:center;width:100%;padding:8px 0;border-bottom:1px solid var(--border);">
-    <!-- Brand Icon + Text + Theme (Left side) -->
-    <div style="display:flex;align-items:center;gap:12px;padding-left:14px;flex-shrink:0;">
+  <!-- Top Row: Logo | Banner (center) | Mode buttons
+       Desktop: single row  |  Mobile: 3 stacked rows via flex-wrap -->
+  <div id="headerTopRow" style="display:flex;flex-wrap:wrap;align-items:center;width:100%;padding:8px 0;border-bottom:1px solid var(--border);">
+    <!-- Logo — left, fixed size -->
+    <div style="display:flex;align-items:center;gap:12px;padding-left:14px;flex-shrink:0;flex-grow:0;">
       <div class="brand-icon" id="brandIcon">🤿</div>
       <div class="brand-text">
         <h1>LSP D-PLANNER · <span class="algo-label" id="algoLabel">Rec</span></h1>
@@ -1196,10 +1175,11 @@ body.light-theme .deco-table tr[data-phase="switch"] td { color: #007A33 !import
       </button>
     </div>
 
-    <!-- Centered banner — desktop only -->
-    <div class="desktop-only" style="flex:1;display:flex;justify-content:center;align-items:center;pointer-events:none;">
+    <!-- Banner — center column on desktop, full-width row on mobile -->
+    <!-- Banner: fills center on desktop; own full-width row on mobile via CSS order -->
+    <div id="headerBanner" style="flex:1;min-width:0;display:flex;justify-content:center;align-items:center;padding:0 8px;">
       <div onclick="toggleWarningModal()" title="Click to read full disclaimer"
-        style="pointer-events:auto;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;
+        style="cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;
                font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);
                border:1px solid var(--border);border-radius:5px;padding:4px 10px;
                transition:all .15s;white-space:nowrap;"
@@ -1209,8 +1189,8 @@ body.light-theme .deco-table tr[data-phase="switch"] td { color: #007A33 !import
       </div>
     </div>
 
-    <!-- Mode (Right side) -->
-    <div style="display:flex;align-items:center;gap:8px;padding-right:14px;flex-shrink:0;">
+    <!-- Mode buttons — right, never shrinks -->
+    <div style="display:flex;align-items:center;gap:8px;padding-right:14px;flex-shrink:0;justify-content:flex-end;">
       <div class="algo-toggle" style="display:flex;align-items:center;gap:4px;">
         <button class="algo-btn" id="algoPADI" onclick="setAlgo('padi')">Rec</button>
         <button class="algo-btn active" id="algoBUH" onclick="setAlgo('buh')">Tec</button>
