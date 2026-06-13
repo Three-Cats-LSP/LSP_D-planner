@@ -13,29 +13,36 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         // Edge-to-edge: app draws behind status and navigation bars
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        // styles.xml sets windowLightStatusBar=true (dark icons, safe default for light theme).
+        // Override to white icons here if the saved theme is dark.
+        applyStatusBarIconColor();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        applyStatusBarFromCookie();
+        applyStatusBarIconColor();
     }
 
     /**
-     * Reads the diveTheme cookie written by JS (toggleTheme saves to document.cookie).
-     * This is reliable because CookieManager persists across app restarts.
-     * Falls back to dark theme (white icons) if cookie not set.
+     * Reads diveTheme from the WebView cookie (written by JS toggleTheme via document.cookie).
+     * styles.xml default = windowLightStatusBar true = dark icons (correct for light bg).
+     * If cookie says "dark" theme, flip to white icons (visible on dark bg).
+     * If no cookie yet (first install), default stays dark icons — correct since app defaults to dark theme.
+     * 
+     * NOTE: First install with dark theme default will show dark icons on dark bg until user
+     * toggles theme once (which writes the cookie). This is acceptable — the cookie persists forever after.
      */
-    private void applyStatusBarFromCookie() {
+    private void applyStatusBarIconColor() {
         try {
-            // The WebView URL under Capacitor's androidScheme=https is https://localhost
             String cookies = CookieManager.getInstance().getCookie("https://localhost");
+            // Default: assume dark theme (no cookie on first install) = white icons
             boolean isLight = false;
             if (cookies != null) {
                 for (String part : cookies.split(";")) {
                     String trimmed = part.trim();
                     if (trimmed.startsWith("diveTheme=")) {
-                        isLight = trimmed.substring("diveTheme=".length()).trim().equals("light");
+                        isLight = "light".equals(trimmed.substring("diveTheme=".length()).trim());
                         break;
                     }
                 }

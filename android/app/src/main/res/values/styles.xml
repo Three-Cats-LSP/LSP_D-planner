@@ -13,8 +13,8 @@
         <item name="windowNoTitle">true</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:windowBackground">@color/appBackground</item>
-        <!-- Dark status bar icons (use for light theme) — overridden by JS for dark theme -->
-        <item name="android:windowLightStatusBar">false</item>
+        <!-- Light status bar icons default: dark icons visible on any bg; dark theme flips in MainActivity -->
+        <item name="android:windowLightStatusBar">true</item>
         <!-- Extend layout behind status AND navigation bars -->
         <item name="android:fitsSystemWindows">false</item>
     </style>
