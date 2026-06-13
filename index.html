@@ -4102,11 +4102,26 @@ function loadThemePreference() {
   } catch(e) {}
 
   // Sync Android status bar icon color with initial theme
+  // Use a helper so it can be called again after the bridge is ready
+  function _applyStatusBarTheme() {
+    try {
+      if (window.Capacitor?.isNativePlatform() && window.Capacitor?.Plugins?.StatusBar) {
+        // LIGHT style = dark icons (for light app bg), DARK style = light icons (for dark app bg)
+        window.Capacitor.Plugins.StatusBar.setStyle({ style: isLight ? 'LIGHT' : 'DARK' });
+        window.Capacitor.Plugins.StatusBar.setBackgroundColor({ color: isLight ? '#f0f4ff' : '#030c18' });
+      }
+    } catch(e) {}
+  }
+  // Call immediately (may be too early if bridge not ready yet)
+  _applyStatusBarTheme();
+  // Call again after 500ms to ensure bridge is fully initialised
+  setTimeout(_applyStatusBarTheme, 500);
+  // Also re-apply when app resumes from background
   try {
-    if (window.Capacitor?.isNativePlatform() && window.Capacitor?.Plugins?.StatusBar) {
-      // LIGHT style = dark icons (for light app bg), DARK style = light icons (for dark app bg)
-      window.Capacitor.Plugins.StatusBar.setStyle({ style: isLight ? 'LIGHT' : 'DARK' });
-      window.Capacitor.Plugins.StatusBar.setBackgroundColor({ color: isLight ? '#f0f4ff' : '#030c18' });
+    if (window.Capacitor?.isNativePlatform()) {
+      window.Capacitor.Plugins.App?.addListener('appStateChange', function(state) {
+        if (state.isActive) _applyStatusBarTheme();
+      });
     }
   } catch(e) {}
 }
