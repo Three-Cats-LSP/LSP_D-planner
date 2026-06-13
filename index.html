@@ -7,7 +7,9 @@
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#030c18">
+<meta name="theme-color" content="#030c18" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f7f9" media="(prefers-color-scheme: light)">
+<meta id="theme-color-active" name="theme-color" content="#030c18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="D-Planner">
@@ -4042,8 +4044,8 @@ function toggleTheme() {
   // Save preference
   localStorage.setItem('diveTheme', isLight ? 'light' : 'dark');
   
-  // Update PWA theme color
-  const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+  // Update PWA theme color (target the active/non-media meta tag)
+  const metaThemeColor = document.getElementById('theme-color-active');
   if (metaThemeColor) {
     metaThemeColor.setAttribute('content', isLight ? '#f5f7f9' : '#030c18');
   }
@@ -4086,6 +4088,10 @@ function loadThemePreference() {
     body.classList.remove('light-theme');
     if (icon) icon.textContent = '🌙';
   }
+
+  // Update theme-color meta on load for correct status bar icon color
+  const _tcMeta = document.getElementById('theme-color-active');
+  if (_tcMeta) _tcMeta.setAttribute('content', isLight ? '#f5f7f9' : '#030c18');
 
   // Sync Android status bar icon color with initial theme
   try {
