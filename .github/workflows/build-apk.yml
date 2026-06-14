@@ -59,8 +59,6 @@ jobs:
           mkdir -p www
           cp index.html www/index.html
           cp capacitor-bridge.js www/capacitor-bridge.js
-          # manifest.json and sw.js are web/PWA only — not bundled into APK
-          # but must be in www/ so cap sync doesn't remove them from assets
           cp manifest.json www/manifest.json 2>/dev/null || true
           cp sw.js www/sw.js 2>/dev/null || true
 
@@ -103,3 +101,11 @@ jobs:
           git reset --hard HEAD
           git pull --rebase origin main
           git push
+
+      - name: Notify homepage to sync APK
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.SYNC_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/Three-Cats-LSP/threecats-lsp.com/dispatches \
+            -d '{"event_type":"sync-apk-d-planner"}'
