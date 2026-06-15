@@ -4,6 +4,13 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.10.1 — 2026-06-15
+
+### Changed
+- **`APP_VERSION`** — bumped to `2.10.1`; `build.gradle` `versionCode` updated to `21001`
+
+---
+
 ## v2.10.0 — 2026-06-13  ★ Milestone
 
 ### Added

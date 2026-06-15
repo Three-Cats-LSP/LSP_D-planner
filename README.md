@@ -21,7 +21,7 @@ LSP D-Planner is available as a native Android app built with Capacitor by Ionic
 4. If prompted, allow *Install from unknown sources* in Settings
 5. Install and launch LSP D-Planner
 
-**Current version: 2.10.0**
+**Current version: 2.10.1**
 
 **What the app includes:**
 - Full offline operation — no internet required after install
@@ -335,4 +335,4 @@ Android APK is built automatically by GitHub Actions on every push to `main` and
 
 *Developed by Three Cats LSP · [@threecats_lsp](https://www.instagram.com/threecats_lsp)*
 
-See [CHANGELOG.md](CHANGELOG.md) for version history. Current release: **v2.10.0**.
+See [CHANGELOG.md](CHANGELOG.md) for version history. Current release: **v2.10.1**.
