@@ -379,11 +379,16 @@ if 'id="heHalfTimeMode"' in html:
 else:
     fail("He half-time mode selector missing — user cannot choose Baker/Bühlmann 2003 variant")
 
-# 7.5 Default He HT is Bühlmann 2003 (1.51) — matches Shearwater/Subsurface
-if 'value="buhl2003" selected' in html:
-    ok("Default He HT is Bühlmann 2003 (1.51 — Shearwater/Subsurface default)")
-elif 'value="baker" selected' in html:
-    fail("Default He HT is Baker 1.88 — should be Bühlmann 2003 (1.51) to match Shearwater/Subsurface")
+# 7.5 Default He HT is Baker 1.88 — VPM-B canonical (Baker FORTRAN 1998, ApexDeco, MultiDeco)
+# Rationale: LSP uses VPM-B as primary algorithm; Baker half-times are the correct match.
+# Bühlmann 2003 (1.51) matches Shearwater/Subsurface but is NOT the VPM-B reference.
+baker_selected = ('value="baker" selected' in html or 'selected="" value="baker"' in html or
+                  "value='baker' selected" in html or "selected value=\"baker\"" in html)
+buhl_selected  = ('value="buhl2003" selected' in html or 'selected="" value="buhl2003"' in html)
+if baker_selected:
+    ok("Default He HT is Baker 1.88 (VPM-B canonical — ApexDeco/MultiDeco compatible)")
+elif buhl_selected:
+    fail("Default He HT is Bühlmann 2003 (1.51) — should be Baker 1.88 for VPM-B engine compatibility")
 else:
     fail("He HT default selection unclear")
 
@@ -1067,7 +1072,7 @@ if reset_fn:
         ("minDeco6m",            "'3'",         "6m default"),
         ("cylTravelGas_size",    "'11'",        "travel cylinder size"),
         ("cylTravelGas_pres",    "'200'",       "travel cylinder pressure"),
-        ("heHalfTimeMode",       "'buhl2003'",  "He HT default"),
+        ("heHalfTimeMode",       "'baker'",     "He HT default"),
     ]:
         if field_id in reset_body:
             ok(f"_doResetToDefaults includes {field_id} (default {default})")
@@ -1173,8 +1178,196 @@ elif "getPPO2Limit(_sFN2)" in stop_loop:
     fail("Stop row passes _sFN2 to getPPO2Limit — ppO2 limit color wrong for trimix stops")
 
 # ══════════════════════════════════════════════════════════════════════════════
-# PRINT RESULTS
+# GROUP 24 — GAS BAND ppO2 LIMITS (mid-band and boundary correctness)
+# Bug: ppo2Mid was set to ppo2Bottom (1.4) — gives wrong MOD for 28-44% O2
+#      gases like EAN32. Should be 1.5.
+# Bug: inner engine getPPO2Limit used <=28 and <=45 (wrong boundary assignment)
+#      — exactly 28% should be mid (1.5), exactly 45% should be rich (1.6).
 # ══════════════════════════════════════════════════════════════════════════════
+
+# 24.1 ppo2Mid is 1.5 (not ppo2Bottom) in runDecoSchedule
+run_deco_fn = re.search(r"function runDecoSchedule\(\)(.*?)(?=\nfunction )", js, re.DOTALL)
+if run_deco_fn:
+    rd_body = run_deco_fn.group(1)
+    if "ppo2Mid  = 1.5" in rd_body or "ppo2Mid = 1.5" in rd_body:
+        ok("runDecoSchedule: ppo2Mid = 1.5 (mid-band 28–44% O2 uses 1.5 bar limit)")
+    elif "ppo2Mid  = ppo2Bottom" in rd_body or "ppo2Mid = ppo2Bottom" in rd_body:
+        fail("runDecoSchedule: ppo2Mid = ppo2Bottom — EAN32/EAN36 get wrong MOD (1.4 instead of 1.5)")
+    else:
+        fail("runDecoSchedule: ppo2Mid assignment not found — mid-band limit unknown")
+else:
+    fail("runDecoSchedule function not found — cannot audit ppo2Mid")
+
+# 24.2 Inner engine getPPO2Limit uses < not <= for 28% boundary (28% is mid)
+inner_ppl = re.search(r"function getPPO2Limit.*?ppO2Low.*?ppO2Mid.*?ppO2High", js, re.DOTALL)
+inner_js_block = js[js.find("if (settings.ppO2Low && settings.ppO2Mid"):js.find("if (settings.ppO2Low && settings.ppO2Mid")+300]
+if "o2pct < 28" in inner_js_block:
+    ok("Inner engine getPPO2Limit: <28 boundary (28% O2 correctly goes to mid/1.5)")
+elif "o2pct <= 28" in inner_js_block:
+    fail("Inner engine getPPO2Limit: <=28 boundary — 28% O2 wrongly gets lean/1.4 (should be mid/1.5)")
+
+# 24.3 Inner engine getPPO2Limit uses < not <= for 45% boundary (45% is rich)
+if "o2pct < 45" in inner_js_block:
+    ok("Inner engine getPPO2Limit: <45 boundary (45% O2 correctly goes to rich/1.6)")
+elif "o2pct <= 45" in inner_js_block:
+    fail("Inner engine getPPO2Limit: <=45 boundary — 45% O2 wrongly gets mid/1.5 (should be rich/1.6)")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 25 — REPETITIVE DIVE CNS/OTU CARRY
+# Bug: CNS/OTU always started at 0 even for repetitive dives.
+# Fix: _lastVPMResult now stores finalCNS/finalOTU; settings._preCNS (decayed
+#      on 90-min half-life) and settings._preOTU are injected for next dive;
+#      calculate() initialises totalCNS/totalOTU from these pre-dive values.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 25.1 _lastVPMResult stores finalCNS
+if "finalCNS:" in js and "_lastVPMResult" in js:
+    ok("_lastVPMResult stores finalCNS for repetitive dive carry")
+else:
+    fail("_lastVPMResult missing finalCNS — CNS not carried across repetitive dives")
+
+# 25.2 _lastVPMResult stores finalOTU
+if "finalOTU:" in js and "_lastVPMResult" in js:
+    ok("_lastVPMResult stores finalOTU for repetitive dive carry")
+else:
+    fail("_lastVPMResult missing finalOTU — OTU not carried across repetitive dives")
+
+# 25.3 _preCNS injected with 90-min half-life decay
+if "settings._preCNS" in js and "Math.pow(0.5, siMin / 90)" in js:
+    ok("_preCNS injected with 90-min half-life CNS decay across surface interval")
+else:
+    fail("_preCNS not set with 90-min half-life decay — CNS carry broken for repetitive dives")
+
+# 25.4 _preOTU injected (daily accumulator, no decay)
+if "settings._preOTU" in js:
+    ok("_preOTU injected as daily accumulator for repetitive OTU carry")
+else:
+    fail("_preOTU not set — OTU not carried across repetitive dives")
+
+# 25.5 totalCNS initialised from _preCNS in VPM calculate()
+if "settings._preCNS || 0" in js:
+    ok("VPM calculate() initialises totalCNS from _preCNS (repetitive carry)")
+else:
+    fail("VPM calculate() still starts totalCNS at 0 — repetitive CNS carry broken")
+
+# 25.6 totalOTU initialised from _preOTU in VPM calculate()
+if "settings._preOTU || 0" in js:
+    ok("VPM calculate() initialises totalOTU from _preOTU (repetitive carry)")
+else:
+    fail("VPM calculate() still starts totalOTU at 0 — repetitive OTU carry broken")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 26 — WATER PRESSURE FACTOR ALIGNMENT
+# Both engines must use the same canonical m/bar factors:
+#   salt:    10.000 m/bar (MultiDeco/DiveKit/ApexDeco standard)
+#   fresh:   10.330 m/bar (matches ZHL WATER_DENSITY.fresh 0.09681 bar/m)
+#   EN13319: 10.080 m/bar (EN13319 standard — DiveKit compatible)
+# VPM engine must recognise EN13319 as waterType===2 (not silently fall through to salt).
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 26.1 VPM SLP_SW_M = 10.000 (not old 10.078)
+if "SLP_SW_M = 10.000" in js:
+    ok("VPM SLP_SW_M = 10.000 m/bar (MultiDeco/DiveKit standard)")
+elif "SLP_SW_M = 10.078" in js:
+    fail("VPM SLP_SW_M still 10.078 — should be 10.000 to match MultiDeco/DiveKit")
+else:
+    fail("VPM SLP_SW_M not found or unexpected value")
+
+# 26.2 VPM SLP_FW_M = 10.330 (matches ZHL WATER_DENSITY.fresh)
+if "SLP_FW_M = 10.330" in js:
+    ok("VPM SLP_FW_M = 10.330 m/bar (matches ZHL fresh factor)")
+elif "SLP_FW_M = 10.337" in js:
+    fail("VPM SLP_FW_M still 10.337 — should be 10.330 to match ZHL WATER_DENSITY.fresh")
+else:
+    fail("VPM SLP_FW_M not found or unexpected value")
+
+# 26.3 VPM SLP_EN_M defined (EN13319)
+if "SLP_EN_M = 10.080" in js:
+    ok("VPM SLP_EN_M = 10.080 m/bar (EN13319 constant defined)")
+else:
+    fail("VPM SLP_EN_M not defined — EN13319 water type unsupported in VPM engine")
+
+# 26.4 getSLP handles waterType===2 (EN13319)
+if "settings.waterType === 2" in js:
+    ok("getSLP(): waterType===2 branch present (EN13319 support)")
+else:
+    fail("getSLP(): no waterType===2 branch — EN13319 silently uses salt factor in VPM")
+
+# 26.5 waterTypeVal maps EN13319 to 2
+if ("'en13319' ? 2" in js or '"en13319" ? 2' in js or
+    "=== 'en13319' ? 2" in js or '=== "en13319" ? 2' in js):
+    ok("waterTypeVal: EN13319 mapped to 2 (not silently 0/salt)")
+else:
+    fail("waterTypeVal: EN13319 not mapped to 2 — VPM engine uses wrong water factor for EN13319")
+
+# 26.6 No hardcoded salt slp in VPM functions
+if "SLP_SW_M : SLP_SW_F" in js:
+    fail("VPM inner functions still use hardcoded salt slp — water type not respected")
+else:
+    ok("VPM inner functions use getSLP(settings) not hardcoded salt factor")
+
+# 26.7 ZHL WATER_DENSITY.salt = 0.10000
+if "salt:     0.10000" in js or "salt: 0.10000" in js:
+    ok("ZHL WATER_DENSITY.salt = 0.10000 bar/m (10.000 m/bar — industry standard)")
+elif "salt:     0.10020" in js or "salt: 0.10020" in js:
+    fail("ZHL WATER_DENSITY.salt still 0.10020 — should be 0.10000 (MultiDeco/DiveKit)")
+else:
+    fail("ZHL WATER_DENSITY.salt not found or unexpected value")
+
+# 26.8 ZHL WATER_DENSITY.en13319 = 0.09921
+if "en13319:  0.09921" in js or "en13319: 0.09921" in js:
+    ok("ZHL WATER_DENSITY.en13319 = 0.09921 bar/m (10.080 m/bar — EN13319 standard)")
+elif "en13319:  0.09964" in js or "en13319: 0.09964" in js:
+    fail("ZHL WATER_DENSITY.en13319 still 0.09964 — should be 0.09921 (10.080 m/bar)")
+else:
+    fail("ZHL WATER_DENSITY.en13319 not found or unexpected value")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 27 — BAR_PER_METRE INIT AND 10.078 ERADICATION
+# After the water constant unification, BAR_PER_METRE must initialise to the
+# salt default (0.10000) and no display/calculation code may hardcode 10.078.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 27.1 BAR_PER_METRE init = 0.10000 (salt default, not stale 1/10.078 = 0.09922)
+if "BAR_PER_METRE = 0.10000" in js:
+    ok("BAR_PER_METRE init = 0.10000 (salt default, matches WATER_DENSITY.salt)")
+elif "BAR_PER_METRE = 1/10.078" in js or "BAR_PER_METRE = 1 / 10.078" in js:
+    fail("BAR_PER_METRE init still 1/10.078 = 0.09922 — stale after water constant update")
+else:
+    fail("BAR_PER_METRE init value unclear — should be 0.10000")
+
+# 27.2 No hardcoded / 10.078 in live calculation code (tooltip HTML exempt)
+import re
+# Strip HTML comments and tooltip strings before checking
+stripped = re.sub(r'<!--.*?-->', '', js, flags=re.DOTALL)
+# Remove content inside showTip(...) calls to avoid flagging tooltip text
+stripped = re.sub(r"showTip\([^)]{0,400}\)", "showTip()", stripped)
+hardcoded_instances = [ln for ln in stripped.split('\n') if '/ 10.078' in ln and '//' not in ln.lstrip()[:3]]
+if not hardcoded_instances:
+    ok("No hardcoded / 10.078 in live calculation code — all replaced with BAR_PER_METRE")
+else:
+    fail(f"Hardcoded / 10.078 still present in {len(hardcoded_instances)} line(s) — use BAR_PER_METRE")
+
+# 27.3 VPM render pAmb uses BAR_PER_METRE not 0.0305 imperial hardcode
+if "seg.depth * BAR_PER_METRE" in js and "seg.depth * 0.0305" not in js:
+    ok("VPM render: pAmb uses BAR_PER_METRE (not hardcoded imperial 0.0305)")
+elif "seg.depth * 0.0305" in js:
+    fail("VPM render: pAmb still uses hardcoded imperial 0.0305 — use BAR_PER_METRE")
+else:
+    fail("VPM render: pAmb calculation not found or ambiguous")
+
+# 27.4 VPM gas tag switch depth: imperial formula gives feet not metres
+# Correct: / BAR_PER_METRE * 3.28084 for imperial (result in feet)
+# Wrong:   / (BAR_PER_METRE * 0.3048) / 3.28084 (cancels to metres, displayed as ft)
+if "/ BAR_PER_METRE * (dU ? 1 : 3.28084)" in js:
+    ok("VPM gas tag switch depth: imperial formula correct (/ BAR_PER_METRE * 3.28084 → feet)")
+elif "BAR_PER_METRE * 0.3048) / (dU ? 1 : 3.28084)" in js or "BAR_PER_METRE * 0.3048) / 3.28084" in js:
+    fail("VPM gas tag switch depth: imperial formula broken — / (BPM*0.3048)/3.28084 cancels to metres, displays wrong ft value")
+else:
+    fail("VPM gas tag switch depth formula not found or changed structure")
+
+
 
 print(f"\nLSP D-Planner Audit — {path}")
 print("=" * 60)
