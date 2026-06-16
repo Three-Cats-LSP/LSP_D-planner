@@ -2,7 +2,23 @@
 
 A technical dive decompression planner for recreational and mixed-gas technical diving. Runs entirely in the browser — no install, no build step, no server required.
 
+Part of the [Three Cats LSP](https://threecats-lsp.com) **Diver's Toolkit**.
+
 🌐 **Live App**: https://threecats-lsp.com/d-planner/
+
+**Current version: 2.10.1**
+
+---
+
+## Diver's Toolkit
+
+| App | Purpose |
+|-----|---------|
+| **LSP D-Planner** | Decompression planning (this app) |
+| **[T-Viewer](https://threecats-lsp.com/t-viewer/)** | Open and share exported dive plan TXT/PDF files |
+| **[Get In Water](https://threecats-lsp.com/get-in-water/)** | Trip packing checklists |
+
+All apps live on the [Diver's Toolkit hub](https://threecats-lsp.com).
 
 ---
 
@@ -21,8 +37,6 @@ LSP D-Planner is available as a native Android app built with Capacitor by Ionic
 4. If prompted, allow *Install from unknown sources* in Settings
 5. Install and launch LSP D-Planner
 
-**Current version: 2.10.1**
-
 **What the app includes:**
 - Full offline operation — no internet required after install
 - Edge-to-edge transparent status bar — app content fills the full screen
@@ -35,11 +49,21 @@ LSP D-Planner is available as a native Android app built with Capacitor by Ionic
 
 ## T-Viewer
 
-[T-Viewer](https://github.com/Three-Cats-LSP/T-Viewer) is a companion Android app for reading and viewing the dive plan TXT files exported by LSP D-Planner. It provides a clean, formatted view of exported plans directly on your device.
+[T-Viewer](https://github.com/Three-Cats-LSP/T-Viewer) is a companion app for reading dive plan **TXT** and **PDF** files exported by LSP D-Planner — syntax highlighting, edit mode, pinch-to-zoom, and share on Android or in the browser.
 
 📲 **[Download T-Viewer APK](https://threecats-lsp.com/t-viewer/download.html)**
 
-> Direct download page: https://threecats-lsp.com/t-viewer/download.html
+🌐 **Web app**: https://threecats-lsp.com/t-viewer/
+
+---
+
+## Get In Water
+
+[Get In Water](https://github.com/Three-Cats-LSP/Get-In-Water) is a companion app for **dive trip packing** — customizable master gear template, per-trip checklists, multi-day trip dates, and TXT/PDF export for printing.
+
+📲 **[Download Get In Water APK](https://threecats-lsp.com/get-in-water/download.html)**
+
+🌐 **Web app**: https://threecats-lsp.com/get-in-water/
 
 ---
 
@@ -176,7 +200,7 @@ CNS: 36.2% OTU: 73 PrT: 21.7
 TRT = Total Run Time (reads from totals row, full MM'SS" format). Same footer format in both deco and emergency slates.
 
 ### TXT Export
-Full plan text including settings, deco table, and gas consumption. Header: `DECO PLAN` / `EMERGENCY PLAN` with date/time stamp and divider. Saved to device Downloads folder on Android. Exported TXT files can be opened and viewed with [T-Viewer](https://github.com/Three-Cats-LSP/T-Viewer).
+Full plan text including settings, deco table, and gas consumption. Header: `DECO PLAN` / `EMERGENCY PLAN` with date/time stamp and divider. Saved to device Downloads folder on Android. Open exported TXT or PDF files with [T-Viewer](https://github.com/Three-Cats-LSP/T-Viewer).
 
 ### PDF Export (Dive Plan)
 Section picker dialog before export. Available sections:
@@ -246,6 +270,7 @@ Quick planning calculators and reference material:
 
 - Dark / light theme toggle
 - Unified `?` tooltip icon system across all settings — inline explanations for every algorithm, GF, conservatism, altitude, and gas setting
+- **`?` reference panel — Links:** Diver's Toolkit hub, LSP D-Planner GitHub, APK download, Thingiverse, Instagram, PayPal
 - Collapsible result cards (Gas Consumption, Contingency Plans, Dive Graph, Tissue Saturation, GF Curve) with right-side caret
 - All settings cards use a consistent grid layout; mobile-responsive
 
