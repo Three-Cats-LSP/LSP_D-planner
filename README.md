@@ -22,6 +22,18 @@ All apps live on the [Diver's Toolkit hub](https://threecats-lsp.com).
 
 ---
 
+## Web App
+
+Open https://threecats-lsp.com/d-planner/ in any modern browser — no install required. Add it to your home screen for quick access like a native app.
+
+**Installation:**
+1. Open https://threecats-lsp.com/d-planner/ on your phone, tablet, or computer
+2. **Safari (iPhone / iPad):** Tap **Share** (square with arrow) → **Add to Home Screen** → **Add**
+3. **Chrome (Android):** Tap **⋮** menu → **Install app** or **Add to Home screen** → confirm
+4. **Chrome (desktop):** Click the install icon in the address bar, or **⋮** → **Install LSP D-Planner**
+
+---
+
 ## Android App
 
 LSP D-Planner is available as a native Android app built with Capacitor by Ionic.
@@ -30,7 +42,7 @@ LSP D-Planner is available as a native Android app built with Capacitor by Ionic
 
 > Direct download page: https://threecats-lsp.com/d-planner/download.html
 
-**Installation:**
+**APK installation:**
 1. Open the download page on your Android device
 2. Tap **Download APK**
 3. Open the downloaded file from your Downloads folder
