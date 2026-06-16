@@ -3010,7 +3010,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td { color: #007A33 !import
 <div class="info-box"><strong>Belgian military study (PMC10735712):</strong> Bühlmann ZHL-16C + GF replicated in Python and optimised against USN and DCIEM tables (both considered acceptably safe). Result: <strong>GF Low = 100, GF High ≥ 75</strong> best matches validated tables. Conclusion: lower GF Low (deep stops) is not necessarily safer — shallower-biased profiles with GF Lo=100 matched real-world validated tables most closely.</div>
 <div class="info-box"><strong>PrT — Pressure×Root-Time severity index:</strong><br/>
 <code style="font-family:'JetBrains Mono',monospace;font-size:12px;">PrT = P_rel (bar) × √T (min)</code><br/>
-        where P_rel = gauge pressure at depth (bar) = depth / 10.078, T = bottom time (min).<br/>
+        where P_rel = gauge pressure at depth (bar) = depth × BAR_PER_METRE (10.000 bar/m salt, 10.330 fresh, 10.080 EN13319), T = bottom time (min).<br/>
          • PrT &lt; 15: recreational — GF High 80–90 is appropriate<br/>
          • PrT 15–25: moderate deco — GF High 75–80<br/>
          • PrT 25–40: serious deco — GF High 60–75 (VVAL-79/Van Liew)<br/>
