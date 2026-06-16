@@ -4,7 +4,9 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
-## v2.10.6 — 2026-06-16
+## v2.10.6 — 2026-06-16  ★ Milestone
+
+MultiDeco/DiveKit alignment milestone — unified water pressure factors (ZHL + VPM), O₂-band ppO₂ caps, Baker He HT default, repetitive VPM CNS/OTU carry, `BAR_PER_METRE` consistency, VPM render fixes (altitude ppO₂, imperial switch depth). Audit: 172 checks; regression: 68/68 verify + 50/50 tests.
 
 ### Fixed
 - **VPM ppO₂ display uses hardcoded sea-level pressure** — All pressure calculations in `renderVPMResults` used `1.013` (sea level) instead of `altSurfaceP`. Altitude dives showed incorrect ppO₂ values in the VPM deco table (gas switch rows, descent, bottom, ascent, and stop rows). Fixed: `surfP = altSurfaceP || 1.01325` declared at function top, used throughout.
@@ -16,7 +18,7 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
-
+## v2.10.5 — 2026-06-16
 
 ### Fixed
 - **BAR_PER_METRE init** — After v2.10.4 changed salt to `0.10000 bar/m`, the global init was still `1/10.078 = 0.09923`. Any code that runs before `setWaterDensity()` (startup race, unit tests) used a stale value. Fixed: `BAR_PER_METRE` now initialises directly to `0.10000`.
