@@ -3179,7 +3179,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td { color: #007A33 !import
   }
 })();
 
-const APP_VERSION = '2.10.6';
+const APP_VERSION = '2.10.8';
 window.APP_VERSION = APP_VERSION;
 // _zhlPrewarmed: set true by test harness after first headless run to skip
 // DOM warm-up cost on subsequent calls. Kept as a no-op flag for compatibility.
@@ -9067,16 +9067,19 @@ const ZHLEngine = (() => {
     const lp = window._lastPlan;
 
     // ── Compute CNS/OTU from steps (not available from DOM-skipped render) ──
+    // BUGFIX (found via DiveKit 3-way comparison, June 2026): window._lastPlan.steps
+    // only contains ascent/deco segments — descent and bottom time are rendered
+    // straight to DOM in the live app and never pushed into `steps`. The original
+    // fallback below summed only `lp.steps`, silently omitting the largest share
+    // of O2 exposure on every dive (descent + full bottom time). Live-app DOM
+    // rendering (runDecoSchedule's non-headless path) computes this correctly by
+    // accumulating across the rendered table; this headless fallback now matches
+    // it by adding descent + bottom segments explicitly before summing steps.
     if (lp && lp.totalCNS == null) {
       let hCNSfrac = 0, hOTU = 0;
       const hAltP = altSurfaceP || 1.01325;
       const hBAR  = BAR_PER_METRE || 0.1;
-      (lp.steps || []).forEach(seg => {
-        const d   = seg.depth != null ? seg.depth : (seg.type === 'ascent' ? (seg.from + seg.to) / 2 : 0);
-        const fO2s = seg.fN2 !== undefined ? Math.max(0, 1 - seg.fN2 - (seg.fHe || 0)) : fO2bot;
-        const pAmb = hAltP + d * hBAR;
-        const ppO2 = fO2s * pAmb;
-        const dur  = seg.dur || 0;
+      function addExposure(ppO2, dur) {
         if (ppO2 > 0.5 && dur > 0) {
           hOTU += dur * Math.pow((ppO2 - 0.5) / 0.5, 0.833);
           const lims = {6:720,7:570,8:450,9:360,10:300,11:240,12:210,13:180,14:150,15:120,16:45};
@@ -9085,6 +9088,20 @@ const ZHLEngine = (() => {
           const safeLim = lim > 0 ? lim : 45; // ppO2>1.6: clamp to 45-min limit (matches segCNSfrac fix)
           hCNSfrac += dur / safeLim;
         }
+      }
+      // Descent: average depth = half of bottom depth (linear descent from surface)
+      const hDescentRate = s.descentRate || 20;
+      const hDescentTime = level.depth / hDescentRate;
+      addExposure((hAltP + (level.depth / 2) * hBAR) * fO2bot, hDescentTime);
+      // Bottom: full level.time at full depth, on bottom gas
+      addExposure((hAltP + level.depth * hBAR) * fO2bot, level.time);
+      // Ascent/deco steps (unchanged from original — already correct for these segments)
+      (lp.steps || []).forEach(seg => {
+        const d   = seg.depth != null ? seg.depth : (seg.type === 'ascent' ? (seg.from + seg.to) / 2 : 0);
+        const fO2s = seg.fN2 !== undefined ? Math.max(0, 1 - seg.fN2 - (seg.fHe || 0)) : fO2bot;
+        const pAmb = hAltP + d * hBAR;
+        const ppO2 = fO2s * pAmb;
+        addExposure(ppO2, seg.dur || 0);
       });
       lp.totalCNS = parseFloat((hCNSfrac * 100).toFixed(1));
       lp.totalOTU = Math.round(hOTU);

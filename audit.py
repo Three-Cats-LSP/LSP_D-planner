@@ -1410,6 +1410,37 @@ if re.search(r'minStopZoneDepth\s*=\s*cur;\s*//\s*enable min-stop', js):
 else:
     fail("GF anchor: minStopZoneDepth not set at first mustStop — min-stop enforcement may fail")
 
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 29 — HEADLESS CNS/OTU DESCENT+BOTTOM FIX (v2.10.8)
+# Bug found via 3-way DiveKit/MultiDeco/LSP comparison: window._lastPlan.steps
+# only contains ascent/deco segments (descent + bottom are rendered straight to
+# DOM in the live app, never pushed into `steps`). The headless CNS/OTU fallback
+# in ZHLEngine.calculate() summed only `lp.steps`, silently omitting descent and
+# the full bottom-time exposure — the dominant share of CNS/OTU on most dives.
+# This was a test-infrastructure bug only: the live DOM-rendering path computes
+# CNS/OTU correctly across the full table. Existing tests never caught it because
+# they only assert finiteness/ordering, never magnitude against a known value.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 29.1 addExposure() helper present (refactored from inline duplicate logic)
+if re.search(r'function addExposure\(ppO2, dur\)', js):
+    ok("Headless CNS/OTU: addExposure() helper present (shared by descent/bottom/steps)")
+else:
+    fail("Headless CNS/OTU: addExposure() helper missing — descent/bottom fix may be reverted")
+
+# 29.2 Descent exposure added before the steps loop
+if re.search(r'hDescentTime = level\.depth / hDescentRate', js) and \
+   re.search(r'addExposure\(\(hAltP \+ \(level\.depth / 2\) \* hBAR\) \* fO2bot, hDescentTime\)', js):
+    ok("Headless CNS/OTU: descent exposure (avg depth = level.depth/2) now included")
+else:
+    fail("Headless CNS/OTU: descent exposure missing — CNS/OTU will under-report vs live app")
+
+# 29.3 Bottom-time exposure added before the steps loop
+if re.search(r'addExposure\(\(hAltP \+ level\.depth \* hBAR\) \* fO2bot, level\.time\)', js):
+    ok("Headless CNS/OTU: bottom-time exposure (full level.time at full depth) now included")
+else:
+    fail("Headless CNS/OTU: bottom-time exposure missing — CNS/OTU will under-report vs live app, since bottom time is the majority of most dives' O2 exposure")
+
 
 print(f"\nLSP D-Planner Audit — {path}")
 print("=" * 60)
