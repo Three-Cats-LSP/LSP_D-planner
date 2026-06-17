@@ -4,6 +4,21 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.10.13 — 2026-06-18
+
+### Fixed
+- **Missing final surface-ascent leg in ZHL engine** — the ascent loop treated
+  surfacing as instantaneous (zero time, zero off-gassing) once the last deco
+  stop finished. `surfaceRate` existed and was correctly wired into VPM but was
+  never used in the ZHL loop. Added a proper `finalAscentDur = cur / surfaceRate`
+  leg with `saturateLinear` off-gassing pushed as its own visible step. Effect:
+  +1 min RT/TTS on 3 m last-stop dives, +2 min on 6 m last-stop dives. Confirmed
+  via DiveKit's published `inputs.json` which lists `surfaceAscentMPerMin` as a
+  dedicated separate field distinct from deep- and deco-ascent rates.
+- Audit: 3 new checks added (GROUP 32). Total: 191 checks, 0 failures.
+
+---
+
 ## v2.10.12 — 2026-06-17
 
 ### Fixed
