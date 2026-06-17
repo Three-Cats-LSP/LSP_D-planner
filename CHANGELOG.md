@@ -4,9 +4,72 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.10.10 — 2026-06-17
+
+### Added
+- **TTS (time-to-surface) metric** — LSP had no TTS field at all, despite MultiDeco and DiveKit both reporting it as a primary metric in the 3-way comparison. Added `tts = rt - bt` (ascent+deco only, excluding descent and bottom time), computed inside `runDecoSchedule()` before the headless early-return so it's available both in the live app and in headless tests. Stored on `window._lastPlan.tts`, exposed via `ZHLEngine.calculate()`'s return object, and displayed in the footer between Run time and Deco time.
+
+### Fixed
+- **Decozone start was GF-dependent — should not be** — LSP's `decoZoneStart` was an alias for `firstStopDepth` (the GF-anchored first mandatory stop), not the GF-independent "ambient-crossing depth" that MultiDeco and DiveKit report. Per DiveKit's own documentation, gradient factors move the M-value line, not the ambient line, so the same physical dive at two different GF settings must report the *same* decozone value even though their first stops differ. LSP was instead reporting `firstStopDepth` directly, which is GF-dependent by definition — producing reported decozone values 9-11m shallower than MultiDeco/DiveKit on every scenario in the comparison set.
+  - Added `ambientCrossingDepth(tissues)`: a purely physical calculation (no Bühlmann M-value or GF involved) that finds the depth where any tissue compartment's raw inert-gas tension (pN2+pHe) first exceeds ambient pressure, evaluated at the end-of-bottom tissue snapshot.
+  - Replaced `_lastPlan.decoZoneStart` and the footer display to use this new value instead of `firstStopDepth`. Fixed a stale tooltip that described the old (incorrect) definition.
+  - Verified the fix reproduces DiveKit's own documented GF-independence test case exactly: S2 (GF30/70) and S7 (GF50/80) — the same 45m/22min air dive — both now report decozone ≈32.0m identically, while their first stops correctly differ (21m vs 15m).
+  - Confirmed LSP's separate VPM engine already computed its own decozone correctly via a continuous Schreiner-ascent tissue-vs-ambient comparison (`calcStartOfDecoZone`) — only the ZHL+GF engine had this bug.
+
+### Changed
+- **Audit** — Added GROUP 31 (7 checks): TTS computation, storage, exposure, and display; decozone GF-independent function, storage, and display. Total: 188 checks, 0 failures.
+- **`APP_VERSION`** — bumped to `2.10.10`.
+
+---
+
+## v2.10.9 — 2026-06-17  ★ Critical fix
+
+### Fixed
+- **GF anchor regression: first stop landing 1-3 steps shallower than correct, deco time silently under-counted** — Found via a full 3-way comparison run against divekit.app's published MultiDeco/DiveKit reference dataset (26 scenarios). The v2.10.7 `gfAt()` fix returned `gfH` (GF High) when `firstStopDepth` was unanchored, intending it as "the liberal, no-stop-yet" test. But per Baker's published gradient-factor algorithm — and DAN's own description of it — **GF Low is what determines the first stop**, not GF High; GF High only bounds the final approach to the surface. Returning `gfH` pre-anchor meant the ascent-and-test loop only required a stop once the *loose* GF-High M-value was itself violated, which happens much deeper into supersaturation than the GF-Low M-value. The result: the GF line anchored 1-3 deco steps shallower than correct, and the intermediate stops above that depth were skipped entirely — along with their deco time.
+  - Confirmed via an independent `ceiling()` sweep against a 30m/23min air GF30/70 profile (S1 in the comparison set): `ceiling(tissues, gfLow=0.30) = 11.76m` (correctly rounds to the 12m first stop matching MultiDeco and DiveKit exactly), while `ceiling(tissues, gfHigh=0.70) = 5.44m` was what the regressed `gfAt()` was actually testing against — explaining the spurious anchor at 6m and the missing 12m/9m stops.
+  - Fixed: `gfAt()` now returns `gfL` (not `gfH`) when unanchored. The dynamic-anchor mechanism from v2.10.7 (anchoring at the actual depth where `mustStop` first fires, rather than a pre-computed bottom-tissue snapshot) is otherwise unchanged and remains correct — only the pre-anchor test GF was wrong.
+  - Re-verified against the full 21-scenario runnable subset of the comparison set: every air/nitrox profile (S1-S4, FS1, FS3, FS4, R1) now matches MultiDeco's and DiveKit's first-stop depth exactly. Trimix profiles (S5, S6, A2, A3, FS5) land shallower than MultiDeco by 1-4 steps, matching DiveKit's own documented "stop distribution" explanation (continuous tissue recompute during ascent lets helium off-gas faster than the diver climbs on deep-helium dives) rather than indicating a remaining bug.
+  - Also re-verified this fix does not reintroduce the original v2.10.7 bug (pre-computed-snapshot rounding overshoot): the dynamic anchor still fires at the live, correctly-resolved depth during the ascent loop, not from a single bottom-tissue snapshot.
+
+### Changed
+- **Audit** — Added GROUP 30 (1 check): `gfAt()` returns `gfL` (not `gfH`) pre-anchor. Total: 181 checks, 0 failures.
+- **`APP_VERSION`** — bumped to `2.10.9`.
+
+---
+
+## v2.10.8 — 2026-06-17
+
+### Fixed
+- **Headless CNS/OTU silently omitted descent and bottom-time exposure** — Found via a 3-way LSP/MultiDeco/DiveKit comparison run (divekit.app cross-reference dataset, 26 scenarios). `window._lastPlan.steps` only ever contains ascent/deco segments; descent and bottom time are rendered straight to DOM in the live app and never pushed into `steps`. `ZHLEngine.calculate()`'s headless CNS/OTU fallback summed only `lp.steps`, so every headless-computed CNS%/OTU value silently excluded descent and the full bottom-time exposure — typically the majority of a dive's total O₂ load. A 40m/25min air dive that should read ~10% CNS / ~29 OTU was reporting 0.8% / 2.
+  - This was a **test-infrastructure bug only**: the live app's DOM-rendering path (`runDecoSchedule`'s non-headless branch) already accumulates CNS/OTU correctly across the full table, including descent and bottom rows. Divers using the app were never shown wrong numbers.
+  - It went undetected because the existing automated suites (`tests-massive.html` etc.) only assert finiteness and relative ordering ("longer dive ≥ CNS", "deeper dive ≥ CNS") — never magnitude against a known-correct reference value, so the systematic ~80-95% under-count never tripped a test.
+  - Fixed: added explicit descent (average depth = `level.depth / 2`, duration = `level.depth / descentRate`) and bottom-time (full `level.time` at full depth) exposure terms before summing the ascent/deco steps, refactored into a shared `addExposure()` helper.
+  - Verified post-fix against the relative-ordering tests (still pass) and against the 3-way comparison dataset: LSP's recomputed CNS/OTU now land in the same range as MultiDeco's and DiveKit's reported values for equivalent profiles.
+
+### Changed
+- **Audit** — Added GROUP 29 (3 checks): `addExposure()` helper present, descent exposure included, bottom-time exposure included. Total: 180 checks, 0 failures.
+- **`APP_VERSION`** — bumped to `2.10.8`.
+
+---
+
+## v2.10.7 — 2026-06-17
+
+### Fixed
+- **GF first-stop anchor used a pre-computed ceiling instead of the actual first stop** — `firstStopDepth` was computed once from `ceiling(bottom_tissues, gfLow)` *before* ascent began, rounded up to the nearest stop-step. For Air+EAN50-style profiles this pre-computed value could land one step shallower than the depth where a stop is actually required (e.g. rounding to 21m when the real ceiling search finds no stop needed until 18m or shallower), producing a spurious mandatory stop that neither MultiDeco nor a from-scratch Baker/Bühlmann implementation would generate.
+  - Fixed: `firstStopDepth` is now a mutable `let`, initialised to `0`. `gfAt()` returns `gfH` (the liberal, pre-anchor ceiling) until the GF line is actually anchored. The anchor is set dynamically, the moment `mustStop` first fires during the real ascent-and-test loop, at the actual depth where a stop is required — matching Baker's published algorithm and MultiDeco's behaviour.
+  - `candidateFirstStop` (still `gfLow`-derived) is retained only to build the candidate stop-depth list for the ascent loop to iterate; since `gfLow ≤ gfHigh` always holds, this candidate is always at or deeper than the true first stop, so the loop can never miss it.
+  - `minStopZoneDepth` follows the same dynamic-anchor pattern — minimum-stop-time enforcement does not begin until the real first stop is known.
+  - `decoZoneStart` footer/export now reports the actual first-stop depth rather than the pre-computed estimate.
+- Verified via a live jsdom run against the engine across NDL dives, a flat GF50/50 line, GF30/100 (no surfacing conservatism), and a TMX18/45 trimix profile — all produced clean, spurious-stop-free schedules with correct monotonic runtimes.
+
+### Changed
+- **Audit** — Added GROUP 28 (5 checks): `firstStopDepth` mutability, `candidateFirstStop` usage, dynamic anchor assignment, `minStopZoneDepth` mutability and dynamic assignment. Total: 177 checks, 0 failures.
+
+---
+
 ## v2.10.6 — 2026-06-16  ★ Milestone
 
-MultiDeco/DiveKit alignment milestone — unified water pressure factors (ZHL + VPM), O₂-band ppO₂ caps, Baker He HT default, repetitive VPM CNS/OTU carry, `BAR_PER_METRE` consistency, VPM render fixes (altitude ppO₂, imperial switch depth). Audit: 172 checks; regression: 68/68 verify + 50/50 tests.
+Multideco/DiveKit alignment milestone — unified water pressure factors (ZHL + VPM), O₂-band ppO₂ caps, Baker He HT default, repetitive VPM CNS/OTU carry, `BAR_PER_METRE` consistency, VPM render fixes (altitude ppO₂, imperial switch depth). Audit: 172 checks; regression: 68/68 verify + 50/50 tests.
 
 ### Fixed
 - **VPM ppO₂ display uses hardcoded sea-level pressure** — All pressure calculations in `renderVPMResults` used `1.013` (sea level) instead of `altSurfaceP`. Altitude dives showed incorrect ppO₂ values in the VPM deco table (gas switch rows, descent, bottom, ascent, and stop rows). Fixed: `surfP = altSurfaceP || 1.01325` declared at function top, used throughout.

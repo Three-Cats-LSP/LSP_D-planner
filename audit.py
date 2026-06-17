@@ -1369,6 +1369,155 @@ else:
 
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 28 — GF FIRST-STOP ANCHOR FIX (v2.10.7)
+# Bug: firstStopDepth was pre-computed from ceiling(bottom_tissues, gfL) → caused
+# spurious stop at 21m for Air+EAN50 dives (MultiDeco shows first stop at 18m).
+# Fix: firstStopDepth is now anchored dynamically at the ACTUAL first mustStop depth.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 28.1 firstStopDepth must be declared as `let` (mutable), not `const`
+# The old bug used `const firstStopDepth = ...` pre-computed from bottom tissues.
+if re.search(r'let firstStopDepth = 0;', js):
+    ok("GF anchor: firstStopDepth declared as `let` (mutable, dynamically anchored)")
+else:
+    fail("GF anchor: firstStopDepth must be `let firstStopDepth = 0` — pre-computed const causes spurious stops")
+
+# 28.2 candidateFirstStop used for stop list, not firstStopDepth
+# The candidate stop list must be built from candidateFirstStop, not the old firstStopDepth.
+if re.search(r'const candidateFirstStop = bottomCeil > 0', js):
+    ok("GF anchor: stop list built from candidateFirstStop (not pre-computed firstStopDepth)")
+else:
+    fail("GF anchor: missing candidateFirstStop — stop list must use candidate variable, not firstStopDepth")
+
+# 28.3 firstStopDepth is anchored in the mustStop branch
+# The fix must set firstStopDepth = cur when the first required stop is found.
+if re.search(r'firstStopDepth\s*=\s*cur;\s*//\s*anchor GF line', js):
+    ok("GF anchor: firstStopDepth set to cur at first mustStop (anchor from actual first stop)")
+else:
+    fail("GF anchor: firstStopDepth not anchored at first mustStop — spurious stop bug will recur")
+
+# 28.4 minStopZoneDepth is declared as `let` (not const) and starts as null
+# With dynamic anchoring, minStopZoneDepth must be null until first stop is known.
+if re.search(r'let minStopZoneDepth = null;', js):
+    ok("GF anchor: minStopZoneDepth starts as null (set when first stop is known)")
+else:
+    fail("GF anchor: minStopZoneDepth must be `let ... = null` — const from pre-computed firstStopDepth is broken")
+
+# 28.5 minStopZoneDepth is set in mustStop branch alongside firstStopDepth
+if re.search(r'minStopZoneDepth\s*=\s*cur;\s*//\s*enable min-stop', js):
+    ok("GF anchor: minStopZoneDepth set to cur at first mustStop (min-stop enforcement enabled)")
+else:
+    fail("GF anchor: minStopZoneDepth not set at first mustStop — min-stop enforcement may fail")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 29 — HEADLESS CNS/OTU DESCENT+BOTTOM FIX (v2.10.8)
+# Bug found via 3-way DiveKit/MultiDeco/LSP comparison: window._lastPlan.steps
+# only contains ascent/deco segments (descent + bottom are rendered straight to
+# DOM in the live app, never pushed into `steps`). The headless CNS/OTU fallback
+# in ZHLEngine.calculate() summed only `lp.steps`, silently omitting descent and
+# the full bottom-time exposure — the dominant share of CNS/OTU on most dives.
+# This was a test-infrastructure bug only: the live DOM-rendering path computes
+# CNS/OTU correctly across the full table. Existing tests never caught it because
+# they only assert finiteness/ordering, never magnitude against a known value.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 29.1 addExposure() helper present (refactored from inline duplicate logic)
+if re.search(r'function addExposure\(ppO2, dur\)', js):
+    ok("Headless CNS/OTU: addExposure() helper present (shared by descent/bottom/steps)")
+else:
+    fail("Headless CNS/OTU: addExposure() helper missing — descent/bottom fix may be reverted")
+
+# 29.2 Descent exposure added before the steps loop
+if re.search(r'hDescentTime = level\.depth / hDescentRate', js) and \
+   re.search(r'addExposure\(\(hAltP \+ \(level\.depth / 2\) \* hBAR\) \* fO2bot, hDescentTime\)', js):
+    ok("Headless CNS/OTU: descent exposure (avg depth = level.depth/2) now included")
+else:
+    fail("Headless CNS/OTU: descent exposure missing — CNS/OTU will under-report vs live app")
+
+# 29.3 Bottom-time exposure added before the steps loop
+if re.search(r'addExposure\(\(hAltP \+ level\.depth \* hBAR\) \* fO2bot, level\.time\)', js):
+    ok("Headless CNS/OTU: bottom-time exposure (full level.time at full depth) now included")
+else:
+    fail("Headless CNS/OTU: bottom-time exposure missing — CNS/OTU will under-report vs live app, since bottom time is the majority of most dives' O2 exposure")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 30 — GF-LOW PRE-ANCHOR REGRESSION FIX (v2.10.9)
+# Bug found via 3-way comparison against MultiDeco/DiveKit reference data: the
+# v2.10.7 gfAt() fix returned gfH (not gfL) when firstStopDepth was unanchored.
+# Per Baker's published algorithm (and DAN/Erik Baker's own description), GF LOW
+# is what determines the first stop — not GF High. Returning gfH pre-anchor made
+# the search use the loose GF-High M-value, so the loop only stopped once GF-High
+# itself was violated, anchoring 1-3 deco steps shallower than correct and
+# silently dropping total deco time (confirmed: S1 30m/23min air GF30/70 should
+# anchor at 12m matching MultiDeco/DiveKit exactly; the gfH-pre-anchor bug instead
+# anchored at 6m, skipping the 12m and 9m stops entirely).
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 30.1 gfAt() returns gfL (not gfH) when firstStopDepth is unanchored
+if re.search(r'if \(!firstStopDepth \|\| firstStopDepth <= 0\) return gfL;', js):
+    ok("GF anchor: gfAt() returns gfL pre-anchor (correct — GF Low determines first stop per Baker)")
+elif re.search(r'if \(!firstStopDepth \|\| firstStopDepth <= 0\) return gfH;', js):
+    fail("GF anchor: gfAt() returns gfH pre-anchor — REGRESSION. Anchors 1-3 steps shallower than correct; GF Low must be used to find the first stop, not GF High.")
+else:
+    fail("GF anchor: gfAt() pre-anchor return value not found or changed structure")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 31 — TTS METRIC + DECOZONE GF-INDEPENDENCE FIX (v2.10.10)
+# Found via 3-way comparison against MultiDeco/DiveKit: (1) LSP had no TTS
+# (time-to-surface) metric at all, despite MultiDeco/DiveKit both reporting it
+# as a primary field; (2) LSP's "decozone start" was actually an alias for
+# firstStopDepth (the GF-anchored first stop), not the GF-independent ambient-
+# crossing depth MultiDeco/DiveKit report — same dive at different GF settings
+# was wrongly reporting different decozone values, off by 10+ metres from
+# reference on several scenarios.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 31.1 TTS computed in the engine (headless-safe) as rt - bt
+if re.search(r'const ttsMin = Math\.max\(0, rt - bt\);', js):
+    ok("TTS: computed as rt-bt (ascent+deco only) before the headless early-return")
+else:
+    fail("TTS: rt-bt computation missing — TTS will be unavailable in headless tests")
+
+# 31.2 TTS stored on window._lastPlan
+if re.search(r'tts: Math\.round\(ttsMin \* 10\) / 10,', js):
+    ok("TTS: stored on window._lastPlan.tts")
+else:
+    fail("TTS: not stored on _lastPlan — headless ZHLEngine.calculate() callers cannot read it")
+
+# 31.3 TTS exposed in ZHLEngine.calculate() return object
+if re.search(r'tts: lp\.tts \|\| 0,', js):
+    ok("TTS: exposed in ZHLEngine.calculate() return object")
+else:
+    fail("TTS: missing from calculate() return object")
+
+# 31.4 TTS shown in the live footer
+if re.search(r'>TTS:</span>', js):
+    ok("TTS: displayed in the live-render footer")
+else:
+    fail("TTS: not displayed in footer — feature incomplete")
+
+# 31.5 ambientCrossingDepth() function present — the GF-independent decozone calc
+if re.search(r'function ambientCrossingDepth\(tissues\)', js):
+    ok("Decozone: ambientCrossingDepth() GF-independent function present")
+else:
+    fail("Decozone: ambientCrossingDepth() missing — decozone fix may be reverted")
+
+# 31.6 decoZoneStart in _lastPlan uses the new GF-independent value, not firstStopDepth
+if re.search(r'decoZoneStart: trueDecoZoneStart,', js):
+    ok("Decozone: _lastPlan.decoZoneStart uses trueDecoZoneStart (GF-independent)")
+elif re.search(r'decoZoneStart: hasDeco \? firstStopDepth : 0,', js):
+    fail("Decozone: _lastPlan.decoZoneStart still aliases firstStopDepth — REGRESSION, will vary incorrectly with GF Lo/Hi")
+else:
+    fail("Decozone: _lastPlan.decoZoneStart assignment not found or changed structure")
+
+# 31.7 Footer decozone display uses the GF-independent value
+if re.search(r'formatDecoZoneStart\(trueDecoZoneStart\)', js):
+    ok("Decozone: footer display uses trueDecoZoneStart (GF-independent)")
+else:
+    fail("Decozone: footer display not using trueDecoZoneStart — live render may still show GF-dependent value")
+
+
 print(f"\nLSP D-Planner Audit — {path}")
 print("=" * 60)
 
