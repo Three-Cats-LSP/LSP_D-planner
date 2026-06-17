@@ -3179,7 +3179,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td { color: #007A33 !import
   }
 })();
 
-const APP_VERSION = '2.10.11';
+const APP_VERSION = '2.10.12';
 window.APP_VERSION = APP_VERSION;
 // _zhlPrewarmed: set true by test harness after first headless run to skip
 // DOM warm-up cost on subsequent calls. Kept as a no-op flag for compatibility.
@@ -5477,6 +5477,7 @@ function _doResetToDefaults(userDefaults) {
 
 function getActiveGas(curDepthM, bottomFN2, decoGases, getPPO2LimitFn, bottomLabel) {
   let best = null;
+  let bestFO2 = -1;
   for (const dg of decoGases) {
     if (curDepthM > dg.depth) continue;
     // fO2 = 1-fN2-fHe for trimix; dg.fO2 is stored when available (Bug fix: 1-fN2 wrong for trimix)
@@ -5489,8 +5490,13 @@ function getActiveGas(curDepthM, bottomFN2, decoGases, getPPO2LimitFn, bottomLab
       const ppO2AtCur = (altSurfaceP + curDepthM * BAR_PER_METRE) * fO2;
       if (ppO2AtCur > limit + 0.001) continue;
     }
-    if (best === null || dg.fN2 < best.fN2) {
+    // BUGFIX: select by highest O2 fraction, not lowest N2.
+    // Selecting by min-fN2 incorrectly prefers trimix deco gases (e.g. Tx21/35, fN2=0.44)
+    // over high-O2 nitrox (e.g. EAN50, fN2=0.50) even when the nitrox has more O2 (0.50 vs 0.21).
+    // Max-fO2 is the correct criterion: always use the richest available O2 gas within ppO2 limits.
+    if (fO2 > bestFO2) {
       best = dg;
+      bestFO2 = fO2;
     }
   }
   return best || { fN2: bottomFN2, fHe: 0, label: bottomLabel || 'Bottom' };
@@ -8060,6 +8066,28 @@ function runDecoSchedule() {
   // Saturate tissues at depth for bottom time
   let tissues = initTissues();
 
+  // ── Repetitive dive tissue carry (ZHL) ───────────────────────────────────
+  // ZHLEngine.calculate() sets window._zhlRepState before calling runDecoSchedule
+  // to carry end-of-dive tissues from a previous dive with a surface interval.
+  if (window._zhlRepState && Array.isArray(window._zhlRepState.tissues)) {
+    const rep = window._zhlRepState;
+    for (let i = 0; i < tissues.length && i < rep.tissues.length; i++) {
+      tissues[i].pN2 = rep.tissues[i].pN2;
+      tissues[i].pHe = rep.tissues[i].pHe || 0;
+    }
+    if (rep.surfaceIntervalMin > 0) {
+      const siMin = rep.surfaceIntervalMin;
+      const wv = WATER_VAPOR || 0.0627;
+      const inspN2 = 0.7902 * ((altSurfaceP || 1.01325) - wv);
+      for (let i = 0; i < tissues.length; i++) {
+        const kN2 = Math.LN2 / ZHL16C_N2[i].ht;
+        const kHe = Math.LN2 / (ZHL16C_He[i].ht || 1);
+        tissues[i].pN2 = inspN2 + (tissues[i].pN2 - inspN2) * Math.exp(-kN2 * siMin);
+        tissues[i].pHe = (tissues[i].pHe || 0) * Math.exp(-kHe * siMin);
+      }
+    }
+  }
+
   // Descent phase — split by travel gas switch depth if travel gas is active
   const descentTime = depthM / descentRate;
   if (travelInfo && travelSwitchM > 0 && travelSwitchM < depthM) {
@@ -8388,6 +8416,7 @@ function runDecoSchedule() {
     stops: decoStops.map(s => ({ depth: s.depth, dur: s.dur, gas: s.gas })),
     steps: collapsed,
     decoZoneStart: trueDecoZoneStart,
+    finalTissues: tissues.map(t => ({ pN2: t.pN2, pHe: t.pHe || 0 })),  // for ZHL repetitive dive carry
   };
 
   // ── Headless mode early return: skip ceiling/graph/DOM work ─────────────
@@ -9152,6 +9181,14 @@ const ZHLEngine = (() => {
       }
     });
 
+    // ── Set up repetitive-dive tissue state for headless run ────────────────
+    // BUGFIX (v2.10.12): ZHLEngine.calculate() never forwarded _preTissues /
+    // _surfaceInterval to runDecoSchedule. The hook uses window._zhlRepState
+    // (set here, cleared after restore) so runDecoSchedule can pick it up.
+    window._zhlRepState = (s._preTissues && s._preTissues.length)
+      ? { tissues: s._preTissues, surfaceIntervalMin: s._surfaceInterval || 0 }
+      : null;
+
     // ── Run the Bühlmann engine (headless — skip DOM rendering) ─────────────
     window._zhlHeadless = true;
     window._lastPlan = null;
@@ -9159,6 +9196,7 @@ const ZHLEngine = (() => {
       runDecoSchedule();
     } catch(e) {
       window._zhlHeadless = false;
+      window._zhlRepState = null;   // clear on error path too
       mGF.low = prevGF.low; mGF.high = prevGF.high;
       if (units !== prevUnits) setUnits(prevUnits);
       if (algoEl) algoEl.value = prevAlgo;
@@ -9220,6 +9258,9 @@ const ZHLEngine = (() => {
     _addedDGIdxs.forEach(idx => { const card = document.getElementById(`dgCard_${idx}`); if (card) card.remove(); });
     if (_addedDGIdxs.length > 0 && typeof renumberDecoGasCards === 'function') renumberDecoGasCards();
 
+    // Clear repetitive state — must not leak into subsequent calls
+    window._zhlRepState = null;
+
     if (!lp) return { error: 'No plan generated', stops: [], plan: [], totalRuntime: 0 };
 
     // ── Map _lastPlan to VPMEngine-compatible result interface ────────────────
@@ -9264,6 +9305,7 @@ const ZHLEngine = (() => {
       tts: lp.tts || 0,
       totalOTU: lp.totalOTU || 0,
       totalCNS: lp.totalCNS || 0,
+      finalTissues: lp.finalTissues || null,   // for ZHL repetitive dive carry
       depthUnit: isMetric ? 'm' : 'ft',
       error: null
     };
