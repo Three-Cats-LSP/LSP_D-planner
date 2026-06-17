@@ -1518,6 +1518,35 @@ else:
     fail("Decozone: footer display not using trueDecoZoneStart — live render may still show GF-dependent value")
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 32 — MISSING FINAL SURFACE-ASCENT LEG (post-v2.10.12)
+# Found via divekit.app's published inputs.json: MultiDeco/DiveKit both use a
+# dedicated, slower surfaceAscentMPerMin rate for the final leg from the last
+# stop to the surface, distinct from the deep and deco rates. LSP's ZHL engine
+# had a surfaceAscentRate UI field and variable, but it was only ever passed to
+# runVPMSchedule — the ZHL ascent loop itself treated surfacing as instantaneous
+# (zero time, zero off-gassing) once the last stop's hold finished.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 32.1 Final ascent leg present after the main stop loop, using surfaceRate
+if re.search(r'const finalAscentDur = cur / surfaceRate;', js):
+    ok("Final ascent: surfaceRate-based leg from lastStop to surface present")
+else:
+    fail("Final ascent: surfaceRate leg missing — surfacing time/off-gassing undercounted")
+
+# 32.2 Final ascent applies off-gassing via saturateLinear (not treated as instant)
+if re.search(r'tissues = saturateLinear\\(tissues, cur, 0, finalAscentDur', js):
+    ok("Final ascent: off-gassing applied via saturateLinear during the final leg")
+else:
+    fail("Final ascent: off-gassing not applied — tissue state wrong for repetitive-dive surface interval")
+
+# 32.3 Final ascent leg is pushed as its own step (visible in plan/exports)
+if re.search(r"type: 'ascent', from: cur, to: 0,", js):
+    ok("Final ascent: pushed as a visible step (from=lastStop, to=0)")
+else:
+    fail("Final ascent: step not pushed — RT/TTS may update but plan/exports won't show the leg")
+
+
 print(f"\nLSP D-Planner Audit — {path}")
 print("=" * 60)
 
