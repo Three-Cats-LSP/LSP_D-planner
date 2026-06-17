@@ -6,7 +6,7 @@ Part of the [Three Cats LSP](https://threecats-lsp.com) **Diver's Toolkit**.
 
 🌐 **Live App**: https://threecats-lsp.com/d-planner/
 
-**Current version: 2.10.12**
+**Current version: 2.10.43**
 
 ---
 
@@ -118,8 +118,32 @@ Full decompression schedule calculation for multi-gas technical dives:
 - Stop rounding: whole minute or 30-second intervals
 - Water vapour correction (default **0.0577 bar** — MultiDeco; Bühlmann **0.0627 bar** also available)
 - **Transit Mode** — Schreiner (accurate) or MultiDeco-compatible ascent tissue loading
-- **END column** — Equivalent Narcotic Depth in the deco table; trimix-aware
-- Colour-coded deco table: descent, bottom, deco stops, gas switch rows
+- **EAD / END columns** — Equivalent Air Depth and Equivalent Narcotic Depth in the deco table; trimix-aware
+- Colour-coded deco table: descent, bottom, first deco stop, gas switch rows
+
+### Deco Table Column Order
+
+| # | Column | Description |
+|---|--------|-------------|
+| 0 | Phase | Row type (Desc / Bott / Deco / Switch) |
+| 1 | Depth | Stop depth in m or ft |
+| 2 | Stop | Stop duration in minutes |
+| 3 | Mix | Gas mix label (e.g. `21/35`, `50/00`) |
+| 4 | Run | Cumulative run time MM:SS |
+| 5 | TTS | Time To Surface from this stop |
+| 6 | PPO2 | Partial pressure of O₂ at stop depth |
+| 7 | END | Equivalent Narcotic Depth |
+| 8 | EAD | Equivalent Air Depth |
+| 9 | CNS% | CNS oxygen toxicity contribution |
+
+Columns auto-size to their content (`width:min-content`) — no fixed widths, no empty space. The table wrapper enables horizontal scroll on small screens.
+
+### Warning Banners
+
+Both warning banners use the same unified red style (`#FF4433` background, white bold text):
+
+- **NARCOTIC DEPTH WARNING** — shown when END exceeds the narcotic depth threshold
+- **DECOMPRESSION DIVE** — shown when the dive requires decompression stops
 
 ---
 
@@ -224,7 +248,7 @@ Section picker dialog before export. Available sections:
 - GF Curve
 - Tissue Saturation
 
-All sections use DejaVu Sans Unicode font. 9-column deco table (Phase / Depth / Stop / Run / Mix / EAD / END / PPO2 / CNS%). Proper ✓ ✗ ⚠ rendering. Saved to device Downloads folder on Android.
+All sections use DejaVu Sans Unicode font. 10-column deco table (Phase / Depth / Stop / Mix / Run / TTS / PPO2 / END / EAD / CNS%). Proper ✓ ✗ ⚠ rendering. Saved to device Downloads folder on Android.
 
 ### PDF Export (Emergency Plan)
 Section picker dialog before export. Available sections:
@@ -287,6 +311,7 @@ Quick planning calculators and reference material:
 - **`?` reference panel — Links:** Diver's Toolkit hub, LSP D-Planner GitHub, APK download, Thingiverse, Instagram, PayPal
 - Collapsible result cards (Gas Consumption, Contingency Plans, Dive Graph, Tissue Saturation, GF Curve) with right-side caret
 - All settings cards use a consistent grid layout; mobile-responsive
+- Gas switch rows highlighted in amber (`#FFBF00`) in light mode, full-width border on all 10 columns
 
 ---
 
@@ -299,7 +324,7 @@ Quick planning calculators and reference material:
 | [`tests-massive.html`](https://threecats-lsp.com/d-planner/tests-massive.html) | 446-test regression suite — engines, UI/DOM, Tier 1–3 scenarios, travel gas, altitude, trimix, VPM-B/GFS, GF UI, gas plan, slate, presets |
 | [`tests-massive-main.html`](https://threecats-lsp.com/d-planner/tests-massive-main.html) | Mobile-optimised — same scope as tests-massive, minus heaviest Tier 3 groups |
 | [`tests-verify.html`](https://threecats-lsp.com/d-planner/tests-verify.html) | **Math Verification Suite** — ZHL-16C + VPM-B cross-check vs Baker/FORTRAN reference; sections A–H (pinned regression, Baker cross-check, Maiken invariants, coefficient verification, physics constants, determinism, MultiDeco/V-Planner compatibility) |
-| `audit.py` | Static analysis — **188** structural checks across 31 code groups. Run before every commit. |
+| `audit.py` | Static analysis — **191** structural checks across 31 code groups. Run before every commit. |
 
 ```bash
 python3 audit.py index.html
@@ -310,7 +335,7 @@ python3 audit.py index.html
 ## Repository Structure
 
 | Path | Purpose |
-|------|---------|
+|------|---------| 
 | `index.html` | Self-contained web app — the entire planner in one file |
 | `capacitor-bridge.js` | Android native file export bridge (Capacitor) |
 | `sw.js` | Service worker — offline caching, network-first for HTML |
@@ -376,4 +401,4 @@ Android APK is built automatically by GitHub Actions on every push to `main` and
 
 *Developed by Three Cats LSP · [@threecats_lsp](https://www.instagram.com/threecats_lsp)*
 
-See [CHANGELOG.md](CHANGELOG.md) for version history. Current release: **v2.10.12**.
+See [CHANGELOG.md](CHANGELOG.md) for version history. Current release: **v2.10.43**.
