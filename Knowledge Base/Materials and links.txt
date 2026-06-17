@@ -97,6 +97,20 @@ Open source  Subsurface planner
 https://github.com/subsurface/subsurface
 
 
+--- DiveKit (MultiDeco cross-validation, June 2026) ---
+
+DiveKit engine documentation
+https://divekit.app/docs/
+
+MultiDeco comparison (primary reference for LSP alignment work)
+https://divekit.app/docs/engine/compared-to-multideco/
+
+26-scenario cross-reference JSON (inputs + MultiDeco + DiveKit results)
+https://divekit.app/data/cross-reference/
+
+Local copies: Knowledge Base/divekit-cross-reference/ and DiveKit_Engine_Knowledge_Base.md
+
+
  VPM-B Source Gist
 https://gist.github.com/eskil/a1b8365b31cb95253f78186125c89fda
 

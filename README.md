@@ -6,7 +6,7 @@ Part of the [Three Cats LSP](https://threecats-lsp.com) **Diver's Toolkit**.
 
 🌐 **Live App**: https://threecats-lsp.com/d-planner/
 
-**Current version: 2.10.1**
+**Current version: 2.10.12**
 
 ---
 
@@ -116,7 +116,7 @@ Full decompression schedule calculation for multi-gas technical dives:
 
 - Configurable descent rate, ascent rate, deco ascent rate, and surface ascent rate
 - Stop rounding: whole minute or 30-second intervals
-- Water vapour correction (Bühlmann standard 0.0627 bar)
+- Water vapour correction (default **0.0577 bar** — MultiDeco; Bühlmann **0.0627 bar** also available)
 - **Transit Mode** — Schreiner (accurate) or MultiDeco-compatible ascent tissue loading
 - **END column** — Equivalent Narcotic Depth in the deco table; trimix-aware
 - Colour-coded deco table: descent, bottom, deco stops, gas switch rows
@@ -299,7 +299,7 @@ Quick planning calculators and reference material:
 | [`tests-massive.html`](https://threecats-lsp.com/d-planner/tests-massive.html) | 446-test regression suite — engines, UI/DOM, Tier 1–3 scenarios, travel gas, altitude, trimix, VPM-B/GFS, GF UI, gas plan, slate, presets |
 | [`tests-massive-main.html`](https://threecats-lsp.com/d-planner/tests-massive-main.html) | Mobile-optimised — same scope as tests-massive, minus heaviest Tier 3 groups |
 | [`tests-verify.html`](https://threecats-lsp.com/d-planner/tests-verify.html) | **Math Verification Suite** — ZHL-16C + VPM-B cross-check vs Baker/FORTRAN reference; sections A–H (pinned regression, Baker cross-check, Maiken invariants, coefficient verification, physics constants, determinism, MultiDeco/V-Planner compatibility) |
-| `audit.py` | Static analysis — structural checks across 20+ code groups. Run before every commit. |
+| `audit.py` | Static analysis — **188** structural checks across 31 code groups. Run before every commit. |
 
 ```bash
 python3 audit.py index.html
@@ -322,7 +322,7 @@ python3 audit.py index.html
 | `VpmbGfsPlanner.java` | VPM-B/GF planner Java |
 | `android/` | Capacitor Android project |
 | `Android Apk/` | Latest built APK (auto-updated by CI) |
-| `Knowledge Base/` | 18 reference PDFs (Baker FORTRAN source, EUBS proceedings, published Bühlmann/VPM comparisons) |
+| `Knowledge Base/` | Reference PDFs, DiveKit/MultiDeco cross-reference data, Baker FORTRAN source, study links |
 
 ### Knowledge Base
 
@@ -346,6 +346,8 @@ python3 audit.py index.html
 | `Comparison_VPMB_vs_RGBM_GF_200ft_Trimix1845_TandG.pdf` | VPM-B vs RGBM/GF — T&G comparison 200 ft |
 | `Comparison_HSE_vs_GAP_RGBM_200ft_Trimix1845.pdf` | HSE vs GAP RGBM — 200 ft trimix |
 | `Materials and links.txt` | Additional study links and references |
+| `DiveKit_Engine_Knowledge_Base.md` | DiveKit engine docs + MultiDeco comparison synthesis for LSP |
+| `divekit-cross-reference/` | Published 26-scenario inputs + MultiDeco/DiveKit results JSON |
 
 ---
 
@@ -374,4 +376,4 @@ Android APK is built automatically by GitHub Actions on every push to `main` and
 
 *Developed by Three Cats LSP · [@threecats_lsp](https://www.instagram.com/threecats_lsp)*
 
-See [CHANGELOG.md](CHANGELOG.md) for version history. Current release: **v2.10.1**.
+See [CHANGELOG.md](CHANGELOG.md) for version history. Current release: **v2.10.12**.

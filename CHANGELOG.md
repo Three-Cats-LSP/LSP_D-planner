@@ -4,6 +4,31 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.10.12 — 2026-06-17
+
+### Fixed
+- **`getActiveGas()` max-fO₂ criterion** — The gas selector used a min-fN₂ rule, which preferred Tx21/35 travel gas (fN₂=0.44) over EAN50 (fN₂=0.50) despite EAN50 having 50% O₂ vs 21%. Switched to **max-fO₂** (highest O₂ gas that is MOD-safe). Trimix + nitrox deco plans now pick the correct deco gas.
+- **ZHL headless repetitive dive tissue carry** — `runDecoSchedule()` always called `initTissues()` fresh, so multi-dive ZHL plans could not carry tissue state. Added `window._zhlRepState` hook: `ZHLEngine.calculate()` injects `_preTissues` / `_surfaceInterval` before the headless run and clears it after (including error paths). `finalTissues` added to `_lastPlan` and forwarded in the headless return object.
+
+### Changed
+- **`APP_VERSION`** — bumped to `2.10.12`; `build.gradle` `versionCode` updated to `21012`.
+
+---
+
+## v2.10.11 — 2026-06-17
+
+### Fixed
+- **Bottom gas trimix He ignored in headless wrapper** — `ZHLEngine.calculate()` mapped trimix to non-existent `decoCustomHe` elements instead of `decoGas='trimix'` + `botTrimixO2` / `botTrimixHe`. Tx15/55 dives loaded as Tx15/00 (zero He).
+- **Deco gas trimix He ignored in headless wrapper** — Same bug on deco gas cards (`dgCustomHe` vs `dgTrimixO2` / `dgTrimixHe`). Travel gases like Tx21/35 were treated as air.
+- **Third deco gas silently dropped** — Headless wrapper only populated pre-built DOM slots 1–2; O₂ (3rd gas) was never added on S5/S6/A2-style dives. Wrapper now calls `addDecoGasCard()` for gases beyond slot 2 and cleans up on restore.
+
+Root cause found via S6 (Tx15/55, 80m/16min) CNS discrepancy: headless reported ~40% vs MultiDeco 65% / DiveKit 77% with He zeroed. Air/nitrox scenarios were unaffected.
+
+### Changed
+- **`APP_VERSION`** — bumped to `2.10.11`.
+
+---
+
 ## v2.10.10 — 2026-06-17
 
 ### Added
@@ -53,6 +78,9 @@ All notable changes to LSP D-Planner are documented here.
 ---
 
 ## v2.10.7 — 2026-06-17
+
+### Added
+- **Deco zone in profile footer and exports** — Deco zone depth shown on profile totals row (Bühlmann + VPM), emergency plans, copy, TXT, slate, and PDF exports.
 
 ### Fixed
 - **GF first-stop anchor used a pre-computed ceiling instead of the actual first stop** — `firstStopDepth` was computed once from `ceiling(bottom_tissues, gfLow)` *before* ascent began, rounded up to the nearest stop-step. For Air+EAN50-style profiles this pre-computed value could land one step shallower than the depth where a stop is actually required (e.g. rounding to 21m when the real ceiling search finds no stop needed until 18m or shallower), producing a spurious mandatory stop that neither MultiDeco nor a from-scratch Baker/Bühlmann implementation would generate.
