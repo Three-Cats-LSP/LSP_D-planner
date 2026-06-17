@@ -4,6 +4,24 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.10.10 — 2026-06-17
+
+### Added
+- **TTS (time-to-surface) metric** — LSP had no TTS field at all, despite MultiDeco and DiveKit both reporting it as a primary metric in the 3-way comparison. Added `tts = rt - bt` (ascent+deco only, excluding descent and bottom time), computed inside `runDecoSchedule()` before the headless early-return so it's available both in the live app and in headless tests. Stored on `window._lastPlan.tts`, exposed via `ZHLEngine.calculate()`'s return object, and displayed in the footer between Run time and Deco time.
+
+### Fixed
+- **Decozone start was GF-dependent — should not be** — LSP's `decoZoneStart` was an alias for `firstStopDepth` (the GF-anchored first mandatory stop), not the GF-independent "ambient-crossing depth" that MultiDeco and DiveKit report. Per DiveKit's own documentation, gradient factors move the M-value line, not the ambient line, so the same physical dive at two different GF settings must report the *same* decozone value even though their first stops differ. LSP was instead reporting `firstStopDepth` directly, which is GF-dependent by definition — producing reported decozone values 9-11m shallower than MultiDeco/DiveKit on every scenario in the comparison set.
+  - Added `ambientCrossingDepth(tissues)`: a purely physical calculation (no Bühlmann M-value or GF involved) that finds the depth where any tissue compartment's raw inert-gas tension (pN2+pHe) first exceeds ambient pressure, evaluated at the end-of-bottom tissue snapshot.
+  - Replaced `_lastPlan.decoZoneStart` and the footer display to use this new value instead of `firstStopDepth`. Fixed a stale tooltip that described the old (incorrect) definition.
+  - Verified the fix reproduces DiveKit's own documented GF-independence test case exactly: S2 (GF30/70) and S7 (GF50/80) — the same 45m/22min air dive — both now report decozone ≈32.0m identically, while their first stops correctly differ (21m vs 15m).
+  - Confirmed LSP's separate VPM engine already computed its own decozone correctly via a continuous Schreiner-ascent tissue-vs-ambient comparison (`calcStartOfDecoZone`) — only the ZHL+GF engine had this bug.
+
+### Changed
+- **Audit** — Added GROUP 31 (7 checks): TTS computation, storage, exposure, and display; decozone GF-independent function, storage, and display. Total: 188 checks, 0 failures.
+- **`APP_VERSION`** — bumped to `2.10.10`.
+
+---
+
 ## v2.10.9 — 2026-06-17  ★ Critical fix
 
 ### Fixed

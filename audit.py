@@ -1462,6 +1462,61 @@ elif re.search(r'if \(!firstStopDepth \|\| firstStopDepth <= 0\) return gfH;', j
 else:
     fail("GF anchor: gfAt() pre-anchor return value not found or changed structure")
 
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 31 — TTS METRIC + DECOZONE GF-INDEPENDENCE FIX (v2.10.10)
+# Found via 3-way comparison against MultiDeco/DiveKit: (1) LSP had no TTS
+# (time-to-surface) metric at all, despite MultiDeco/DiveKit both reporting it
+# as a primary field; (2) LSP's "decozone start" was actually an alias for
+# firstStopDepth (the GF-anchored first stop), not the GF-independent ambient-
+# crossing depth MultiDeco/DiveKit report — same dive at different GF settings
+# was wrongly reporting different decozone values, off by 10+ metres from
+# reference on several scenarios.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 31.1 TTS computed in the engine (headless-safe) as rt - bt
+if re.search(r'const ttsMin = Math\.max\(0, rt - bt\);', js):
+    ok("TTS: computed as rt-bt (ascent+deco only) before the headless early-return")
+else:
+    fail("TTS: rt-bt computation missing — TTS will be unavailable in headless tests")
+
+# 31.2 TTS stored on window._lastPlan
+if re.search(r'tts: Math\.round\(ttsMin \* 10\) / 10,', js):
+    ok("TTS: stored on window._lastPlan.tts")
+else:
+    fail("TTS: not stored on _lastPlan — headless ZHLEngine.calculate() callers cannot read it")
+
+# 31.3 TTS exposed in ZHLEngine.calculate() return object
+if re.search(r'tts: lp\.tts \|\| 0,', js):
+    ok("TTS: exposed in ZHLEngine.calculate() return object")
+else:
+    fail("TTS: missing from calculate() return object")
+
+# 31.4 TTS shown in the live footer
+if re.search(r'>TTS:</span>', js):
+    ok("TTS: displayed in the live-render footer")
+else:
+    fail("TTS: not displayed in footer — feature incomplete")
+
+# 31.5 ambientCrossingDepth() function present — the GF-independent decozone calc
+if re.search(r'function ambientCrossingDepth\(tissues\)', js):
+    ok("Decozone: ambientCrossingDepth() GF-independent function present")
+else:
+    fail("Decozone: ambientCrossingDepth() missing — decozone fix may be reverted")
+
+# 31.6 decoZoneStart in _lastPlan uses the new GF-independent value, not firstStopDepth
+if re.search(r'decoZoneStart: trueDecoZoneStart,', js):
+    ok("Decozone: _lastPlan.decoZoneStart uses trueDecoZoneStart (GF-independent)")
+elif re.search(r'decoZoneStart: hasDeco \? firstStopDepth : 0,', js):
+    fail("Decozone: _lastPlan.decoZoneStart still aliases firstStopDepth — REGRESSION, will vary incorrectly with GF Lo/Hi")
+else:
+    fail("Decozone: _lastPlan.decoZoneStart assignment not found or changed structure")
+
+# 31.7 Footer decozone display uses the GF-independent value
+if re.search(r'formatDecoZoneStart\(trueDecoZoneStart\)', js):
+    ok("Decozone: footer display uses trueDecoZoneStart (GF-independent)")
+else:
+    fail("Decozone: footer display not using trueDecoZoneStart — live render may still show GF-dependent value")
+
 
 print(f"\nLSP D-Planner Audit — {path}")
 print("=" * 60)
