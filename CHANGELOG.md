@@ -4,6 +4,21 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.10.9 — 2026-06-17  ★ Critical fix
+
+### Fixed
+- **GF anchor regression: first stop landing 1-3 steps shallower than correct, deco time silently under-counted** — Found via a full 3-way comparison run against divekit.app's published MultiDeco/DiveKit reference dataset (26 scenarios). The v2.10.7 `gfAt()` fix returned `gfH` (GF High) when `firstStopDepth` was unanchored, intending it as "the liberal, no-stop-yet" test. But per Baker's published gradient-factor algorithm — and DAN's own description of it — **GF Low is what determines the first stop**, not GF High; GF High only bounds the final approach to the surface. Returning `gfH` pre-anchor meant the ascent-and-test loop only required a stop once the *loose* GF-High M-value was itself violated, which happens much deeper into supersaturation than the GF-Low M-value. The result: the GF line anchored 1-3 deco steps shallower than correct, and the intermediate stops above that depth were skipped entirely — along with their deco time.
+  - Confirmed via an independent `ceiling()` sweep against a 30m/23min air GF30/70 profile (S1 in the comparison set): `ceiling(tissues, gfLow=0.30) = 11.76m` (correctly rounds to the 12m first stop matching MultiDeco and DiveKit exactly), while `ceiling(tissues, gfHigh=0.70) = 5.44m` was what the regressed `gfAt()` was actually testing against — explaining the spurious anchor at 6m and the missing 12m/9m stops.
+  - Fixed: `gfAt()` now returns `gfL` (not `gfH`) when unanchored. The dynamic-anchor mechanism from v2.10.7 (anchoring at the actual depth where `mustStop` first fires, rather than a pre-computed bottom-tissue snapshot) is otherwise unchanged and remains correct — only the pre-anchor test GF was wrong.
+  - Re-verified against the full 21-scenario runnable subset of the comparison set: every air/nitrox profile (S1-S4, FS1, FS3, FS4, R1) now matches MultiDeco's and DiveKit's first-stop depth exactly. Trimix profiles (S5, S6, A2, A3, FS5) land shallower than MultiDeco by 1-4 steps, matching DiveKit's own documented "stop distribution" explanation (continuous tissue recompute during ascent lets helium off-gas faster than the diver climbs on deep-helium dives) rather than indicating a remaining bug.
+  - Also re-verified this fix does not reintroduce the original v2.10.7 bug (pre-computed-snapshot rounding overshoot): the dynamic anchor still fires at the live, correctly-resolved depth during the ascent loop, not from a single bottom-tissue snapshot.
+
+### Changed
+- **Audit** — Added GROUP 30 (1 check): `gfAt()` returns `gfL` (not `gfH`) pre-anchor. Total: 181 checks, 0 failures.
+- **`APP_VERSION`** — bumped to `2.10.9`.
+
+---
+
 ## v2.10.8 — 2026-06-17
 
 ### Fixed

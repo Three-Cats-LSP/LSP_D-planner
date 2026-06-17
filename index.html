@@ -3179,7 +3179,7 @@ body.light-theme .deco-table tr[data-phase="switch"] td { color: #007A33 !import
   }
 })();
 
-const APP_VERSION = '2.10.8';
+const APP_VERSION = '2.10.9';
 window.APP_VERSION = APP_VERSION;
 // _zhlPrewarmed: set true by test harness after first headless run to skip
 // DOM warm-up cost on subsequent calls. Kept as a no-op flag for compatibility.
@@ -8078,7 +8078,8 @@ function runDecoSchedule() {
     : 0;
 
   // firstStopDepth: mutable — set when the first ceiling-forced stop is reached.
-  // Until it is set, gfAt() returns gfH (GF line not yet anchored).
+  // Until it is set, gfAt() returns gfL (GF Low determines the search for the
+  // first stop, per Baker; GF line is not yet anchored/interpolated).
   let firstStopDepth = 0;
 
   // ── Stop-based ascent engine ──
@@ -8115,10 +8116,17 @@ function runDecoSchedule() {
   let minStopZoneDepth = null;
 
   // ── GF interpolation: gfL at firstStopDepth → gfH at surface ──
-  // Returns gfH when firstStopDepth is not yet set (no anchor → most conservative
-  // interpretation: only stop where gfH ceiling forces it).
+  // Before the anchor exists, the search for "where is the first stop" must use
+  // gfL (the GF-Low M-value), matching Baker's published algorithm: GF Low is what
+  // determines the first stop. (REGRESSION FIX, v2.10.9: a prior fix here returned
+  // gfH pre-anchor, which made the search use the loose GF-High M-value instead —
+  // the loop then only stopped once GF-High itself was violated, anchoring 2-4 deco
+  // steps shallower than correct and silently dropping total deco time. Confirmed
+  // via independent ceiling() sweep against MultiDeco/DiveKit reference profiles:
+  // ceiling(tissues, gfL=0.30)=11.76m matches the expected 12m first stop, while
+  // ceiling(tissues, gfH=0.70)=5.44m was what the buggy gfAt() was actually testing.)
   function gfAt(depthM) {
-    if (!firstStopDepth || firstStopDepth <= 0) return gfH;
+    if (!firstStopDepth || firstStopDepth <= 0) return gfL;
     if (depthM >= firstStopDepth) return gfL;
     const gf = gfL + (gfH - gfL) * (firstStopDepth - depthM) / firstStopDepth;
     return Math.min(gfH, Math.max(gfL, gf));

@@ -1441,6 +1441,27 @@ if re.search(r'addExposure\(\(hAltP \+ level\.depth \* hBAR\) \* fO2bot, level\.
 else:
     fail("Headless CNS/OTU: bottom-time exposure missing — CNS/OTU will under-report vs live app, since bottom time is the majority of most dives' O2 exposure")
 
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 30 — GF-LOW PRE-ANCHOR REGRESSION FIX (v2.10.9)
+# Bug found via 3-way comparison against MultiDeco/DiveKit reference data: the
+# v2.10.7 gfAt() fix returned gfH (not gfL) when firstStopDepth was unanchored.
+# Per Baker's published algorithm (and DAN/Erik Baker's own description), GF LOW
+# is what determines the first stop — not GF High. Returning gfH pre-anchor made
+# the search use the loose GF-High M-value, so the loop only stopped once GF-High
+# itself was violated, anchoring 1-3 deco steps shallower than correct and
+# silently dropping total deco time (confirmed: S1 30m/23min air GF30/70 should
+# anchor at 12m matching MultiDeco/DiveKit exactly; the gfH-pre-anchor bug instead
+# anchored at 6m, skipping the 12m and 9m stops entirely).
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 30.1 gfAt() returns gfL (not gfH) when firstStopDepth is unanchored
+if re.search(r'if \(!firstStopDepth \|\| firstStopDepth <= 0\) return gfL;', js):
+    ok("GF anchor: gfAt() returns gfL pre-anchor (correct — GF Low determines first stop per Baker)")
+elif re.search(r'if \(!firstStopDepth \|\| firstStopDepth <= 0\) return gfH;', js):
+    fail("GF anchor: gfAt() returns gfH pre-anchor — REGRESSION. Anchors 1-3 steps shallower than correct; GF Low must be used to find the first stop, not GF High.")
+else:
+    fail("GF anchor: gfAt() pre-anchor return value not found or changed structure")
+
 
 print(f"\nLSP D-Planner Audit — {path}")
 print("=" * 60)
