@@ -4,6 +4,18 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.3 — 2026-06-19
+
+### Fixed
+
+- **GF not committed to runtime state when loading app-default or user-saved config presets** — `loadAppPreset()` and `loadConfigPreset()` set `gfLowInput`/`gfHighInput` DOM values directly (bypassing `change` events) but never called `setCustomGF()`, so `mGF.low`/`mGF.high` — the live variables the engine actually reads — were not updated. Loading a preset would show the correct GF in the UI but the engine would silently continue using the previous GF until the user manually touched the GF control. Fixed by calling `setCustomGF()` at the end of both loaders when GF fields are present in the preset. (Introduced in v2.20.1 when `gfLowInput`/`gfHighInput` were added to `_ADV_FIELDS`; `appSettings._restoreFields()` was unaffected as it already dispatches `change` events.)
+
+### Changed
+
+- **`APP_VERSION`** — bumped to `2.20.3`.
+
+---
+
 ## v2.20.2 — 2026-06-19
 
 ### Fixed
