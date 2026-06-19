@@ -1717,7 +1717,26 @@ if re.search(r'App Reference Presets', js):
 else:
     fail("_renderConfigPresetModal: app presets section not shown in modal")
 
-# 34.24 CNS dual-method audit comment present
+# 34.27 App presets: stopRounding values must be 'wholeminute' or 'fractional' (not 'whole')
+stale_whole = re.findall(r"stopRounding:\s*'whole'(?!minute)", js)
+if stale_whole:
+    fail(f"App presets: {len(stale_whole)} stopRounding='whole' (invalid) — must be 'wholeminute' or 'fractional'")
+else:
+    ok("App presets: stopRounding values all valid ('wholeminute' or 'fractional')")
+
+# 34.28 App presets: o2AtMODSelect must be 'on' or 'off' (not 'yes'/'no')
+stale_yes = re.findall(r"o2AtMODSelect:\s*'yes'", js)
+if stale_yes:
+    fail(f"App presets: {len(stale_yes)} o2AtMODSelect='yes' (invalid) — must be 'on' or 'off'")
+else:
+    ok("App presets: o2AtMODSelect values all valid ('on' or 'off')")
+
+# 34.29 GUE DecPlanner ppo2 values must be '1.4', '1.5', or '1.6'
+gue_ppo2 = re.findall(r"name:\s*'GUE DecPlanner'[\s\S]*?ppo2Bottom:\s*'([^']+)'", js)
+if gue_ppo2 and gue_ppo2[0] not in ('1.4','1.5','1.6'):
+    fail(f"GUE DecPlanner ppo2Bottom={gue_ppo2[0]!r} not a valid select option (1.4/1.5/1.6)")
+else:
+    ok("GUE DecPlanner preset: ppo2Bottom is a valid select option")
 if re.search(r'CNS DUAL-METHOD AUDIT', js):
     ok("CNS dual-method audit: cross-check comment documented")
 else:
