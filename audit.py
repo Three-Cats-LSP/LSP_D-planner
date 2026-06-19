@@ -1823,6 +1823,87 @@ for fid in ('algorithmSelect', 'gfPresetSelect'):
         ok(f"appSettings: '{fid}' referenced in save/restore")
     else:
         fail(f"appSettings: '{fid}' missing — algorithm/GF not persisted across sessions")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 36 — dive plan info banner, PDF helpers, travel gas, text export refactor
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 36.1 buildDecoPlanHeaderData function exists
+if re.search(r'function buildDecoPlanHeaderData\(\)', js):
+    ok("buildDecoPlanHeaderData: function defined")
+else:
+    fail("buildDecoPlanHeaderData: function missing — banner/export/PDF will crash")
+
+# 36.2 buildDecoPlanHeaderLines function exists
+if re.search(r'function buildDecoPlanHeaderLines\(\)', js):
+    ok("buildDecoPlanHeaderLines: function defined")
+else:
+    fail("buildDecoPlanHeaderLines: missing — text export header broken")
+
+# 36.3 renderDecoPlanHeaderHtml function exists
+if re.search(r'function renderDecoPlanHeaderHtml\(', js):
+    ok("renderDecoPlanHeaderHtml: function defined")
+else:
+    fail("renderDecoPlanHeaderHtml: missing — on-screen banner will not render")
+
+# 36.4 stamp format YYYY/MM/DD — must NOT be YYYY/DD/MM (month and day swapped)
+stamp_pat = re.search(r'const stamp\s*=\s*`\$\{_yy\}/\$\{([^}]+)\}/\$\{([^}]+)\}', js)
+if stamp_pat:
+    first, second = stamp_pat.group(1), stamp_pat.group(2)
+    if first == '_mm' and second == '_dd':
+        ok("stamp format: YYYY/MM/DD (correct)")
+    elif first == '_dd' and second == '_mm':
+        fail("stamp format: YYYY/DD/MM (month and day SWAPPED — date shown incorrectly)")
+    else:
+        fail(f"stamp format: unexpected order {first}/{second}")
+else:
+    fail("stamp format: pattern not found")
+
+# 36.5 getDecoGasSwitches does NOT call closure-scoped optimalSwitchDepth
+gdsw_start = js.find('function getDecoGasSwitches()')
+gdsw_end = js.find('\nfunction ', gdsw_start + 10)
+if gdsw_start >= 0:
+    gdsw_body = js[gdsw_start:gdsw_end] if gdsw_end > 0 else js[gdsw_start:gdsw_start+2000]
+    if 'optimalSwitchDepth' in gdsw_body:
+        fail("getDecoGasSwitches: calls closure-scoped optimalSwitchDepth — ReferenceError outside runDecoSchedule")
+    else:
+        ok("getDecoGasSwitches: no closure-scoped optimalSwitchDepth — safe to call globally")
+else:
+    fail("getDecoGasSwitches: function not found")
+
+# 36.6 getTravelGasExport and isTravelGasConfigured defined
+for fn in ('getTravelGasExport', 'isTravelGasConfigured', 'getTravelGasFromTable'):
+    if re.search(rf'function {fn}\(\)', js):
+        ok(f"{fn}: defined")
+    else:
+        fail(f"{fn}: missing")
+
+# 36.7 PDF helper functions defined
+for fn in ('_pdfDecoTableLayout', '_pdfDrawDecoTableHeader', '_pdfDrawSwitchRow',
+           '_pdfDrawDecoTableCells', '_pdfDrawDecoPhaseLabel', 'drawDecoPlanBannerPdf'):
+    if re.search(rf'function {fn}\(', js):
+        ok(f"{fn}: PDF helper defined")
+    else:
+        fail(f"{fn}: missing — PDF table/banner rendering broken")
+
+# 36.8 _PDF_TBL_PAD constant defined
+if re.search(r'const _PDF_TBL_PAD\s*=', js):
+    ok("_PDF_TBL_PAD: PDF table padding constant defined")
+else:
+    fail("_PDF_TBL_PAD: missing — _pdfDecoTableLayout uses undefined variable")
+
+# 36.9 dive-plan-banner CSS and helper functions
+if re.search(r'\.dive-plan-banner\s*\{', html):
+    ok("dive-plan-banner: CSS class defined")
+else:
+    fail("dive-plan-banner: CSS class missing")
+
+for fn in ('_escHtmlPre', 'shortMixLabel', '_dpbGasChipClass', '_pdfChipColors'):
+    if re.search(rf'function {fn}\(', js):
+        ok(f"{fn}: helper defined")
+    else:
+        fail(f"{fn}: missing")
+
 print("=" * 60)
 
 if FAIL:
