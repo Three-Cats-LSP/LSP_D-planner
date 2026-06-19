@@ -4,6 +4,18 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.9 — 2026-06-19
+
+### Changed
+
+- **Moved GF controls from Advanced Settings into main card area** — `gfPresetsRow` (GF preset dropdown) and `gfCustomRow` (GF Low / High custom inputs) are now always-visible in the Decompression Schedule card, directly below the Algorithm row. GF is a core Bühlmann parameter that pairs directly with the algorithm selection; it no longer requires opening Advanced Settings to reach. The GF row uses the same inline flex layout as the Algorithm row. GF Low and High custom inputs are wrapped in a `gfLowPair` span for clean show/hide in VPM-B/GFS mode.
+
+- **Moved Advanced Settings presets button next to dive profile presets button** — `advConfigPresetsBtn` (previously a floppy-disk icon at the bottom of the Advanced Settings panel) is now in the depth/BT button row next to `presetsHeaderBtn`. Its icon changed from a floppy disk to a hamburger (≡ three horizontal lines) to distinguish it from the dive-profile save button. The two buttons sit side by side: floppy = save/load depth & BT profile; hamburger = save/load advanced settings config.
+
+- **`APP_VERSION`** — bumped to `2.20.9`.
+
+---
+
 ## v2.20.8 — 2026-06-19
 
 ### Changed
