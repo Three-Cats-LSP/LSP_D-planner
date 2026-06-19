@@ -1904,6 +1904,64 @@ for fn in ('_escHtmlPre', 'shortMixLabel', '_dpbGasChipClass', '_pdfChipColors')
     else:
         fail(f"{fn}: missing")
 
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 37 — buildDecoPlanHeaderData fixes: densityMap, du, stamp consistency
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 37.1 buildDecoPlanHeaderData defines its own densityMap (not relying on outer scope)
+bdhd_start = js.find('function buildDecoPlanHeaderData()')
+bdhd_end = js.find('\nfunction ', bdhd_start + 10) if bdhd_start >= 0 else -1
+if bdhd_start >= 0:
+    bdhd_body = js[bdhd_start:bdhd_end] if bdhd_end > 0 else js[bdhd_start:bdhd_start+3000]
+    if re.search(r'const _?densityMap\s*=\s*\{', bdhd_body):
+        ok("buildDecoPlanHeaderData: defines own densityMap — no ReferenceError")
+    else:
+        fail("buildDecoPlanHeaderData: missing densityMap definition — ReferenceError on call")
+else:
+    fail("buildDecoPlanHeaderData: function not found")
+
+# 37.2 buildDecoPlanHeaderData defines du before returning it
+if bdhd_start >= 0:
+    bdhd_body2 = js[bdhd_start:bdhd_end] if bdhd_end > 0 else js[bdhd_start:bdhd_start+3000]
+    if re.search(r'const du\s*=', bdhd_body2):
+        ok("buildDecoPlanHeaderData: defines du — not undefined in return")
+    else:
+        fail("buildDecoPlanHeaderData: missing 'du' definition — returns undefined for du")
+
+# 37.3 buildExportText stamp is YYYY/MM/DD (not YYYY/DD/MM)
+bex_start = js.find('function buildExportText(')
+bex_end = js.find('\nfunction ', bex_start + 10) if bex_start >= 0 else -1
+if bex_start >= 0:
+    bex_body = js[bex_start:bex_end] if bex_end > 0 else js[bex_start:bex_start+5000]
+    bex_stamp = re.search(r'const stamp\s*=\s*`\$\{_yy\}/\$\{([^}]+)\}/\$\{([^}]+)\}', bex_body)
+    if bex_stamp:
+        f1, f2 = bex_stamp.group(1), bex_stamp.group(2)
+        if f1 == '_mm' and f2 == '_dd':
+            ok("buildExportText stamp: YYYY/MM/DD (correct)")
+        else:
+            fail(f"buildExportText stamp: wrong order {f1}/{f2} — should be _mm/_dd")
+    else:
+        fail("buildExportText: stamp pattern not found")
+else:
+    fail("buildExportText: function not found")
+
+# 37.4 buildSlateText stamp is YYYY/MM/DD (not YYYY/DD/MM)
+bsl_start = js.find('function buildSlateText()')
+bsl_end = js.find('\nfunction ', bsl_start + 10) if bsl_start >= 0 else -1
+if bsl_start >= 0:
+    bsl_body = js[bsl_start:bsl_end] if bsl_end > 0 else js[bsl_start:bsl_start+5000]
+    bsl_stamp = re.search(r'const stamp\s*=\s*`\$\{[^}]+\}/\$\{([^}]+)\}/\$\{([^}]+)\}', bsl_body)
+    if bsl_stamp:
+        f1, f2 = bsl_stamp.group(1), bsl_stamp.group(2)
+        if f1 == '_sMo' and f2 == '_sD':
+            ok("buildSlateText stamp: YYYY/MM/DD (correct)")
+        else:
+            fail(f"buildSlateText stamp: wrong order {f1}/{f2} — should be _sMo/_sD")
+    else:
+        fail("buildSlateText: stamp pattern not found")
+else:
+    fail("buildSlateText: function not found")
+
 print("=" * 60)
 
 if FAIL:

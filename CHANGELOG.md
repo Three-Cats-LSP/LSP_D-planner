@@ -4,6 +4,44 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.18 — 2026-06-20
+
+### Fixed
+
+- **`buildDecoPlanHeaderData()` ReferenceError on `densityMap`** — The `densityMap` lookup object was removed from the function body during the v2.20.17 refactor but still referenced on the same line. Every call to the dive plan info banner, text export header, and PDF banner crashed with `ReferenceError: densityMap is not defined`. Fixed by defining `_densityMap` locally inside the function.
+
+- **`buildDecoPlanHeaderData()` returns `du: undefined`** — The `du` variable (`'m'`/`'ft'`) was also removed from the function body during the same refactor but kept in the return object. All callers using `data.du` (banner HTML, PDF banner, text export lines) produced output like `30undefined` for depths and rates. Fixed by restoring `const du = units === 'imperial' ? 'ft' : 'm'` inside the function.
+
+- **`buildExportText()` stamp YYYY/DD/MM** — The date stamp in text export was never updated when `buildDecoPlanHeaderData` was fixed in v2.20.17; `buildExportText` still assembled `${_yy}/${_dd}/${_mm}` producing e.g. `2026/20/06`. Fixed to `${_yy}/${_mm}/${_dd}`.
+
+- **`buildSlateText()` stamp YYYY/DD/MM** — Same issue in the slate export: assembled `${_sNow.getFullYear()}/${_sD}/${_sMo}` (day before month). Fixed to `${_sMo}/${_sD}` order.
+
+- **Audit** — GROUP 37 added (4 checks). Total: 258 checks, 0 failures. Covers: `buildDecoPlanHeaderData` local `densityMap` and `du`, `buildExportText` stamp order, `buildSlateText` stamp order.
+
+- **`APP_VERSION`** — bumped to `2.20.18`.
+
+---
+
+## v2.20.17 — 2026-06-19
+
+### Added
+
+- **Dive plan info banner** — New styled `DECO PLAN` summary banner rendered above the decompression table after every plan run. Shows timestamp, algorithm/GF settings, bottom/deco/travel gas chips, descent/ascent rates, stop settings, environment, and plan totals. Shared data model (`buildDecoPlanHeaderData`) feeds the on-screen banner (`renderDecoPlanHeaderHtml`), text export header (`buildDecoPlanHeaderLines`), and PDF banner (`drawDecoPlanBannerPdf`).
+
+- **PDF table layout refactor** — `_pdfDecoTableLayout` gains `tblMl`/`tblCw` (padded margins), extracted header/phase-label helpers `_pdfDrawDecoTableHeader` and `_pdfDrawDecoPhaseLabel`. Gas-switch rows use fill-only style (no border). Column widths adjusted. Both main and emergency PDF tables use the new helpers.
+
+### Fixed
+
+- **`getDecoGasSwitches()` ReferenceError** — Called closure-scoped `optimalSwitchDepth()` (local to `runDecoSchedule()`) which is unavailable globally. Crashed banner on page load and settings restore. Replaced with inline equivalent reading DOM globals (`ppO2Deco`, `ppO2Bottom`, `lastDecoStop`, `decoStep`).
+
+- **Stamp YYYY/DD/MM** — `buildDecoPlanHeaderData` assembled stamp as `YYYY/_dd/_mm` (month and day swapped). Fixed to `YYYY/_mm/_dd`.
+
+- **Audit** — GROUP 36 added (20 checks). Total: 254 checks, 0 failures.
+
+- **`APP_VERSION`** — bumped to `2.20.17`.
+
+---
+
 ## v2.20.16 — 2026-06-19
 
 ### Fixed
