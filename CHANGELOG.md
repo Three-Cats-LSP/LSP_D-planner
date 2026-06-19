@@ -4,6 +4,18 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.10 — 2026-06-19
+
+### Fixed
+
+- **GF preset dropdown still showing "Custom" after loading preset on returning users** — Two root causes addressed:
+  1. `gfPresetSelect` was not in `_ADV_FIELDS`, so `_snapshotAdvConfig()` never captured the dropdown value in user-saved config presets. Added `gfPresetSelect` as the first entry in `_ADV_FIELDS` so it is saved, restored, and included in reset-to-defaults paths.
+  2. `loadAppPreset()` and `loadConfigPreset()` called `setGF()` which schedules `appSettings.save(false)` via `setTimeout(..., 100)`. A deferred `appSettings.load()` runs 1000 ms after init and could overwrite localStorage with the stale `'custom'` value before the 100 ms save completed. Fixed by adding an immediate synchronous `appSettings.save(false)` call at the end of both loaders, flushing the correct `gfPresetSelect` value to localStorage before any deferred reload fires.
+
+- **`APP_VERSION`** — bumped to `2.20.10`.
+
+---
+
 ## v2.20.9 — 2026-06-19
 
 ### Changed
