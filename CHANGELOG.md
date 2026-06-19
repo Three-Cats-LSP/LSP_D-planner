@@ -4,6 +4,26 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.16 — 2026-06-19
+
+### Fixed
+
+- **PDF export bloated to 100–190 MB on high-DPI mobile** — jsPDF `addImage()` embeds raw pixel data uncompressed. On 3× DPR devices the dive profile and GF curve canvases were ~2100×900 px each (~7.5 MB raw per image). Added `_canvasToDataURLForPDF()` to re-draw each canvas at 150 DPI print resolution before embedding. All four `addImage()` call sites updated (main plan + emergency PDF). Typical output now ~3–8 MB.
+
+- **`APP_VERSION`** — bumped to `2.20.16`.
+
+---
+
+## v2.20.15 — 2026-06-19
+
+### Fixed
+
+- **Contingency exports missing Surf GF** — `getContingencySummaryExport()` did not return `surfGF`, so contingency text, slate, messenger, and emergency PDF showed Surf GF in the live footer but omitted it from every export. `_lastContingency` now stores `surfGF`; export reads `totRow.dataset.surfgf` with fallback to `_lastContingency.surfGF`. Emergency PDF footer includes Surf GF between PrT and Decozone.
+
+- **`APP_VERSION`** — bumped to `2.20.15`.
+
+---
+
 ## v2.20.14 — 2026-06-19
 
 ### Fixed
@@ -13,6 +33,33 @@ All notable changes to LSP D-Planner are documented here.
 - **GF dropdown not restoring current selection after VPM-B → Bühlmann switch** — After the dropdown innerHTML was rebuilt, the selected value defaulted to the first option (`20/85`) even if `mGF` held different values (e.g. `60/70` from a loaded preset). Fixed by finding the matching option from current `mGF.low/mGF.high` after the rebuild and setting `sel.value` accordingly, falling back to `'custom'` if no match.
 
 - **`APP_VERSION`** — bumped to `2.20.14`.
+
+---
+
+## v2.20.13 — 2026-06-19
+
+### Added
+
+- **1.2 bar ppO₂ option** — added to both `ppo2Bottom` and `ppo2Deco` selects (below 1.4 bar), enabling accurate GUE DecPlanner preset loading.
+
+### Changed
+
+- **GUE DecPlanner preset** — restored to `ppo2Bottom`/`ppo2Deco` = 1.2 bar (correct GUE standard); summary updated accordingly.
+
+- **`APP_VERSION`** — bumped to `2.20.13`.
+
+---
+
+## v2.20.12 — 2026-06-19
+
+### Fixed
+
+- **App-default preset invalid select values** — `loadAppPreset()` silently failed when preset values did not match available `<select>` options:
+  - `stopRounding: 'whole'` → fixed to `'wholeminute'` (valid options: `fractional` / `wholeminute`).
+  - `o2AtMODSelect: 'yes'` → fixed to `'on'` (valid options: `on` / `off`).
+  - GUE DecPlanner `ppo2Bottom`/`ppo2Deco: '1.2'` → temporarily set to `'1.4'` until the 1.2 bar option was added in v2.20.13.
+
+- **`APP_VERSION`** — bumped to `2.20.12`.
 
 ---
 

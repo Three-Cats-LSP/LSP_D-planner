@@ -1,6 +1,6 @@
 {
   "name": "lsp-d-planner",
-  "version": "2.10.12",
+  "version": "2.20.16",
   "description": "LSP D-Planner — decompression planning app",
   "private": true,
   "scripts": {
