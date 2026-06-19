@@ -4,6 +4,20 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.11 — 2026-06-19
+
+### Fixed
+
+- **Text export (.txt) crash on Deco mode** — `buildExportText('deco')` referenced `cnsExpVal`, a variable that was never defined anywhere, causing a `ReferenceError` that silently aborted the export. Fixed by replacing `cnsExpVal` with `planSum.cns`, which is already read from the totals row data-attributes earlier in the same function block.
+
+- **PDF export missing final info row under the ascent schedule table** — The `data-phase="totals"` row in `#decoTableBody` is `display:none` and stores all values in `data-*` attributes (not in text content). The PDF renderer was trying to read `span` text content / `textContent` from this hidden row and getting empty strings. Fixed by using the already-fetched `planSumPdf` object (from `getPlanSummaryExport()`) to build the totals summary line directly.
+
+- **Emergency plan PDF missing final info row** — Same root cause as above: `exportContingencyPDF` read the hidden `totals` row's empty text content. Fixed by calling `getContingencySummaryExport()` before the table loop and using the returned summary object to render the totals line.
+
+- **`APP_VERSION`** — bumped to `2.20.11`.
+
+---
+
 ## v2.20.10 — 2026-06-19
 
 ### Fixed
