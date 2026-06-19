@@ -4,6 +4,22 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.4 — 2026-06-19
+
+### Changed
+
+- **Renamed "Shallow Gradient" to "Shallow GF"** — label and tooltip title updated. Internal ID `shallowGradient` and code comments unchanged.
+
+- **Removed gear (Set as My Default) and reset buttons from Advanced Settings** — both actions are now superseded by the Save/Load presets floppy-disk button. The underlying `saveAsMyDefault()` / `resetToDefaults()` functions are retained for backwards compatibility but no longer exposed in the UI.
+
+- **Added "LSP Default" preset to App Reference Presets** — first entry in the built-in preset list. Loads LSP's own factory defaults: GF 20/85, WV 0.0577, MultiDeco transit, whole-min rounding, Baker HT, 20↓/10↑/3 deco, min stop 2 min. Useful for quickly returning to LSP baseline from any reference-app preset.
+
+- **Fixed misspelling in Advanced Configs modal description** — "diver profiles" → "dive profiles".
+
+- **`APP_VERSION`** — bumped to `2.20.4`.
+
+---
+
 ## v2.20.3 — 2026-06-19
 
 ### Fixed
