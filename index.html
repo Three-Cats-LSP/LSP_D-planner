@@ -3246,7 +3246,7 @@ body.light-theme .switch-legend-icon { color: #FFBF00 !important; }
   }
 })();
 
-const APP_VERSION = '2.20.15';
+const APP_VERSION = '2.20.16';
 window.APP_VERSION = APP_VERSION;
 // _zhlPrewarmed: set true by test harness after first headless run to skip
 // DOM warm-up cost on subsequent calls. Kept as a no-op flag for compatibility.
@@ -13951,7 +13951,27 @@ function calcContingency() {
     return y+4;
   }
 
-// ── PDF font loader — DejaVu Sans (single font, full Unicode coverage) ──────
+// ── PDF canvas capture — scale to print resolution to prevent 100 MB output ──
+// jsPDF addImage stores raw pixel data. A 3× DPR canvas on mobile produces
+// 2100×900 px raw (7.5 MB/image). Two images = 50–100 MB PDFs.
+// Fix: re-draw the source canvas onto a 150 DPI print-resolution canvas
+// (max ~1240 px wide for A4) before calling toDataURL.
+function _canvasToDataURLForPDF(srcCanvas, targetMM) {
+  const PDF_DPI = 150; // sufficient for print; 72 DPI is screen
+  const PDF_MM_PER_INCH = 25.4;
+  const targetPx = Math.round(targetMM * PDF_DPI / PDF_MM_PER_INCH);
+  const srcW = srcCanvas.width;
+  const srcH = srcCanvas.height;
+  const scale = Math.min(1, targetPx / srcW); // never upscale
+  const outW = Math.round(srcW * scale);
+  const outH = Math.round(srcH * scale);
+  const tmp = document.createElement('canvas');
+  tmp.width  = outW;
+  tmp.height = outH;
+  const ctx = tmp.getContext('2d');
+  ctx.drawImage(srcCanvas, 0, 0, outW, outH);
+  return { dataURL: tmp.toDataURL('image/png'), w: outW, h: outH };
+}
 let _pdfFontCache = null;
 async function loadPDFFonts(doc) {
   if (_pdfFontCache) {
@@ -14254,9 +14274,9 @@ async function exportContingencyPDF(opts) {
       if (pc) {
         doc.addPage(); drawHeader();
         sectionTitle('EMERGENCY DIVE PROFILE GRAPH', `${depth}${du} / ${bt}min / ${cleanPDF(c.label)}`);
-        const imgData = pc.toDataURL('image/png');
+        const _pcCapture = _canvasToDataURLForPDF(pc, CW);
         const imgH = CW * pc.height / pc.width;
-        doc.addImage(imgData,'PNG',ML,y,CW,imgH);
+        doc.addImage(_pcCapture.dataURL,'PNG',ML,y,CW,imgH);
         y += imgH+4;
         y = drawGraphLegend(doc, y, ML, CW, checkY);
       }
@@ -14273,7 +14293,7 @@ async function exportContingencyPDF(opts) {
     if(gc2){
       doc.addPage(); drawHeader();
       sectionTitle('GRADIENT FACTOR CURVE',`GF Low ${mGF.low}%  GF High ${mGF.high}%`);
-      const gd2=gc2.toDataURL('image/png'); const gh2=CW*gc2.height/gc2.width;
+      const _gc2Capture=_canvasToDataURLForPDF(gc2,CW); const gd2=_gc2Capture.dataURL; const gh2=CW*gc2.height/gc2.width;
       doc.addImage(gd2,'PNG',ML,y,CW,gh2); y+=gh2+4;
       const gfLegEl2=document.getElementById('gfCurveLegend');
       const gfRows2=gfLegEl2?Array.from(gfLegEl2.querySelectorAll('tbody tr')):[];
@@ -15609,7 +15629,7 @@ async function exportPDF(opts) {
   if(_incProfile&&pc){
     doc.addPage(); drawHeader();
     sectionTitle('DIVE PROFILE GRAPH',`${depthVal}${du} / ${btVal}min / ${algo} / ${gfStr}`);
-    const id=pc.toDataURL('image/png'); const ih=CW*pc.height/pc.width;
+    const _pcCap=_canvasToDataURLForPDF(pc,CW); const id=_pcCap.dataURL; const ih=CW*pc.height/pc.width;
     checkY(ih); doc.addImage(id,'PNG',ML,y,CW,ih); y+=ih+4;
     y = drawGraphLegend(doc, y, ML, CW, checkY);
   }
@@ -15621,7 +15641,7 @@ async function exportPDF(opts) {
     const gc=document.getElementById('gfCurveCanvas');
     if(gc){
       checkY(60); sectionTitle('GRADIENT FACTOR CURVE',`GF Low ${mGF.low}%  GF High ${mGF.high}%`);
-      const gd=gc.toDataURL('image/png'); const gh=CW*gc.height/gc.width;
+      const _gcCap=_canvasToDataURLForPDF(gc,CW); const gd=_gcCap.dataURL; const gh=CW*gc.height/gc.width;
       doc.addImage(gd,'PNG',ML,y,CW,gh); y+=gh+4;
       // GF curve legend — same numbered stops as web view
       const gfLegEl=document.getElementById('gfCurveLegend');
