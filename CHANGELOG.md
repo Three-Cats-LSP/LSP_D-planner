@@ -4,6 +4,43 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.0 — 2026-06-19
+
+### Added
+
+- **Surface GF (Surf GF)** — new read-only metric in the deco plan footer (both ZHL and VPM paths). Computed as `max_i((pN2_i + pHe_i − 1.0 bar) / (a_i + 1.0/b_i − 1.0))` using the end-of-dive tissue snapshot and the weighted composite a/b for trimix. Shows how close the leading compartment is to the raw Bühlmann M-value at surface pressure. 0% = fully desaturated; 100% = exactly at the M-value limit (no GF conservatism). Colour-coded: green < 70%, yellow 70–85%, orange 85–100%, red ≥ 100%. Also written to `data-surfgf` in the hidden totals row and included in all export paths (text, slate, PDF). `window._lastPlan.surfaceGF` is the authoritative value.
+
+- **CNS/OTU dual-method audit** — verified and documented that both CNS calculation methods (NOAA table with 0.1-bar steps in the ZHL path; `CNS_RATE_ANDROID` fine-grained 0.01-bar lookup in the VPM path) agree within ±2% at all NOAA breakpoints. Cross-check comment added near `CNS_LIMITS`. No code change required — tables are consistent.
+
+- **Prior Dive O₂ Load Carry (Last Dive input)** — new UI section in the CNS tab. Enter days/hours/minutes since the last dive ended, plus the OTU and CNS% from that dive. LSP computes the remaining carry and seeds both the ZHL and VPM plan engines:
+  - **OTU**: NOAA day-boundary rule — resets to 0 if the last dive ended ≥ 24 hours ago; otherwise carried in full (OTU has no half-life within a day).
+  - **CNS**: decays with a 90-minute half-life regardless of day boundary.
+  - Carry is displayed in the CNS tab before running a plan and reflected in the plan footer's CNS% and OTU values.
+
+- **Shallow Gradient toggle** — new Advanced Settings field (`id="shallowGradient"`, default `off`). When `on` (MultiDeco-compatible), `gfAt()` applies GF High from the last stop depth onwards (clamped at `lastStop`), and the GF ramp from first stop to last stop uses `lastStop` as the interpolation base rather than 0 (surface). Effect: GF at intermediate stops is higher → intermediate stops are shorter; GF at last stop is always GFHi → last stop may be tighter. Off by default = standard Bühlmann GF behaviour (GF interpolates all the way to the surface). Field persisted in `_ADV_FIELDS` and loaded/saved with advanced config presets.
+
+- **Emergency contingency: went deeper** — new "🔽 Went Deeper" button group in the Contingency Plans card with +0m/+3m/+5m options. Adds a depth offset to the dive before running the emergency scenario. `contExtraDepth` variable added alongside `contExtraBT`; `selectContDepth()` function handles button state. Depth is saved as `origDepth` and restored after the contingency run.
+
+- **Settings profiles — 5 app-default presets** — the Advanced Configs modal now shows a "📐 App Reference Presets" section with 5 built-in, read-only configurations that load the closest LSP equivalent of each tool's default settings:
+  - **MultiDeco** — WV 0.0577, MultiDeco transit, whole-min rounding, Baker HT, 20↓/10↑/3 deco
+  - **Abysner** — WV 0.0627, Schreiner transit, whole-min rounding, 25↓/9↑/3 deco
+  - **Subsurface** — WV 0.0627, Schreiner transit, fractional stops, Bühlmann 2003 HT, 20↓/9↑/3 deco
+  - **GUE DecPlanner** — WV 0.0627, MultiDeco transit, whole-min rounding, Baker HT, 20↓/9↑/3 deco
+  - **DiveKit** — WV 0.0577, Schreiner transit, fractional stops, Baker HT, 20↓/9↑/3 deco
+  - User-saved configs appear below in a "👤 My Saved Configs" section as before.
+
+### Changed
+- **`buildPlanInfoRowHtml`** — Surf GF span added between PrT and Decozone.
+- **`getPlanSummaryExport`** — reads `data-surfgf` attribute and falls back to `_lastPlan.surfaceGF`.
+- **`formatPlanSummaryBlock`** — includes Surf GF in both compact and full text export formats.
+- **`buildSlateText`** — includes Surf GF in footer line.
+- **PDF export stats grid** — Surf GF added as a stat tile (now 3 rows of 6 instead of 2+).
+- **`PLAN_INFO_TIP`** — Surf GF bullet added with full explanation.
+- **Audit** — Added GROUP 34 (24 checks). Total: 216 checks, 0 failures.
+- **`APP_VERSION`** — bumped to `2.20.0`.
+
+---
+
 ## v2.10.44 — 2026-06-18
 
 ### Fixed

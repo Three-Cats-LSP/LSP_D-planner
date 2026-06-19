@@ -1571,6 +1571,158 @@ else:
     fail("holdStep: assignment not found or changed structure — verify manually")
 
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 34 — v2.20.0 features (Surface GF, Prior Carry, Shallow Gradient,
+#            Contingency Depth, App Presets)
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 34.1 computeSurfaceGF function defined
+if re.search(r'function computeSurfaceGF\(tissues\)', js):
+    ok("computeSurfaceGF: function defined")
+else:
+    fail("computeSurfaceGF: function missing — Surface GF metric not computable")
+
+# 34.2 computeSurfaceGF uses correct M-value denominator formula
+if re.search(r'a\s*\+\s*P_surf\s*/\s*b\s*-\s*P_surf', js):
+    ok("computeSurfaceGF: correct M-value denominator (a + P_surf/b - P_surf)")
+else:
+    fail("computeSurfaceGF: M-value denominator formula not found — Surface GF may be wrong")
+
+# 34.3 surfaceGF stored in ZHL _lastPlan
+if re.search(r'surfaceGF:\s*computeSurfaceGF\(tissues\)', js):
+    ok("surfaceGF: stored in ZHL _lastPlan via computeSurfaceGF(tissues)")
+else:
+    fail("surfaceGF: not stored in ZHL _lastPlan — footer metric missing")
+
+# 34.4 surfaceGF stored in VPM _lastPlan
+if re.search(r'surfaceGF:\s*result\.finalTissues\s*\?', js):
+    ok("surfaceGF: stored in VPM _lastPlan (conditional on finalTissues)")
+else:
+    fail("surfaceGF: not stored in VPM _lastPlan")
+
+# 34.5 Surf GF displayed in buildPlanInfoRowHtml
+if re.search(r'Surf GF:', js):
+    ok("buildPlanInfoRowHtml: Surf GF label in footer")
+else:
+    fail("buildPlanInfoRowHtml: Surf GF label missing from footer display")
+
+# 34.6 data-surfgf attribute in hidden totals row
+if re.search(r'data-surfgf=', js):
+    ok("buildPlanInfoRowHtml: data-surfgf attribute stored in hidden totals row")
+else:
+    fail("buildPlanInfoRowHtml: data-surfgf attribute missing")
+
+# 34.7 PLAN_INFO_TIP updated with Surf GF
+if re.search(r'Surf GF.*surface gradient', html, re.IGNORECASE):
+    ok("PLAN_INFO_TIP: Surf GF definition included")
+else:
+    fail("PLAN_INFO_TIP: Surf GF not documented in tooltip")
+
+# 34.8 updatePriorDiveCarry function
+if re.search(r'function updatePriorDiveCarry\(\)', js):
+    ok("updatePriorDiveCarry: function defined")
+else:
+    fail("updatePriorDiveCarry: function missing — prior dive OTU/CNS carry not functional")
+
+# 34.9 OTU day-boundary: resets when >= 24h
+if re.search(r'24 \* 60', js) and re.search(r'otuCarry.*totalMinutes', js, re.DOTALL):
+    ok("updatePriorDiveCarry: day-boundary check (24*60 minutes) present")
+else:
+    fail("updatePriorDiveCarry: day-boundary logic missing — OTU may not reset after 24h")
+
+# 34.10 Prior carry seeded into ZHL accumulators
+if re.search(r'_pdCarry.*priorDiveCarry', js) or re.search(r'_priorDiveCarry.*cnsCarry.*100', js):
+    ok("ZHL accumulators: seeded from _priorDiveCarry on init")
+else:
+    fail("ZHL accumulators: prior dive carry not seeded — CNS/OTU not carried into ZHL plan")
+
+# 34.11 Prior carry injected into VPM settings
+if re.search(r'settings\._preOTU.*_priorDiveCarry.*otuCarry', js, re.DOTALL) or \
+   re.search(r'_priorDiveCarry.*settings\._preOTU', js, re.DOTALL):
+    ok("VPM settings: prior dive carry injected as _preOTU/_preCNS")
+else:
+    fail("VPM settings: prior dive carry not injected — OTU/CNS not carried into VPM plan")
+
+# 34.12 shallowGradient select element
+if re.search(r'id="shallowGradient"', html):
+    ok("shallowGradient: select element present in advanced settings")
+else:
+    fail("shallowGradient: select element missing from HTML")
+
+# 34.13 shallowGradient default is off
+if re.search(r'id="shallowGradient".*?<option selected.*?value="off"', html, re.DOTALL):
+    ok("shallowGradient: default value is 'off' (standard GF behavior)")
+else:
+    fail("shallowGradient: default not 'off' — non-standard GF behavior on by default")
+
+# 34.14 shallowGradient in _ADV_FIELDS
+if re.search(r"_ADV_FIELDS\s*=\s*\[[\s\S]*?'shallowGradient'", js):
+    ok("_ADV_FIELDS: includes shallowGradient")
+else:
+    fail("_ADV_FIELDS: shallowGradient missing — setting not saved/loaded with config presets")
+
+# 34.15 gfAt respects shallowGradient
+if re.search(r'shallowGradient.*value.*===.*on', js) or re.search(r"shallowGradient.*'on'", js):
+    ok("gfAt: shallowGradient setting read at runtime")
+else:
+    fail("gfAt: shallowGradient setting not referenced — toggle has no effect")
+
+# 34.16 gfAt shallow gradient: clamps to gfH at lastStop when ON
+if re.search(r'sgOn && depthM <= lastStop.*return gfH', js, re.DOTALL):
+    ok("gfAt: shallow gradient ON returns gfH at lastStop and shallower")
+else:
+    fail("gfAt: shallow gradient ON does not apply gfH at lastStop")
+
+# 34.17 contExtraDepth variable declared
+if re.search(r'let contExtraDepth\s*=', js):
+    ok("contExtraDepth: variable declared")
+else:
+    fail("contExtraDepth: variable missing — went-deeper contingency not wired")
+
+# 34.18 selectContDepth function
+if re.search(r'function selectContDepth\(metres\)', js):
+    ok("selectContDepth: function defined")
+else:
+    fail("selectContDepth: function missing")
+
+# 34.19 Went deeper buttons in HTML
+if all(re.search(f'id="contDepth{v}"', html) for v in [0, 3, 5]):
+    ok("contingency HTML: +0m/+3m/+5m depth buttons present")
+else:
+    fail("contingency HTML: went-deeper buttons missing (contDepth0/3/5)")
+
+# 34.20 calcContingency sets origDepth and restores it
+if re.search(r'origDepth.*decoDepth.*value', js) and re.search(r"document.*getElementById\('decoDepth'\)\.value\s*=\s*origDepth", js):
+    ok("calcContingency: depth saved as origDepth and restored after scenario run")
+else:
+    fail("calcContingency: depth not saved/restored — went-deeper leaves depth field modified")
+
+# 34.21 LSP_APP_PRESETS constant defined with 5 entries
+app_presets = re.findall(r"name:\s*'(MultiDeco|Abysner|Subsurface|GUE DecPlanner|DiveKit)'", js)
+if len(set(app_presets)) == 5:
+    ok(f"LSP_APP_PRESETS: all 5 app presets defined ({', '.join(sorted(set(app_presets)))})")
+else:
+    fail(f"LSP_APP_PRESETS: only {len(set(app_presets))}/5 app presets found: {set(app_presets)}")
+
+# 34.22 loadAppPreset function
+if re.search(r'function loadAppPreset\(idx\)', js):
+    ok("loadAppPreset: function defined")
+else:
+    fail("loadAppPreset: function missing — app presets cannot be loaded")
+
+# 34.23 _renderConfigPresetModal shows app presets header
+if re.search(r'App Reference Presets', js):
+    ok("_renderConfigPresetModal: app presets section header present")
+else:
+    fail("_renderConfigPresetModal: app presets section not shown in modal")
+
+# 34.24 CNS dual-method audit comment present
+if re.search(r'CNS DUAL-METHOD AUDIT', js):
+    ok("CNS dual-method audit: cross-check comment documented")
+else:
+    fail("CNS dual-method audit: audit comment missing")
+
 print(f"\nLSP D-Planner Audit — {path}")
 print("=" * 60)
 
