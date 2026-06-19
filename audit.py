@@ -1754,7 +1754,60 @@ if stale_083:
 else:
     ok("OTU exponent: no stale 0.833 (3-digit) copies — all sites use OTU_EXPONENT")
 
-print(f"\nLSP D-Planner Audit — {path}")
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 35 — v2.20.4–v2.20.14 GF controls, ppo2 expansion, export guards
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 35.1 Bühlmann GF dropdown: 50/80 and 60/70 present (regression: missing in v2.20.5–v2.20.6)
+buhl_gf_opts = re.findall(r'option value="(\d+/\d+)"', html)
+for must_have in ['50/80', '60/70']:
+    if must_have in buhl_gf_opts:
+        ok(f"GF preset dropdown: {must_have} option present")
+    else:
+        fail(f"GF preset dropdown: {must_have} missing — regression from v2.20.5/v2.20.6")
+
+# 35.2 ppo2Bottom and ppo2Deco selects include 1.2 bar option (v2.20.13)
+for sel_id in ('ppo2Bottom', 'ppo2Deco'):
+    # find the select block
+    pat = rf'id="{sel_id}"[\s\S]{{1,300}}?</select>'
+    m = re.search(pat, html)
+    if not m:
+        fail(f"{sel_id}: select element not found in HTML")
+    elif '1.2' not in m.group():
+        fail(f"{sel_id}: 1.2 bar option missing — GUE DecPlanner preset will silently fail")
+    else:
+        ok(f"{sel_id}: 1.2 bar option present")
+
+# 35.3 VPM-B/GFS GF dropdown: hi/N options defined in setDecoAlgorithm
+if re.search(r'value="hi/70"', html) and re.search(r'value="hi/85"', html):
+    ok("VPM-B/GFS GF dropdown: hi/N options defined in setDecoAlgorithm rebuild")
+else:
+    fail("VPM-B/GFS GF dropdown: hi/N format options not found")
+
+# 35.4 mGF selection restored after Bühlmann dropdown rebuild (v2.20.14)
+if re.search(r'_restoredOpt\s*=\s*Array\.from\(gfSel\.options\)', js):
+    ok("setDecoAlgorithm: mGF selection restored into rebuilt Bühlmann dropdown (v2.20.14)")
+else:
+    fail("setDecoAlgorithm: mGF restore missing — GF selection lost after VPM-B→Bühlmann switch")
+
+# 35.5 cnsNumExport guard: no crash when planSum.cns is undefined (v2.20.11)
+if re.search(r'parseFloat\(\(planSum\.cns\s*\|\|\s*\'0\'\)\.replace', js):
+    ok("cnsNumExport: guarded (planSum.cns || '0') — no crash on undefined")
+else:
+    fail("cnsNumExport: missing guard — text export crashes when planSum.cns undefined")
+
+# 35.6 getContingencySummaryExport exists (v2.20.11 PDF fix)
+if re.search(r'function getContingencySummaryExport\(\)', js):
+    ok("getContingencySummaryExport: function present (PDF emergency export)")
+else:
+    fail("getContingencySummaryExport: function missing")
+
+# 35.7 algorithmSelect and gfPresetSelect in appSettings save/restore field list
+for fid in ('algorithmSelect', 'gfPresetSelect'):
+    if re.search(rf"'{fid}'", js):
+        ok(f"appSettings: '{fid}' referenced in save/restore")
+    else:
+        fail(f"appSettings: '{fid}' missing — algorithm/GF not persisted across sessions")
 print("=" * 60)
 
 if FAIL:
