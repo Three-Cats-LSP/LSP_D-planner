@@ -4,6 +4,18 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.14 — 2026-06-19
+
+### Fixed
+
+- **GF dropdown missing 50/80 and 60/70 after switching from VPM-B to Bühlmann** — `setDecoAlgorithm` rebuilds the GF preset dropdown when switching back to Bühlmann (after VPM-B replaces it with `hi/N` options). The hardcoded rebuild template was missing the `50/80` and `60/70` options that were added in v2.20.7. Both options are now included in the rebuild template.
+
+- **GF dropdown not restoring current selection after VPM-B → Bühlmann switch** — After the dropdown innerHTML was rebuilt, the selected value defaulted to the first option (`20/85`) even if `mGF` held different values (e.g. `60/70` from a loaded preset). Fixed by finding the matching option from current `mGF.low/mGF.high` after the rebuild and setting `sel.value` accordingly, falling back to `'custom'` if no match.
+
+- **`APP_VERSION`** — bumped to `2.20.14`.
+
+---
+
 ## v2.20.11 — 2026-06-19
 
 ### Fixed
