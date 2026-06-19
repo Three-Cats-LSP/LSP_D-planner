@@ -1796,11 +1796,26 @@ if re.search(r'parseFloat\(\(planSum\.cns\s*\|\|\s*\'0\'\)\.replace', js):
 else:
     fail("cnsNumExport: missing guard — text export crashes when planSum.cns undefined")
 
-# 35.6 getContingencySummaryExport exists (v2.20.11 PDF fix)
+# 35.6 getContingencySummaryExport returns surfGF (v2.20.15)
 if re.search(r'function getContingencySummaryExport\(\)', js):
-    ok("getContingencySummaryExport: function present (PDF emergency export)")
+    ok("getContingencySummaryExport: function present")
 else:
     fail("getContingencySummaryExport: function missing")
+
+if re.search(r'surfGF.*c\.surfGF', js) and re.search(r'totRow\.dataset\.surfgf', js):
+    ok("getContingencySummaryExport: returns surfGF from dataset and _lastContingency")
+else:
+    fail("getContingencySummaryExport: surfGF not propagated — contingency export missing Surf GF")
+
+if re.search(r'_lastContingency\s*=.*surfGF', js):
+    ok("_lastContingency: stores surfGF for export")
+else:
+    fail("_lastContingency: surfGF not stored — contingency text/PDF export will show '-'")
+
+if re.search(r'emSumPdf\.surfGF', js):
+    ok("contingency PDF footer: includes Surf GF")
+else:
+    fail("contingency PDF footer: Surf GF missing — inconsistent with main plan PDF")
 
 # 35.7 algorithmSelect and gfPresetSelect in appSettings save/restore field list
 for fid in ('algorithmSelect', 'gfPresetSelect'):
