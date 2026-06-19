@@ -2048,6 +2048,37 @@ if bcs_start >= 0:
 else:
     fail("buildContingencySlateText: function not found")
 
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 40 — formatPlanSummaryBlock returns array; all callers use spread
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 40.1 formatPlanSummaryBlock returns an array in both branches (not a string)
+fpsb_start = js.find('function formatPlanSummaryBlock(')
+fpsb_end = js.find('\nfunction ', fpsb_start + 10) if fpsb_start >= 0 else -1
+if fpsb_start >= 0:
+    fpsb_body = js[fpsb_start:fpsb_end] if fpsb_end > 0 else js[fpsb_start:fpsb_start+800]
+    # Both branches must return an array literal, not a template string
+    returns = re.findall(r'return\s+(.*?)(?:\n|;)', fpsb_body)
+    all_arrays = all(r.strip().startswith('[') for r in returns if r.strip())
+    any_string = any(r.strip().startswith('`') or r.strip().startswith('"') or r.strip().startswith("'") for r in returns if r.strip())
+    if all_arrays and not any_string:
+        ok("formatPlanSummaryBlock: returns array in both branches — callers must spread")
+    else:
+        fail(f"formatPlanSummaryBlock: non-array return detected — returns={returns}")
+else:
+    fail("formatPlanSummaryBlock: function not found")
+
+# 40.2 All call sites use spread operator (...formatPlanSummaryBlock(...))
+all_calls = re.findall(r'(?:push|unshift)\((?:\.\.\.|)formatPlanSummaryBlock\(', js)
+spread_calls = re.findall(r'push\(\.\.\.formatPlanSummaryBlock\(', js)
+non_spread = [c for c in all_calls if '...' not in c]
+if non_spread:
+    fail(f"formatPlanSummaryBlock: {len(non_spread)} call site(s) missing spread — will push array as single element")
+elif spread_calls:
+    ok(f"formatPlanSummaryBlock: all {len(spread_calls)} call site(s) use spread (...) — array lines pushed correctly")
+else:
+    fail("formatPlanSummaryBlock: no call sites found")
+
 print("=" * 60)
 
 if FAIL:

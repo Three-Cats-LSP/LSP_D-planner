@@ -4,6 +4,18 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.21 — 2026-06-20
+
+### Fixed
+
+- **Plan summary stats wrap across three lines in all text exports** — `formatPlanSummaryBlock()` previously returned a single long string, causing all stats (Run Time, TTS, Deco, CNS, OTU, PrT, Surf GF, Decozone, First deco) to run together on one line in text export, messenger, and contingency outputs. Refactored to return an array of three lines: `Run Time / TTS / Deco`, `CNS / OTU / PrT`, `Surf GF / Decozone / First deco`. All five call sites updated to spread the array (`push(...)`). Both compact and non-compact variants split the same way.
+
+- **Audit** — GROUP 40 added (2 checks). Total: 265 checks, 0 failures. Covers: `formatPlanSummaryBlock` returns array in both branches; all call sites use spread operator.
+
+- **`APP_VERSION`** — bumped to `2.20.21`.
+
+---
+
 ## v2.20.20 — 2026-06-20
 
 ### Fixed
