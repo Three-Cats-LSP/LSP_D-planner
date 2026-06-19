@@ -4,6 +4,20 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.20 — 2026-06-20
+
+### Fixed
+
+- **Contingency and messenger export stamp YYYY/DD/MM** — `buildMessengerText()` contingency branch and deco branch still assembled dates as year/day/month. `buildContingencySlateText()` same issue. Fixed to `YYYY/MM/DD` to match banner, text export, and slate.
+
+- **Version docs** — `README.md` and `package.json` synced to current release.
+
+- **Audit** — GROUP 39 added (3 checks). Total: 263 checks, 0 failures.
+
+- **`APP_VERSION`** — bumped to `2.20.20`.
+
+---
+
 ## v2.20.19 — 2026-06-20
 
 ### Fixed

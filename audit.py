@@ -1997,6 +1997,57 @@ if hgfs_start >= 0:
     else:
         fail("handleGFSelect: VPM-B/GFS custom branch not found")
 
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 39 — contingency + messenger export stamp order
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 39.1 buildMessengerText contingency branch stamp YYYY/MM/DD
+bmsg_start = js.find('function buildMessengerText(')
+bmsg_end = js.find('\nfunction ', bmsg_start + 10) if bmsg_start >= 0 else -1
+if bmsg_start >= 0:
+    bmsg_body = js[bmsg_start:bmsg_end] if bmsg_end > 0 else js[bmsg_start:bmsg_start+8000]
+    cont_idx = bmsg_body.find("if (mode === 'contingency')")
+    if cont_idx >= 0:
+        cont_body = bmsg_body[cont_idx:cont_idx+3000]
+        if re.search(r'_cStamp\s*=\s*`\$\{_cn\.getFullYear\(\)\}/\$\{String\(_cn\.getMonth\(\)\+1\)', cont_body):
+            ok("buildMessengerText contingency stamp: YYYY/MM/DD (correct)")
+        elif re.search(r'_cStamp\s*=\s*`\$\{_cn\.getFullYear\(\)\}/\$\{String\(_cn\.getDate\(\)\)', cont_body):
+            fail("buildMessengerText contingency stamp: YYYY/DD/MM (day before month)")
+        else:
+            fail("buildMessengerText contingency: _cStamp pattern not found")
+    else:
+        fail("buildMessengerText: contingency branch not found")
+else:
+    fail("buildMessengerText: function not found")
+
+# 39.2 buildMessengerText deco stamp YYYY/MM/DD
+bmsg_start = js.find('function buildMessengerText(')
+bmsg_end = js.find('\nfunction ', bmsg_start + 10) if bmsg_start >= 0 else -1
+if bmsg_start >= 0:
+    bmsg_body = js[bmsg_start:bmsg_end] if bmsg_end > 0 else js[bmsg_start:bmsg_start+5000]
+    if re.search(r'_msgStamp\s*=\s*`\$\{_msgNow\.getFullYear\(\)\}/\$\{String\(_msgNow\.getMonth\(\)\+1\)', bmsg_body):
+        ok("buildMessengerText stamp: YYYY/MM/DD (correct)")
+    elif re.search(r'_msgStamp\s*=\s*`\$\{_msgNow\.getFullYear\(\)\}/\$\{String\(_msgNow\.getDate\(\)\)', bmsg_body):
+        fail("buildMessengerText stamp: YYYY/DD/MM (day before month)")
+    else:
+        fail("buildMessengerText: _msgStamp pattern not found")
+else:
+    fail("buildMessengerText: function not found")
+
+# 39.3 buildContingencySlateText stamp YYYY/MM/DD
+bcs_start = js.find('function buildContingencySlateText(')
+bcs_end = js.find('\nfunction ', bcs_start + 10) if bcs_start >= 0 else -1
+if bcs_start >= 0:
+    bcs_body = js[bcs_start:bcs_end] if bcs_end > 0 else js[bcs_start:bcs_start+5000]
+    if re.search(r'ecStamp\s*=\s*`\$\{_ecNow\.getFullYear\(\)\}/\$\{_ecMo\}/\$\{_ecD\}', bcs_body):
+        ok("buildContingencySlateText stamp: YYYY/MM/DD (correct)")
+    elif re.search(r'ecStamp\s*=\s*`\$\{_ecNow\.getFullYear\(\)\}/\$\{_ecD\}/\$\{_ecMo\}', bcs_body):
+        fail("buildContingencySlateText stamp: YYYY/DD/MM (day before month)")
+    else:
+        fail("buildContingencySlateText: ecStamp pattern not found")
+else:
+    fail("buildContingencySlateText: function not found")
+
 print("=" * 60)
 
 if FAIL:
