@@ -4,6 +4,24 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.26 — 2026-06-19
+
+### Fixed — dynamic deco gas persistence (dg3–dg8)
+
+- **`DECO_FIELDS`** — Added `dg3`–`dg8` mix, custom O₂, trimix O₂/He, and cylinder size/pressure fields so all dynamic deco gas cards are tracked by settings persistence.
+
+- **`__decoGasIds__`** — `appSettings.save()` now stores the list of active deco gas card indices alongside field values.
+
+- **`_restoreDecoGasCards()`** — New helper recreates missing dynamic cards (via `addDecoGasCard(forcedIdx)`) before field values are restored, preventing dg3+ data loss on page reload.
+
+- **`addDecoGasCard(forcedIdx)`** — Optional index parameter supports restoring cards with saved slot IDs (including non-contiguous layouts after card removal).
+
+- **Audit** — GROUP 59 added. Total: 373 checks, 0 failures.
+
+- **`APP_VERSION`** — bumped to `2.20.26`.
+
+---
+
 ## v2.20.25 — 2026-06-21
 
 ### Fixed (GitHub #4 — imperial display + reset gaps)

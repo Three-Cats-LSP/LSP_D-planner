@@ -397,12 +397,9 @@ else:
 # Bug 6: New UI fields not added → reset on reload
 # ══════════════════════════════════════════════════════════════════════════════
 
-deco_fields_idx = html.find("DECO_FIELDS:")
-if deco_fields_idx < 0:
-    deco_fields_idx = html.find("'DECO_FIELDS'")
-
-if deco_fields_idx > 0:
-    deco_fields_block = html[deco_fields_idx:deco_fields_idx + 750]
+deco_fields_match = re.search(r'DECO_FIELDS:\s*\[([\s\S]*?)\]', html)
+if deco_fields_match:
+    deco_fields_block = deco_fields_match.group(1)
     required_fields = [
         ("heHalfTimeMode",  "He half-time mode selector"),
         ("botTrimixO2",     "Bottom gas trimix O2 input"),
@@ -424,6 +421,24 @@ if deco_fields_idx > 0:
             ok(f"DECO_FIELDS includes {field_id} ({description})")
         else:
             fail(f"DECO_FIELDS missing '{field_id}' ({description}) — trimix input lost on reload")
+    for n in range(3, 9):
+        for suffix, desc in [
+            (f"Mix", "mix selector"),
+            (f"CustomO2", "custom O2 input"),
+            (f"TrimixO2", "trimix O2 input"),
+            (f"TrimixHe", "trimix He input"),
+        ]:
+            field_id = f"dg{n}{suffix}"
+            if field_id in deco_fields_block:
+                ok(f"DECO_FIELDS includes {field_id} (Deco gas {n} {desc})")
+            else:
+                fail(f"DECO_FIELDS missing '{field_id}' (Deco gas {n} {desc}) — dynamic deco gas lost on reload")
+        for suffix, desc in [("_size", "cylinder size"), ("_pres", "cylinder pressure")]:
+            field_id = f"cylDg{n}{suffix}"
+            if field_id in deco_fields_block:
+                ok(f"DECO_FIELDS includes {field_id} (Deco gas {n} {desc})")
+            else:
+                fail(f"DECO_FIELDS missing '{field_id}' (Deco gas {n} {desc}) — dynamic deco gas lost on reload")
 else:
     fail("DECO_FIELDS not found in appSettings")
 
@@ -777,9 +792,9 @@ else:
     fail("setDecoAlgorithm not found for rep panel check")
 
 # 17.10 vpmSurfaceInterval and vpmRepMode in DECO_FIELDS (persistence)
-deco_fields_idx2 = html.find("DECO_FIELDS:")
-if deco_fields_idx2 > 0:
-    deco_fields_block2 = html[deco_fields_idx2:deco_fields_idx2 + 800]
+deco_fields_match2 = re.search(r'DECO_FIELDS:\s*\[([\s\S]*?)\]', html)
+if deco_fields_match2:
+    deco_fields_block2 = deco_fields_match2.group(1)
     for field_id, description in [
         ("vpmSurfaceInterval", "VPM repetitive surface interval input"),
         ("vpmRepMode",         "VPM repetitive dive checkbox"),
@@ -856,9 +871,9 @@ else:
     fail("VPM cylIds missing travel gas — travel gas consumption has no shortage warning")
 
 # 18.8 All SAC and cylinder fields in DECO_FIELDS (persistence)
-deco_fields_idx3 = html.find("DECO_FIELDS:")
-if deco_fields_idx3 > 0:
-    deco_fields_block3 = html[deco_fields_idx3:deco_fields_idx3 + 1200]
+deco_fields_match3 = re.search(r'DECO_FIELDS:\s*\[([\s\S]*?)\]', html)
+if deco_fields_match3:
+    deco_fields_block3 = deco_fields_match3.group(1)
     gas_fields_required = [
         ("sacBottom",           "bottom SAC"),
         ("sacDeco",             "deco SAC"),
@@ -1068,8 +1083,8 @@ for eid, desc in [
         fail(f'Min deco UI: id="{eid}" ({desc}) missing')
 
 # 21.5 Fields in DECO_FIELDS (persistence)
-deco_fields_idx4 = html.find("DECO_FIELDS:")
-deco_block4 = html[deco_fields_idx4:deco_fields_idx4+1600] if deco_fields_idx4 > 0 else ""
+deco_fields_match4 = re.search(r'DECO_FIELDS:\s*\[([\s\S]*?)\]', html)
+deco_block4 = deco_fields_match4.group(1) if deco_fields_match4 else ""
 for field_id, desc in [
     ("minDecoProfileEnable", "enable select"),
     ("minDeco9m",            "9m minimum"),
@@ -2296,35 +2311,35 @@ manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
 pkg_path = os.path.join(os.path.dirname(__file__), "package.json")
 pkg_lock_path = os.path.join(os.path.dirname(__file__), "package-lock.json")
 version_ok = True
-if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.25['\"]", js):
-    ok("APP_VERSION bumped to 2.20.25")
+if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.26['\"]", js):
+    ok("APP_VERSION bumped to 2.20.26")
 else:
     version_ok = False
-    fail("APP_VERSION not bumped to 2.20.25")
+    fail("APP_VERSION not bumped to 2.20.26")
 if os.path.isfile(sw_path):
     with open(sw_path, encoding="utf-8") as f:
         sw_check = f.read()
-    if "lsp-dplanner-v2.20.25" in sw_check:
-        ok("sw.js CACHE_VERSION synced to 2.20.25")
+    if "lsp-dplanner-v2.20.26" in sw_check:
+        ok("sw.js CACHE_VERSION synced to 2.20.26")
     else:
         version_ok = False
-        fail("sw.js CACHE_VERSION not synced to 2.20.25")
+        fail("sw.js CACHE_VERSION not synced to 2.20.26")
 if os.path.isfile(pkg_path):
     with open(pkg_path, encoding="utf-8") as f:
         pkg = f.read()
-    if '"version": "2.20.25"' in pkg:
-        ok("package.json version synced to 2.20.25")
+    if '"version": "2.20.26"' in pkg:
+        ok("package.json version synced to 2.20.26")
     else:
         version_ok = False
-        fail("package.json version not synced to 2.20.25")
+        fail("package.json version not synced to 2.20.26")
 if os.path.isfile(pkg_lock_path):
     with open(pkg_lock_path, encoding="utf-8") as f:
         pkg_lock = f.read()
-    if '"version": "2.20.25"' in pkg_lock:
-        ok("package-lock.json version synced to 2.20.25")
+    if '"version": "2.20.26"' in pkg_lock:
+        ok("package-lock.json version synced to 2.20.26")
     else:
         version_ok = False
-        fail("package-lock.json version not synced to 2.20.25")
+        fail("package-lock.json version not synced to 2.20.26")
 if os.path.isfile(manifest_path):
     with open(manifest_path, encoding="utf-8") as f:
         manifest = f.read()
@@ -2530,6 +2545,53 @@ elif re.search(r"getElementById\('decoTransitMode'\)\?\.value\s*\|\|\s*'schreine
     fail("runDecoSchedule: decoTransitMode fallback still schreiner — inconsistent with HTML default multideco")
 else:
     fail("runDecoSchedule: could not verify decoTransitMode fallback")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 59 — Dynamic deco gas cards (dg3–dg8) persistence across reload
+# ══════════════════════════════════════════════════════════════════════════════
+
+if '__decoGasIds__' in js and 'getAllDecoGasIds' in js:
+    save_idx = js.find('save: function')
+    if save_idx >= 0:
+        save_block = js[save_idx:save_idx + 1200]
+        if '__decoGasIds__' in save_block and 'getAllDecoGasIds' in save_block:
+            ok("appSettings.save: persists __decoGasIds__ for dynamic deco gas cards")
+        else:
+            fail("appSettings.save: missing __decoGasIds__ — dynamic card count not saved")
+    else:
+        fail("appSettings.save: function not found")
+else:
+    fail("appSettings.save: __decoGasIds__ or getAllDecoGasIds missing")
+
+if '_restoreDecoGasCards' in js:
+    rdc_idx = js.find('_restoreDecoGasCards')
+    rdc_block = js[rdc_idx:rdc_idx + 900]
+    if 'addDecoGasCard' in rdc_block and '__decoGasIds__' in rdc_block:
+        ok("_restoreDecoGasCards: recreates dynamic cards from saved __decoGasIds__")
+    else:
+        fail("_restoreDecoGasCards: incomplete — dynamic cards not recreated before restore")
+else:
+    fail("_restoreDecoGasCards: helper missing — dg3–dg8 values skipped on reload")
+
+rf_idx = js.find('_restoreFields: function')
+if rf_idx >= 0:
+    rf_block = js[rf_idx:rf_idx + 1200]
+    if '_restoreDecoGasCards' in rf_block:
+        ok("_restoreFields: calls _restoreDecoGasCards before restoring field values")
+    else:
+        fail("_restoreFields: does not call _restoreDecoGasCards — dg3+ DOM missing on restore")
+    if 'toggleDecoTrimix' in rf_block and 'updateGasMODDisplays' in rf_block:
+        ok("_restoreFields: syncs trimix/custom visibility and MOD displays after restore")
+    else:
+        fail("_restoreFields: missing post-restore deco gas UI sync")
+else:
+    fail("_restoreFields: function not found")
+
+add_dg_fn = re.search(r'function addDecoGasCard\(([^)]*)\)', js)
+if add_dg_fn and add_dg_fn.group(1).strip():
+    ok("addDecoGasCard: accepts optional forcedIdx for non-contiguous card restore")
+else:
+    fail("addDecoGasCard: no forcedIdx param — cannot restore cards with saved indices")
 
 print(f"\nLSP D-Planner Audit — {path}")
 print("=" * 60)
