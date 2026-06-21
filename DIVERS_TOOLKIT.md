@@ -9,7 +9,7 @@ Free open-source diving software by [Three Cats LSP](https://threecats-lsp.com).
 ## Apps
 
 ### [LSP D-Planner](https://threecats-lsp.com/d-planner/) — Open-Circuit Deco Planner
-> [GitHub](https://github.com/Three-Cats-LSP/LSP_D-planner) · v2.20.28
+> [GitHub](https://github.com/Three-Cats-LSP/LSP_D-planner) · v2.20.29
 
 Decompression planning for recreational and technical open-circuit divers.
 

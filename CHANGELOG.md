@@ -4,6 +4,25 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.29 — 2026-06-21
+
+### Fixed (GitHub #5 follow-up — imperial test step size)
+
+- **Imperial harness tests** — After v2.20.28 converted imperial depths to metres with `metric:true`, several tests still passed `stepSize:10, lastStop:10` (imperial foot defaults). Those were interpreted as 10 m stops, inflating VPM-B/GFS runtime (~1044 min). All imperial engine tests now use `stepSize:3, lastStop:3` (metre defaults) in `tests.html`, `tests-extended.html`, `tests-massive.html`, and `tests-massive-main.html`.
+
+### Fixed (GitHub #6 — production audit)
+
+- **Settings reload** — Persist `__units__` and restore the unit system (labels only, no value conversion) before unit-dependent fields on load.
+- **Input validation** — `runPlanner()` and `runDecoSchedule()` reject empty, non-finite, non-positive, and out-of-range depth/bottom-time values with a blocking error.
+- **Recreational export** — Plain-text export reads `#gasMix` instead of retired `#gas`.
+- **Tissue load chart** — Uses `gfHighInput` and `algorithmSelect` instead of retired `gfHighSel` / `algoSel`.
+- **PWA manifest** — `start_url` / `scope` set to `./` for deployment-relative install paths.
+- **Service worker** — Offline navigation fallback chains cache lookups with `.then()` instead of `||` on Promises.
+
+- **`APP_VERSION`** — bumped to `2.20.29`.
+
+---
+
 ## v2.20.28 — 2026-06-21
 
 ### Fixed (GitHub #5 — test infrastructure & Android metadata)

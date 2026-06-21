@@ -2316,41 +2316,41 @@ manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
 pkg_path = os.path.join(os.path.dirname(__file__), "package.json")
 pkg_lock_path = os.path.join(os.path.dirname(__file__), "package-lock.json")
 version_ok = True
-if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.28['\"]", js):
-    ok("APP_VERSION bumped to 2.20.28")
+if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.29['\"]", js):
+    ok("APP_VERSION bumped to 2.20.29")
 else:
     version_ok = False
-    fail("APP_VERSION not bumped to 2.20.28")
+    fail("APP_VERSION not bumped to 2.20.29")
 if os.path.isfile(sw_path):
     with open(sw_path, encoding="utf-8") as f:
         sw_check = f.read()
-    if "lsp-dplanner-v2.20.28" in sw_check:
-        ok("sw.js CACHE_VERSION synced to 2.20.28")
+    if "lsp-dplanner-v2.20.29" in sw_check:
+        ok("sw.js CACHE_VERSION synced to 2.20.29")
     else:
         version_ok = False
-        fail("sw.js CACHE_VERSION not synced to 2.20.28")
+        fail("sw.js CACHE_VERSION not synced to 2.20.29")
 if os.path.isfile(pkg_path):
     with open(pkg_path, encoding="utf-8") as f:
         pkg = f.read()
-    if '"version": "2.20.28"' in pkg:
-        ok("package.json version synced to 2.20.28")
+    if '"version": "2.20.29"' in pkg:
+        ok("package.json version synced to 2.20.29")
     else:
         version_ok = False
-        fail("package.json version not synced to 2.20.28")
+        fail("package.json version not synced to 2.20.29")
 if os.path.isfile(pkg_lock_path):
     with open(pkg_lock_path, encoding="utf-8") as f:
         pkg_lock = f.read()
-    if '"version": "2.20.28"' in pkg_lock:
-        ok("package-lock.json version synced to 2.20.28")
+    if '"version": "2.20.29"' in pkg_lock:
+        ok("package-lock.json version synced to 2.20.29")
     else:
         version_ok = False
-        fail("package-lock.json version not synced to 2.20.28")
+        fail("package-lock.json version not synced to 2.20.29")
 gradle_path = os.path.join(os.path.dirname(__file__), "android", "app", "build.gradle")
 if os.path.isfile(gradle_path):
     with open(gradle_path, encoding="utf-8") as f:
         gradle = f.read()
-    if 'versionName "2.20.28"' in gradle and "versionCode 22028" in gradle:
-        ok("android/app/build.gradle versionCode/versionName synced to 2.20.28")
+    if 'versionName "2.20.29"' in gradle and "versionCode 22029" in gradle:
+        ok("android/app/build.gradle versionCode/versionName synced to 2.20.29")
     else:
         version_ok = False
         fail("android/app/build.gradle version drift — sync versionCode/versionName with APP_VERSION")
@@ -2593,7 +2593,7 @@ else:
 
 rf_idx = js.find('_restoreFields: function')
 if rf_idx >= 0:
-    rf_block = js[rf_idx:rf_idx + 1200]
+    rf_block = js[rf_idx:rf_idx + 2000]
     if '_restoreDecoGasCards' in rf_block:
         ok("_restoreFields: calls _restoreDecoGasCards before restoring field values")
     else:
@@ -2610,6 +2610,56 @@ if add_dg_fn and add_dg_fn.group(1).strip():
     ok("addDecoGasCard: accepts optional forcedIdx for non-contiguous card restore")
 else:
     fail("addDecoGasCard: no forcedIdx param — cannot restore cards with saved indices")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 60 (OC) — GitHub #6 production audit fixes
+# ══════════════════════════════════════════════════════════════════════════════
+
+if "__units__" in js and "restoreOnly: true" in js:
+    ok("appSettings: persists __units__ and restores units before field values")
+else:
+    fail("appSettings: missing __units__ persistence or restoreOnly unit restore")
+
+if "function readValidatedInput" in js and "readValidatedInput('depth'" in js and "readValidatedInput('decoDepth'" in js:
+    ok("runPlanner/runDecoSchedule: validate depth and bottom time before calc")
+else:
+    fail("Planner/deco validation missing — invalid depths/BT still accepted")
+
+if "getElementById('gasMix')" in js and "buildExportText" in js:
+    exp_idx = js.find("function buildExportText")
+    if exp_idx >= 0 and "gasMix" in js[exp_idx:exp_idx + 2500]:
+        ok("buildExportText(planner): reads gasMix for recreational gas line")
+    else:
+        fail("buildExportText(planner): still reads retired #gas element")
+else:
+    fail("buildExportText: gasMix export fix not found")
+
+if "gfHighInput" in js and "renderTissueLoadChart" in js:
+    tlc_idx = js.find("function renderTissueLoadChart")
+    if tlc_idx >= 0 and "gfHighInput" in js[tlc_idx:tlc_idx + 2500] and "algorithmSelect" in js[tlc_idx:tlc_idx + 2500]:
+        ok("renderTissueLoadChart: uses gfHighInput and algorithmSelect")
+    elif tlc_idx >= 0 and "gfHighSel" in js[tlc_idx:tlc_idx + 2500]:
+        fail("renderTissueLoadChart: still uses retired gfHighSel/algoSel")
+    else:
+        fail("renderTissueLoadChart: GF/algo control fix not found in function body")
+else:
+    fail("renderTissueLoadChart: GF/algo control fix not found")
+
+if os.path.isfile(manifest_path):
+    with open(manifest_path, encoding="utf-8") as f:
+        manifest = f.read()
+    if '"start_url": "./"' in manifest and '"scope": "./"' in manifest:
+        ok("manifest.json: deployment-relative start_url/scope")
+    else:
+        fail("manifest.json: start_url/scope not deployment-relative")
+
+if os.path.isfile(sw_path):
+    with open(sw_path, encoding="utf-8") as f:
+        sw_check2 = f.read()
+    if ".then(match => match || caches.match(OFFLINE_INDEX" in sw_check2:
+        ok("sw.js: offline fallback chains cache.match promises")
+    else:
+        fail("sw.js: offline fallback still uses || on Promise")
 
 print(f"\nLSP D-Planner Audit — {path}")
 print("=" * 60)
