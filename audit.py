@@ -13,6 +13,11 @@ that was found in production. No theoretical checks.
 import re, sys, os
 from collections import Counter
 
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8')
+
 # ── Load file ─────────────────────────────────────────────────────────────────
 path = sys.argv[1] if len(sys.argv) > 1 else "index.html"
 if not os.path.exists(path):
@@ -2311,35 +2316,44 @@ manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
 pkg_path = os.path.join(os.path.dirname(__file__), "package.json")
 pkg_lock_path = os.path.join(os.path.dirname(__file__), "package-lock.json")
 version_ok = True
-if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.27['\"]", js):
-    ok("APP_VERSION bumped to 2.20.27")
+if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.28['\"]", js):
+    ok("APP_VERSION bumped to 2.20.28")
 else:
     version_ok = False
-    fail("APP_VERSION not bumped to 2.20.27")
+    fail("APP_VERSION not bumped to 2.20.28")
 if os.path.isfile(sw_path):
     with open(sw_path, encoding="utf-8") as f:
         sw_check = f.read()
-    if "lsp-dplanner-v2.20.27" in sw_check:
-        ok("sw.js CACHE_VERSION synced to 2.20.27")
+    if "lsp-dplanner-v2.20.28" in sw_check:
+        ok("sw.js CACHE_VERSION synced to 2.20.28")
     else:
         version_ok = False
-        fail("sw.js CACHE_VERSION not synced to 2.20.27")
+        fail("sw.js CACHE_VERSION not synced to 2.20.28")
 if os.path.isfile(pkg_path):
     with open(pkg_path, encoding="utf-8") as f:
         pkg = f.read()
-    if '"version": "2.20.27"' in pkg:
-        ok("package.json version synced to 2.20.27")
+    if '"version": "2.20.28"' in pkg:
+        ok("package.json version synced to 2.20.28")
     else:
         version_ok = False
-        fail("package.json version not synced to 2.20.27")
+        fail("package.json version not synced to 2.20.28")
 if os.path.isfile(pkg_lock_path):
     with open(pkg_lock_path, encoding="utf-8") as f:
         pkg_lock = f.read()
-    if '"version": "2.20.27"' in pkg_lock:
-        ok("package-lock.json version synced to 2.20.27")
+    if '"version": "2.20.28"' in pkg_lock:
+        ok("package-lock.json version synced to 2.20.28")
     else:
         version_ok = False
-        fail("package-lock.json version not synced to 2.20.27")
+        fail("package-lock.json version not synced to 2.20.28")
+gradle_path = os.path.join(os.path.dirname(__file__), "android", "app", "build.gradle")
+if os.path.isfile(gradle_path):
+    with open(gradle_path, encoding="utf-8") as f:
+        gradle = f.read()
+    if 'versionName "2.20.28"' in gradle and "versionCode 22028" in gradle:
+        ok("android/app/build.gradle versionCode/versionName synced to 2.20.28")
+    else:
+        version_ok = False
+        fail("android/app/build.gradle version drift — sync versionCode/versionName with APP_VERSION")
 if os.path.isfile(manifest_path):
     with open(manifest_path, encoding="utf-8") as f:
         manifest = f.read()

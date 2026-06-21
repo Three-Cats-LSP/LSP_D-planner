@@ -4,6 +4,24 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.28 — 2026-06-21
+
+### Fixed (GitHub #5 — test infrastructure & Android metadata)
+
+- **Pinned ZHL regression checks** — Updated `LSP_PINNED` Bühlmann values in `tests-verify.html` for MultiDeco transit default (v2.20.25+): RT 66/96/35 for air/air/EAN50 scenarios; EAN50 first stop now 6 m.
+
+- **Imperial engine tests** — All harness tests now pass depth in metres (`ft / 3.28084`); `metric:false` no longer misread as 130 m dives. Tightened RT range assertions in `tests.html`, `tests-extended.html`, `tests-massive.html`, and `tests-massive-main.html`.
+
+- **Android `build.gradle`** — `versionCode`/`versionName` synced to `22028` / `2.20.28` (was stuck at 2.10.12).
+
+- **`audit.py` Windows** — UTF-8 stdout/stderr reconfigure prevents `UnicodeEncodeError` on cp1252 consoles.
+
+- **Audit** — GROUP 56 adds `build.gradle` version alignment check. Total: 375 checks.
+
+- **`APP_VERSION`** — bumped to `2.20.28`.
+
+---
+
 ## v2.20.27 — 2026-06-19
 
 ### Fixed — contingency PrT includes extra depth
