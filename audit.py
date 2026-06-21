@@ -2409,6 +2409,77 @@ if FAIL:
     for f_ in FAIL:
         print(f"  ✗ {f_}")
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 41 — deep check findings: getPlanSummaryExport fallback, decoTransitMode
+# ══════════════════════════════════════════════════════════════════════════════
+
+# 41.1 getPlanSummaryExport fallback path (no DOM totals row) includes surfGF
+# Check: the fallback return block (no DOM element) must include surfGF
+pse_idx = js.find('function getPlanSummaryExport(')
+if pse_idx >= 0:
+    # Find the function body by tracking braces
+    brace_depth = 0
+    body_start = js.find('{', pse_idx)
+    pos = body_start
+    while pos < len(js):
+        if js[pos] == '{': brace_depth += 1
+        elif js[pos] == '}':
+            brace_depth -= 1
+            if brace_depth == 0: break
+        pos += 1
+    pse_body = js[pse_idx:pos+1]
+    # The fallback path is the last `return {` in the function
+    fallback_pos = pse_body.rfind('return {')
+    if fallback_pos >= 0:
+        fallback_str = pse_body[fallback_pos:fallback_pos+300]
+        if 'surfGF' in fallback_str:
+            ok("getPlanSummaryExport: fallback return (no DOM element) includes surfGF")
+        else:
+            fail("getPlanSummaryExport: fallback return missing surfGF — headless/test callers get no surfGF")
+    else:
+        fail("getPlanSummaryExport: could not identify fallback return block")
+else:
+    fail("getPlanSummaryExport: function not found")
+
+# 41.2 decoTransitMode in appSettings.DECO_FIELDS (main save/restore)
+deco_fields_block = re.search(r'DECO_FIELDS:\s*\[([\s\S]*?)\]', js)
+if deco_fields_block:
+    block = deco_fields_block.group(1)
+    if "'decoTransitMode'" in block:
+        ok("DECO_FIELDS: decoTransitMode present — transit mode persisted across sessions")
+    else:
+        fail("DECO_FIELDS: decoTransitMode missing — transit mode (Schreiner/MultiDeco) not saved/restored")
+else:
+    fail("DECO_FIELDS: could not find field list")
+
+# 41.3 All fields in _ADV_FIELDS also in DECO_FIELDS (persistence completeness)
+adv_fields_match = re.search(r'_ADV_FIELDS\s*=\s*\[([\s\S]*?)\]', js)
+if adv_fields_match and deco_fields_block:
+    adv_block = adv_fields_match.group(1)
+    deco_block = deco_fields_block.group(1)
+    adv_ids = re.findall(r"'(\w+)'", adv_block)
+    deco_ids = re.findall(r"'(\w+)'", deco_block)
+    deco_set = set(deco_ids)
+    # Some _ADV_FIELDS are intentionally save-only (minDeco fields handled separately)
+    expected_in_deco = ['shallowGradient','decoTransitMode','heHalfTimeMode','waterVapor',
+                        'n2NarcSel','o2NarcSel','ppo2Bottom','ppo2Deco','o2AtMODSelect']
+    missing = [f for f in expected_in_deco if f not in deco_set]
+    if missing:
+        fail(f"DECO_FIELDS: advanced settings not persisted to main save: {missing}")
+    else:
+        ok(f"DECO_FIELDS: all critical advanced settings also in DECO_FIELDS ({len(expected_in_deco)} checked)")
+
+print(f"\nLSP D-Planner Audit — {path}")
+print("=" * 60)
+
+if FAIL:
+    print(f"\n{'─'*60}")
+    print(f"  FAILURES ({len(FAIL)}):")
+    print(f"{'─'*60}")
+    for f_ in FAIL:
+        print(f"  ✗ {f_}")
+
 print(f"\n{'─'*60}")
 print(f"  Results: {len(PASS)} passed, {len(FAIL)} failed")
 print(f"{'─'*60}\n")
