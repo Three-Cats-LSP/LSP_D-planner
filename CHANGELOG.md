@@ -4,6 +4,28 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.25 — 2026-06-21
+
+### Fixed (GitHub #4 — imperial display + reset gaps)
+
+- **Imperial PrT fallback** — Export/messenger PrT fallbacks and contingency PrT display now convert DOM depth from feet to metres via `domDepthToM()` before `BAR_PER_METRE` multiplication (was ~3.28× too large in imperial).
+
+- **Imperial export header rates/stops** — `buildDecoPlanHeaderData()` converts metric-stored select `.value` fields to ft for display (`domMetricValToDisp`); fixes ascent/descent rates, last stop, deco step, and min-deco depths showing wrong ft values.
+
+- **Imperial altitude label in exports** — `altLabelDisp()` shows ft in imperial mode instead of always metres.
+
+- **Reset to defaults gaps** — `_doResetToDefaults()` now restores `decoTransitMode`, `shallowGradient`, and `o2AtMODSelect`; calls `setAllowO2AtMOD()` after reset.
+
+- **`decoTransitMode` fallback** — `runDecoSchedule()` default aligned with HTML default (`multideco`, was `schreiner`).
+
+- **Advanced summary units** — Collapsed header shows ft/min and ft when in imperial mode.
+
+- **Audit** — GROUP 58 added. Total: 332 checks, 0 failures.
+
+- **`APP_VERSION`** — bumped to `2.20.25`.
+
+---
+
 ## v2.20.23 — 2026-06-21
 
 ### Fixed

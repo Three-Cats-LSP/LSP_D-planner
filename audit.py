@@ -2296,35 +2296,35 @@ manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
 pkg_path = os.path.join(os.path.dirname(__file__), "package.json")
 pkg_lock_path = os.path.join(os.path.dirname(__file__), "package-lock.json")
 version_ok = True
-if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.24['\"]", js):
-    ok("APP_VERSION bumped to 2.20.24")
+if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.25['\"]", js):
+    ok("APP_VERSION bumped to 2.20.25")
 else:
     version_ok = False
-    fail("APP_VERSION not bumped to 2.20.24")
+    fail("APP_VERSION not bumped to 2.20.25")
 if os.path.isfile(sw_path):
     with open(sw_path, encoding="utf-8") as f:
         sw_check = f.read()
-    if "lsp-dplanner-v2.20.24" in sw_check:
-        ok("sw.js CACHE_VERSION synced to 2.20.24")
+    if "lsp-dplanner-v2.20.25" in sw_check:
+        ok("sw.js CACHE_VERSION synced to 2.20.25")
     else:
         version_ok = False
-        fail("sw.js CACHE_VERSION not synced to 2.20.24")
+        fail("sw.js CACHE_VERSION not synced to 2.20.25")
 if os.path.isfile(pkg_path):
     with open(pkg_path, encoding="utf-8") as f:
         pkg = f.read()
-    if '"version": "2.20.24"' in pkg:
-        ok("package.json version synced to 2.20.24")
+    if '"version": "2.20.25"' in pkg:
+        ok("package.json version synced to 2.20.25")
     else:
         version_ok = False
-        fail("package.json version not synced to 2.20.24")
+        fail("package.json version not synced to 2.20.25")
 if os.path.isfile(pkg_lock_path):
     with open(pkg_lock_path, encoding="utf-8") as f:
         pkg_lock = f.read()
-    if '"version": "2.20.24"' in pkg_lock:
-        ok("package-lock.json version synced to 2.20.24")
+    if '"version": "2.20.25"' in pkg_lock:
+        ok("package-lock.json version synced to 2.20.25")
     else:
         version_ok = False
-        fail("package-lock.json version not synced to 2.20.24")
+        fail("package-lock.json version not synced to 2.20.25")
 if os.path.isfile(manifest_path):
     with open(manifest_path, encoding="utf-8") as f:
         manifest = f.read()
@@ -2469,6 +2469,67 @@ if adv_fields_match and deco_fields_block:
         fail(f"DECO_FIELDS: advanced settings not persisted to main save: {missing}")
     else:
         ok(f"DECO_FIELDS: all critical advanced settings also in DECO_FIELDS ({len(expected_in_deco)} checked)")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 58 — GitHub #4: imperial PrT, export header display, reset defaults
+# ══════════════════════════════════════════════════════════════════════════════
+
+for fn in ('domDepthToM', 'calcPrTBarMin', 'domMetricValToDisp', 'altLabelDisp'):
+    if re.search(rf'function {fn}\(', js):
+        ok(f"{fn}: imperial/export helper defined")
+    else:
+        fail(f"{fn}: missing — imperial PrT/export display broken")
+
+# 58.1 buildDecoPlanHeaderData uses domMetricValToDisp for rates
+bdhd_idx = js.find('function buildDecoPlanHeaderData()')
+if bdhd_idx >= 0:
+    bdhd_end = js.find('\nfunction ', bdhd_idx + 10)
+    bdhd_body = js[bdhd_idx:bdhd_end] if bdhd_end > 0 else js[bdhd_idx:bdhd_idx+3500]
+    if 'domMetricValToDisp' in bdhd_body and 'altLabelDisp' in bdhd_body:
+        ok("buildDecoPlanHeaderData: uses domMetricValToDisp + altLabelDisp for imperial display")
+    else:
+        fail("buildDecoPlanHeaderData: missing imperial display helpers")
+else:
+    fail("buildDecoPlanHeaderData: function not found")
+
+# 58.2 calcContingency PrT uses domDepthToM
+cc_idx = js.find('function calcContingency(')
+if cc_idx >= 0:
+    cc_end = js.find('\nfunction ', cc_idx + 10)
+    cc_body = js[cc_idx:cc_end] if cc_end > 0 else js[cc_idx:cc_idx+12000]
+    if re.search(r'calcPrTBarMin\(\s*domDepthToM', cc_body) or re.search(r'domDepthToM\([\'"]decoDepth', cc_body):
+        ok("calcContingency: PrT uses domDepthToM (imperial-safe)")
+    elif re.search(r'_emDepth\s*\*\s*BAR_PER_METRE', cc_body):
+        fail("calcContingency: PrT still multiplies raw DOM depth — wrong in imperial")
+    else:
+        fail("calcContingency: could not verify PrT depth conversion")
+else:
+    fail("calcContingency: function not found")
+
+# 58.3 _doResetToDefaults includes decoTransitMode, shallowGradient, o2AtMODSelect
+rtd_idx = js.find('function _doResetToDefaults(')
+if rtd_idx >= 0:
+    rtd_end = js.find('\nfunction ', rtd_idx + 10)
+    rtd_body = js[rtd_idx:rtd_end] if rtd_end > 0 else js[rtd_idx:rtd_idx+4000]
+    for fld in ('decoTransitMode', 'shallowGradient', 'o2AtMODSelect'):
+        if f"{fld}:" in rtd_body or f"'{fld}'" in rtd_body:
+            ok(f"_doResetToDefaults: resets {fld}")
+        else:
+            fail(f"_doResetToDefaults: missing {fld} in defaults object")
+    if 'setAllowO2AtMOD' in rtd_body:
+        ok("_doResetToDefaults: calls setAllowO2AtMOD after reset")
+    else:
+        fail("_doResetToDefaults: does not sync o2AtMODSelect via setAllowO2AtMOD")
+else:
+    fail("_doResetToDefaults: function not found")
+
+# 58.4 runDecoSchedule decoTransitMode fallback matches HTML default (multideco)
+if re.search(r"getElementById\('decoTransitMode'\)\?\.value\s*\|\|\s*'multideco'", js):
+    ok("runDecoSchedule: decoTransitMode fallback is multideco (matches HTML default)")
+elif re.search(r"getElementById\('decoTransitMode'\)\?\.value\s*\|\|\s*'schreiner'", js):
+    fail("runDecoSchedule: decoTransitMode fallback still schreiner — inconsistent with HTML default multideco")
+else:
+    fail("runDecoSchedule: could not verify decoTransitMode fallback")
 
 print(f"\nLSP D-Planner Audit — {path}")
 print("=" * 60)
