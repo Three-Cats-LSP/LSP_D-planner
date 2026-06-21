@@ -4,6 +4,35 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.22 — 2026-06-21
+
+### Design sync (CCR shared layer)
+
+- **Header branding** — Default Tec icon is 🫧; extracted `setBrandIcon()` helper; Tools button text-only; `aria-hidden` on brand icon.
+- **PDF deco banner** — Warning indicator uses ⚠ (`\u26A0`) to match on-screen banner.
+- **PWA** — Dynamic `getAppBasePath()` in service worker; version-keyed cache migration; `sw.js?v=` registration with `SKIP_WAITING`; added `icon-512.png` to manifest.
+
+### Fixed (back-ported from CCR audit)
+
+- **BUG-33** — VPM gas summary uses correct `dg1Mix`/`dg2Mix` DOM IDs for deco cylinder lookup.
+- **BUG-40** — Bühlmann emergency gas: imperial cylinder size converted cu ft → L.
+- **BUG-41/62** — `appSettings.clear()` removes all settings keys including v6 and app-owned prefs.
+- **BUG-42** — Removed duplicate deferred `_restoreFields()` pass that fired spurious change events on load.
+- **BUG-69** — `computeSurfaceGF()` uses `altSurfaceP` for altitude-aware surface GF.
+- **BUG-71** — `sacDomToLpm()` converts imperial SAC to L/min before gas math (Bühlmann + VPM).
+- **BUG-72** — VPM gas summary and emergency card use `gpVolDisp()` for imperial volume display.
+- **BUG-76** — Massive test suite guards: early headless mode, `installMassiveSuiteGuards()`, `massiveSuite=1` iframe load.
+
+### Other
+
+- **Settings persistence** — Added `dg1Mix`, `dg1CustomO2`, `dg2Mix`, `dg2CustomO2` to `DECO_FIELDS`.
+- **Reference panel** — Link to LSP D-Planner + CCR Rebreather Edition.
+- **Audit** — GROUPs 41–42, 46, 53–56 added. Total: 294 checks, 0 failures.
+
+- **`APP_VERSION`** — bumped to `2.20.22`.
+
+---
+
 ## v2.20.21 — 2026-06-20
 
 ### Fixed

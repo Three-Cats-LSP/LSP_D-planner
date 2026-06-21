@@ -407,6 +407,10 @@ if deco_fields_idx > 0:
         ("heHalfTimeMode",  "He half-time mode selector"),
         ("botTrimixO2",     "Bottom gas trimix O2 input"),
         ("botTrimixHe",     "Bottom gas trimix He input"),
+        ("dg1Mix",          "Deco gas 1 mix selector"),
+        ("dg1CustomO2",     "Deco gas 1 custom O2 input"),
+        ("dg2Mix",          "Deco gas 2 mix selector"),
+        ("dg2CustomO2",     "Deco gas 2 custom O2 input"),
         ("dg1TrimixO2",     "Deco gas 1 trimix O2 input"),
         ("dg1TrimixHe",     "Deco gas 1 trimix He input"),
         ("dg2TrimixO2",     "Deco gas 2 trimix O2 input"),
@@ -2078,6 +2082,205 @@ elif spread_calls:
     ok(f"formatPlanSummaryBlock: all {len(spread_calls)} call site(s) use spread (...) — array lines pushed correctly")
 else:
     fail("formatPlanSummaryBlock: no call sites found")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 41 (OC) — Design sync with CCR shared layer
+# ══════════════════════════════════════════════════════════════════════════════
+
+if re.search(r"function setBrandIcon\s*\(", js):
+    ok("setBrandIcon() helper present for header branding")
+else:
+    fail("setBrandIcon() helper missing — header icon logic still inline")
+
+pdf_banner_start = js.find("function drawDecoPlanBannerPdf")
+pdf_banner_block = js[pdf_banner_start:pdf_banner_start + 5000] if pdf_banner_start > 0 else ""
+if pdf_banner_start > 0 and (
+    r"hasDeco ? '\u26A0'" in pdf_banner_block
+    or "hasDeco ? '\u26A0'" in pdf_banner_block
+    or f"hasDeco ? '{chr(0x26A0)}'" in pdf_banner_block
+):
+    ok("drawDecoPlanBannerPdf uses \\u26A0 warning icon (matches on-screen banner)")
+else:
+    fail("drawDecoPlanBannerPdf still uses '!' instead of \\u26A0 warning icon")
+
+sw_path = os.path.join(os.path.dirname(__file__), "sw.js")
+if os.path.isfile(sw_path):
+    with open(sw_path, encoding="utf-8") as f:
+        sw_src = f.read()
+    if "function getAppBasePath" in sw_src and "OFFLINE_INDEX" in sw_src:
+        ok("sw.js defines getAppBasePath() and dynamic OFFLINE_INDEX")
+    else:
+        fail("sw.js missing getAppBasePath() or OFFLINE_INDEX")
+else:
+    fail("sw.js missing")
+
+if 'aria-hidden="true"' in html and 'id="brandIcon"' in html:
+    ok("brandIcon has aria-hidden for accessibility")
+else:
+    fail("brandIcon missing aria-hidden attribute")
+
+if re.search(r'id="algoTools"[^>]*>Tools<', html):
+    ok("Tools button label is text-only (no emoji prefix)")
+else:
+    fail("Tools button still uses emoji prefix")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 42 — v2.30.9 shared fixes (BUG-40/41/42)
+# ══════════════════════════════════════════════════════════════════════════════
+
+buh_cap_start = js.find("const cylCapacity = {}; // gas label")
+buh_cap_block = js[buh_cap_start:buh_cap_start + 500] if buh_cap_start > 0 else ""
+if "28.3168" in buh_cap_block:
+    ok("Bühlmann cylCapacity: cylinder size converted cu ft → L in imperial mode (BUG-40)")
+else:
+    fail("Bühlmann cylCapacity: missing imperial cu ft → L conversion (BUG-40)")
+
+clear_start = js.find("clear: function()")
+clear_block = js[clear_start:clear_start + 400] if clear_start > 0 else ""
+if "lspDiveSettings_v6" in clear_block:
+    ok("appSettings.clear() removes lspDiveSettings_v6 (BUG-41)")
+else:
+    fail("appSettings.clear() still removes wrong storage key (BUG-41)")
+
+restore_start = js.find("_restoreFields: function")
+restore_block = js[restore_start:restore_start + 1200] if restore_start > 0 else ""
+if "setTimeout(checkAndRestore, 100)" not in restore_block and "setTimeout(() => restoreOne(id), 100)" not in restore_block:
+    ok("_restoreFields(): no duplicate deferred restore pass (BUG-42)")
+else:
+    fail("_restoreFields() still restores every field twice (BUG-42)")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 46 (OC) — Extended clear() keys (BUG-62)
+# ══════════════════════════════════════════════════════════════════════════════
+
+clear_block2 = js[clear_start:clear_start + 700] if clear_start > 0 else ""
+if clear_start > 0 and "waterDensity" in clear_block2 and "lspUserAdvDefaults" in clear_block2:
+    ok("appSettings.clear() removes extended localStorage keys (BUG-62)")
+else:
+    fail("appSettings.clear() still misses app-owned keys (BUG-62)")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 53 — Imperial volume display (BUG-72)
+# ══════════════════════════════════════════════════════════════════════════════
+
+vpm_gas_start = js.find("for (const [gas, reqL] of Object.entries(gasConsVPM))")
+vpm_gas_block = js[vpm_gas_start:vpm_gas_start + 2500] if vpm_gas_start > 0 else ""
+if vpm_gas_start > 0 and "gpVolDisp(reqL)" in vpm_gas_block:
+    ok("VPM gas summary uses gpVolDisp for imperial volume display (BUG-72)")
+else:
+    fail("VPM gas summary still shows raw litres as cu ft (BUG-72)")
+
+emerg_start = js.find("// Emergency plan — keep simple sufficient/short table")
+emerg_block = js[emerg_start:emerg_start + 1800] if emerg_start > 0 else ""
+if emerg_start > 0 and "gpVolDisp(reqL)" in emerg_block:
+    ok("Emergency gas block uses gpVolDisp for imperial volume display (BUG-72)")
+else:
+    fail("Emergency gas block still shows raw litres as cu ft (BUG-72)")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 54 (OC) — Altitude GF, SAC conversion, VPM deco gas IDs (BUG-69/71/33)
+# ══════════════════════════════════════════════════════════════════════════════
+
+surf_gf_start = js.find("function computeSurfaceGF")
+surf_gf_block = js[surf_gf_start:surf_gf_start + 600] if surf_gf_start > 0 else ""
+if surf_gf_start > 0 and "const P_surf = altSurfaceP" in surf_gf_block:
+    ok("computeSurfaceGF uses altSurfaceP for altitude-aware surface GF (BUG-69)")
+else:
+    fail("computeSurfaceGF still hardcodes P_surf=1.0 (BUG-69)")
+
+if "function sacDomToLpm" in js and "sacDomToLpm('sacBottom'" in js:
+    ok("sacDomToLpm converts imperial SAC to L/min before gas consumption (BUG-71)")
+else:
+    fail("sacDomToLpm missing — imperial gas consumption still in cu_ft·bar (BUG-71)")
+
+if "getDecoGasLabel('dg1Mix','dg1CustomO2')" in js and "getDecoGasLabel('dg2Mix','dg2CustomO2')" in js:
+    ok("VPM gas summary uses correct dg1Mix/dg2Mix DOM IDs (BUG-33)")
+else:
+    fail("VPM gas summary still uses non-existent decoGas1Mix/decoGas2Mix IDs (BUG-33)")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 55 (OC) — Massive suite guards (BUG-76)
+# ══════════════════════════════════════════════════════════════════════════════
+
+if "massiveSuite" in js and "_massiveSuiteActive" in js:
+    ok("BUG-76 fixed: index.html early headless when massiveSuite=1")
+else:
+    fail("BUG-76: index.html missing massiveSuite early headless guard")
+
+if re.search(r"if\s*\(\s*!window\._zhlHeadless\s*\)\s*renderNDLTable\s*\(\s*\)", js):
+    ok("BUG-76 fixed: setDecoAlgorithm/setCustomGF skip renderNDLTable in headless mode")
+else:
+    fail("BUG-76: setDecoAlgorithm still calls renderNDLTable unconditionally")
+
+massive_path = os.path.join(os.path.dirname(__file__), "tests-massive.html")
+if os.path.isfile(massive_path):
+    with open(massive_path, encoding="utf-8") as f:
+        massive_html = f.read()
+    if "enterMassiveHeadless" in massive_html and "installMassiveSuiteGuards" in massive_html:
+        ok("BUG-76 fixed: tests-massive.html enterMassiveHeadless + suite guards")
+    else:
+        fail("BUG-76: tests-massive.html missing enterMassiveHeadless / installMassiveSuiteGuards")
+    if "massiveSuite=1" in massive_html and "MIN_APP_VERSION" in massive_html:
+        ok("BUG-76 fixed: tests-massive.html loads index with massiveSuite=1 + version guard")
+    else:
+        fail("BUG-76: tests-massive.html missing massiveSuite=1 or MIN_APP_VERSION")
+    fastrds_block = massive_html.split("function fastRDS")[1].split("function safeSetUnits")[0] if "function fastRDS" in massive_html else ""
+    if fastrds_block and "WIN._zhlHeadless = false" not in fastrds_block:
+        ok("BUG-76 fixed: fastRDS never clears _zhlHeadless")
+    else:
+        fail("BUG-76: fastRDS still clears _zhlHeadless before runDecoSchedule")
+else:
+    fail("tests-massive.html missing")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 56 (OC) — Version file alignment (BUG-74/83)
+# ══════════════════════════════════════════════════════════════════════════════
+
+manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
+pkg_path = os.path.join(os.path.dirname(__file__), "package.json")
+pkg_lock_path = os.path.join(os.path.dirname(__file__), "package-lock.json")
+version_ok = True
+if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.22['\"]", js):
+    ok("APP_VERSION bumped to 2.20.22")
+else:
+    version_ok = False
+    fail("APP_VERSION not bumped to 2.20.22")
+if os.path.isfile(sw_path):
+    with open(sw_path, encoding="utf-8") as f:
+        sw_check = f.read()
+    if "lsp-dplanner-v2.20.22" in sw_check:
+        ok("sw.js CACHE_VERSION synced to 2.20.22")
+    else:
+        version_ok = False
+        fail("sw.js CACHE_VERSION not synced to 2.20.22")
+if os.path.isfile(pkg_path):
+    with open(pkg_path, encoding="utf-8") as f:
+        pkg = f.read()
+    if '"version": "2.20.22"' in pkg:
+        ok("package.json version synced to 2.20.22")
+    else:
+        version_ok = False
+        fail("package.json version not synced to 2.20.22")
+if os.path.isfile(pkg_lock_path):
+    with open(pkg_lock_path, encoding="utf-8") as f:
+        pkg_lock = f.read()
+    if '"version": "2.20.22"' in pkg_lock:
+        ok("package-lock.json version synced to 2.20.22")
+    else:
+        version_ok = False
+        fail("package-lock.json version not synced to 2.20.22")
+if os.path.isfile(manifest_path):
+    with open(manifest_path, encoding="utf-8") as f:
+        manifest = f.read()
+    if "icon-512.png" in manifest and "512x512" in manifest:
+        ok("manifest.json includes 512×512 icon entry (BUG-10)")
+    else:
+        fail("manifest.json missing icon-512.png 512×512 entry (BUG-10)")
+
+if "d-planner-ccr" in html:
+    ok("Reference panel links to LSP D-Planner + CCR edition")
+else:
+    fail("Reference panel missing CCR edition cross-link")
 
 print("=" * 60)
 
