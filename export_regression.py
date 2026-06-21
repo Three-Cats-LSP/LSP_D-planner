@@ -331,12 +331,9 @@ def run_tests(page, port):
         )
 
         exp = prt_expected(
-            depth_m + (flags.get("contExtraDepth", 0) if flags.get("contExtraDepth") else 0),
+            depth_m + flags.get("contExtraDepth", 0),
             bt_min + flags.get("contExtraBT", 0),
         )
-        # Note: calcContingency currently adds contExtraBT to PrT but not contExtraDepth to depth
-        if name == "extra_depth_3m":
-            exp = prt_expected(depth_m, bt_min)
         if not cont["hasCont"]:
             fail(f"Contingency [{name}]: _lastContingency not set")
             continue

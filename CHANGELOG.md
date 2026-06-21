@@ -4,6 +4,20 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.27 — 2026-06-19
+
+### Fixed — contingency PrT includes extra depth
+
+- **`calcContingency()` PrT** — `_emDepthM` now adds `contExtraDepth` (metres) after `domDepthToM()`, so “went deeper” scenarios report correct PrT in live footer and all exports (text, messenger, slate, PDF).
+
+### Added — CI
+
+- **`.github/workflows/ci.yml`** — runs `audit.py` (374 checks) and `export_regression.py` (Playwright export/PrT suite) on push and pull requests to `main`.
+
+- **`APP_VERSION`** — bumped to `2.20.27`.
+
+---
+
 ## v2.20.26 — 2026-06-19
 
 ### Fixed — dynamic deco gas persistence (dg3–dg8)

@@ -2311,35 +2311,35 @@ manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
 pkg_path = os.path.join(os.path.dirname(__file__), "package.json")
 pkg_lock_path = os.path.join(os.path.dirname(__file__), "package-lock.json")
 version_ok = True
-if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.26['\"]", js):
-    ok("APP_VERSION bumped to 2.20.26")
+if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.27['\"]", js):
+    ok("APP_VERSION bumped to 2.20.27")
 else:
     version_ok = False
-    fail("APP_VERSION not bumped to 2.20.26")
+    fail("APP_VERSION not bumped to 2.20.27")
 if os.path.isfile(sw_path):
     with open(sw_path, encoding="utf-8") as f:
         sw_check = f.read()
-    if "lsp-dplanner-v2.20.26" in sw_check:
-        ok("sw.js CACHE_VERSION synced to 2.20.26")
+    if "lsp-dplanner-v2.20.27" in sw_check:
+        ok("sw.js CACHE_VERSION synced to 2.20.27")
     else:
         version_ok = False
-        fail("sw.js CACHE_VERSION not synced to 2.20.26")
+        fail("sw.js CACHE_VERSION not synced to 2.20.27")
 if os.path.isfile(pkg_path):
     with open(pkg_path, encoding="utf-8") as f:
         pkg = f.read()
-    if '"version": "2.20.26"' in pkg:
-        ok("package.json version synced to 2.20.26")
+    if '"version": "2.20.27"' in pkg:
+        ok("package.json version synced to 2.20.27")
     else:
         version_ok = False
-        fail("package.json version not synced to 2.20.26")
+        fail("package.json version not synced to 2.20.27")
 if os.path.isfile(pkg_lock_path):
     with open(pkg_lock_path, encoding="utf-8") as f:
         pkg_lock = f.read()
-    if '"version": "2.20.26"' in pkg_lock:
-        ok("package-lock.json version synced to 2.20.26")
+    if '"version": "2.20.27"' in pkg_lock:
+        ok("package-lock.json version synced to 2.20.27")
     else:
         version_ok = False
-        fail("package-lock.json version not synced to 2.20.26")
+        fail("package-lock.json version not synced to 2.20.27")
 if os.path.isfile(manifest_path):
     with open(manifest_path, encoding="utf-8") as f:
         manifest = f.read()
@@ -2518,6 +2518,10 @@ if cc_idx >= 0:
         fail("calcContingency: PrT still multiplies raw DOM depth — wrong in imperial")
     else:
         fail("calcContingency: could not verify PrT depth conversion")
+    if re.search(r'domDepthToM\([\'"]decoDepth[\'"]\)\s*\+\s*\(contExtraDepth', cc_body):
+        ok("calcContingency: PrT depth includes contExtraDepth offset (metres)")
+    else:
+        fail("calcContingency: PrT ignores contExtraDepth — went-deeper scenario under-reports severity")
 else:
     fail("calcContingency: function not found")
 
