@@ -4,6 +4,40 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.23 — 2026-06-21
+
+### Fixed
+
+- **Narcosis and O₂-at-MOD settings not persisted on reload** — `n2NarcSel`, `o2NarcSel`, and `o2AtMODSelect` were in `_ADV_FIELDS` (Advanced Config presets only) but missing from `appSettings.DECO_FIELDS`, so the main save/restore path did not remember them across page loads. Added all three to `DECO_FIELDS`; `change` events on restore call `setNarcosis()` / `setAllowO2AtMOD()` as on user interaction.
+
+- **First-run localStorage key typo** — Init block checked `lspDiveSettingsv6` (no underscore) so advanced defaults were re-applied on every load after `appSettings.load()`. Fixed to `lspDiveSettings_v6`; restored CCR first-run `setGF(20,85)` + `gfPresetSelect` / `handleGFSelect('20/85')`.
+
+- **VPM He half-time sync (BUG-76 slice)** — Export `VPMEngine._syncHeHalfTimes()` + `_setHeHT1()`; `updateHeHalfTime()` syncs all 16 He compartments when switching Baker ↔ Bühlmann 2003.
+
+- **VPM gas consumption in imperial (BUG-61 slice)** — Depth scrape uses `endParseDepthM()` so `"120 ft"` cells parse correctly.
+
+- **GF preset sync** — `_gfSyncSilent`, `_findGfPresetOption()`, `syncGfPresetFromValues()`; post-load GF dropdown stays aligned with `mGF`.
+
+- **ZHLEngine headless nesting (BUG-74 slice)** — Preserve `_zhlHeadless` via `_headlessEntry` for nested headless/API calls.
+
+- **`shortMixLabel` (BUG-53)** — Exact `^air$` match instead of broad `/air/i`.
+
+### Design sync (CCR shared layer)
+
+- **Advanced Settings layout** — Replaced multi-column `form-grid` with vertical `adv-stack` / `adv-row` layout (label left, control right, one setting per row), matching CCR edition. Min-deco sub-fields use nested `adv-row`s instead of inline grid.
+
+### Test harness
+
+- **`lsp-test-harness.js`** — Shared dual-engine boot helper (VPM + ZHL).
+- **`tests.html`** — Inlined harness, `ndlSettings()` (GF 100/100 for NDL tests), routes Bühlmann via `ZHLEngine`.
+- **`tests-massive.html` / `tests-massive-main.html`** — `refreshFrameWin`, `vpmEngine`, `keepHeadless`, `_suiteRunId` run guard, SW `SKIP_WAITING`; main suite adds `MIN_APP_VERSION` + `about:blank` iframe.
+
+- **Audit** — GROUP 8/9/41/57 extended. Total: 318 checks, 0 failures.
+
+- **`APP_VERSION`** — bumped to `2.20.23`.
+
+---
+
 ## v2.20.22 — 2026-06-21
 
 ### Design sync (CCR shared layer)

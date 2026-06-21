@@ -402,7 +402,7 @@ if deco_fields_idx < 0:
     deco_fields_idx = html.find("'DECO_FIELDS'")
 
 if deco_fields_idx > 0:
-    deco_fields_block = html[deco_fields_idx:deco_fields_idx + 600]
+    deco_fields_block = html[deco_fields_idx:deco_fields_idx + 750]
     required_fields = [
         ("heHalfTimeMode",  "He half-time mode selector"),
         ("botTrimixO2",     "Bottom gas trimix O2 input"),
@@ -411,6 +411,9 @@ if deco_fields_idx > 0:
         ("dg1CustomO2",     "Deco gas 1 custom O2 input"),
         ("dg2Mix",          "Deco gas 2 mix selector"),
         ("dg2CustomO2",     "Deco gas 2 custom O2 input"),
+        ("n2NarcSel",       "N2 narcosis toggle"),
+        ("o2NarcSel",       "O2 narcosis toggle"),
+        ("o2AtMODSelect",   "Allow O2 at MOD toggle"),
         ("dg1TrimixO2",     "Deco gas 1 trimix O2 input"),
         ("dg1TrimixHe",     "Deco gas 1 trimix He input"),
         ("dg2TrimixO2",     "Deco gas 2 trimix O2 input"),
@@ -450,6 +453,17 @@ if uht_fn:
         fail("updateHeHalfTime() does not patch VPMEngine — VPM-B He HT stays at Baker 1.88")
 else:
     fail("updateHeHalfTime() function not found")
+
+# 9.3 VPMEngine exports He HT sync API (buhl2003 — BUG-76 He)
+if "_syncHeHalfTimes:" in js and "_setHeHT1:" in js and "ZHL16C_He[i].ht" in js:
+    ok("VPMEngine._syncHeHalfTimes + _setHeHT1 exported — buhl2003 He HT sync works")
+else:
+    fail("VPMEngine He HT sync API missing — buhl2003 mode leaves VPM He HT at Baker 1.88")
+uht_fn2 = re.search(r"function updateHeHalfTime\(\)(.*?)^}", js, re.DOTALL | re.MULTILINE)
+if uht_fn2 and "_syncHeHalfTimes" in uht_fn2.group(1):
+    ok("updateHeHalfTime() calls VPMEngine._syncHeHalfTimes (full 16-compartment sync)")
+else:
+    fail("updateHeHalfTime() does not call VPMEngine._syncHeHalfTimes")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # GROUP 10 — TISSUE OBJECT CONSISTENCY
@@ -2124,6 +2138,48 @@ if re.search(r'id="algoTools"[^>]*>Tools<', html):
 else:
     fail("Tools button still uses emoji prefix")
 
+adv_body_start = html.find('id="advancedSettingsBody"')
+adv_body_block = html[adv_body_start:adv_body_start + 15000] if adv_body_start > 0 else ""
+if adv_body_start > 0 and 'class="adv-stack"' in adv_body_block:
+    ok("Advanced Settings uses adv-stack vertical layout (CCR design sync)")
+else:
+    fail("Advanced Settings still uses form-grid instead of adv-stack")
+if adv_body_start > 0 and adv_body_block.count('class="adv-row"') >= 20:
+    ok("Advanced Settings rows use adv-row (label + control per line)")
+else:
+    fail("Advanced Settings missing adv-row stacked rows")
+if ".adv-stack" in html and ".adv-row" in html:
+    ok("adv-stack / adv-row CSS present")
+else:
+    fail("adv-stack / adv-row CSS missing")
+
+if "syncGfPresetFromValues" in js and "_gfSyncSilent" in js and "_findGfPresetOption" in js:
+    ok("GF preset sync helpers present (_gfSyncSilent, syncGfPresetFromValues)")
+else:
+    fail("GF preset sync helpers missing from OC edition")
+
+if 'localStorage.getItem(\'lspDiveSettings_v6\')' in js and "lspDiveSettingsv6" not in js:
+    ok("First-run init uses correct lspDiveSettings_v6 key")
+else:
+    fail("First-run init still uses wrong lspDiveSettingsv6 key (resets adv settings every load)")
+
+if re.search(r"function shortMixLabel\(m\).*?\^air\$", js, re.DOTALL):
+    ok("shortMixLabel uses exact Air match (BUG-53)")
+else:
+    fail("shortMixLabel still uses broad /air/i match (BUG-53)")
+
+vpm_depth_start = js.find("document.querySelectorAll('#decoTableBody tr[data-phase]')")
+vpm_depth_block = js[vpm_depth_start:vpm_depth_start + 800] if vpm_depth_start > 0 else ""
+if vpm_depth_start > 0 and "endParseDepthM(depthRaw)" in vpm_depth_block:
+    ok("VPM gas consumption parses imperial depth via endParseDepthM (BUG-61)")
+else:
+    fail("VPM gas consumption still uses parseFloat on depth cell (BUG-61 imperial)")
+
+if "_headlessEntry = !!window._zhlHeadless" in js and "window._zhlHeadless = _headlessEntry" in js:
+    ok("ZHLEngine.calculate preserves _zhlHeadless across calls (BUG-74)")
+else:
+    fail("ZHLEngine.calculate still clears _zhlHeadless after headless runs (BUG-74)")
+
 # ══════════════════════════════════════════════════════════════════════════════
 # GROUP 42 — v2.30.9 shared fixes (BUG-40/41/42)
 # ══════════════════════════════════════════════════════════════════════════════
@@ -2240,35 +2296,35 @@ manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
 pkg_path = os.path.join(os.path.dirname(__file__), "package.json")
 pkg_lock_path = os.path.join(os.path.dirname(__file__), "package-lock.json")
 version_ok = True
-if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.22['\"]", js):
-    ok("APP_VERSION bumped to 2.20.22")
+if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.23['\"]", js):
+    ok("APP_VERSION bumped to 2.20.23")
 else:
     version_ok = False
-    fail("APP_VERSION not bumped to 2.20.22")
+    fail("APP_VERSION not bumped to 2.20.23")
 if os.path.isfile(sw_path):
     with open(sw_path, encoding="utf-8") as f:
         sw_check = f.read()
-    if "lsp-dplanner-v2.20.22" in sw_check:
-        ok("sw.js CACHE_VERSION synced to 2.20.22")
+    if "lsp-dplanner-v2.20.23" in sw_check:
+        ok("sw.js CACHE_VERSION synced to 2.20.23")
     else:
         version_ok = False
-        fail("sw.js CACHE_VERSION not synced to 2.20.22")
+        fail("sw.js CACHE_VERSION not synced to 2.20.23")
 if os.path.isfile(pkg_path):
     with open(pkg_path, encoding="utf-8") as f:
         pkg = f.read()
-    if '"version": "2.20.22"' in pkg:
-        ok("package.json version synced to 2.20.22")
+    if '"version": "2.20.23"' in pkg:
+        ok("package.json version synced to 2.20.23")
     else:
         version_ok = False
-        fail("package.json version not synced to 2.20.22")
+        fail("package.json version not synced to 2.20.23")
 if os.path.isfile(pkg_lock_path):
     with open(pkg_lock_path, encoding="utf-8") as f:
         pkg_lock = f.read()
-    if '"version": "2.20.22"' in pkg_lock:
-        ok("package-lock.json version synced to 2.20.22")
+    if '"version": "2.20.23"' in pkg_lock:
+        ok("package-lock.json version synced to 2.20.23")
     else:
         version_ok = False
-        fail("package-lock.json version not synced to 2.20.22")
+        fail("package-lock.json version not synced to 2.20.23")
 if os.path.isfile(manifest_path):
     with open(manifest_path, encoding="utf-8") as f:
         manifest = f.read()
@@ -2281,6 +2337,68 @@ if "d-planner-ccr" in html:
     ok("Reference panel links to LSP D-Planner + CCR edition")
 else:
     fail("Reference panel missing CCR edition cross-link")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 57 (OC) — shared dual-engine test harness
+# ══════════════════════════════════════════════════════════════════════════════
+
+harness_path = os.path.join(os.path.dirname(__file__), "lsp-test-harness.js")
+if os.path.isfile(harness_path):
+    with open(harness_path, encoding="utf-8") as f:
+        harness = f.read()
+    ok("lsp-test-harness.js present")
+    for needle in ["waitForApp", "ZHLEngine", "VPMEngine", "model === 'ZHLC_GF'"]:
+        if needle in harness:
+            ok(f"lsp-test-harness.js defines {needle}")
+        else:
+            fail(f"lsp-test-harness.js missing {needle}")
+else:
+    fail("lsp-test-harness.js missing")
+
+tests_html_path = os.path.join(os.path.dirname(__file__), "tests.html")
+if os.path.isfile(tests_html_path):
+    with open(tests_html_path, encoding="utf-8") as f:
+        tests_html = f.read()
+    if "LSPTestHarness.waitForApp" in tests_html:
+        ok("tests.html wired to dual-engine harness")
+    else:
+        fail("tests.html missing LSPTestHarness.waitForApp")
+    if "function ndlSettings" in tests_html and "ndlSettings()" in tests_html:
+        ok("tests.html NDL group uses GF 100/100 via ndlSettings()")
+    else:
+        fail("tests.html No-Deco tests still use default GF conservatism")
+else:
+    fail("tests.html missing")
+
+massive_html_path = os.path.join(os.path.dirname(__file__), "tests-massive.html")
+if os.path.isfile(massive_html_path):
+    with open(massive_html_path, encoding="utf-8") as f:
+        massive_html = f.read()
+    if "function refreshFrameWin" in massive_html and "_suiteRunId" in massive_html:
+        ok("tests-massive.html iframe run guard + refreshFrameWin present")
+    else:
+        fail("tests-massive.html missing iframe hardening (refreshFrameWin / _suiteRunId)")
+    if "function vpmEngine" in massive_html and "keepHeadless" in massive_html:
+        ok("tests-massive.html vpmEngine() + calc() keepHeadless guard")
+    else:
+        fail("tests-massive.html missing vpmEngine() or keepHeadless in calc()")
+else:
+    fail("tests-massive.html missing")
+
+massive_main_path = os.path.join(os.path.dirname(__file__), "tests-massive-main.html")
+if os.path.isfile(massive_main_path):
+    with open(massive_main_path, encoding="utf-8") as f:
+        massive_main = f.read()
+    if "MIN_APP_VERSION" in massive_main and "about:blank" in massive_main:
+        ok("tests-massive-main.html guards against stale cached index.html")
+    else:
+        fail("tests-massive-main.html missing MIN_APP_VERSION / about:blank guard")
+    if "function refreshFrameWin" in massive_main and "_suiteRunId" in massive_main:
+        ok("tests-massive-main.html iframe run guard + refreshFrameWin present")
+    else:
+        fail("tests-massive-main.html missing iframe hardening")
+else:
+    fail("tests-massive-main.html missing")
 
 print("=" * 60)
 
