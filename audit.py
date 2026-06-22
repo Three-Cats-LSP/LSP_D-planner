@@ -2698,6 +2698,26 @@ if os.path.isfile(verify_path):
     else:
         fail("tests-verify.html: missing #7 validation tests")
 
+ci_path = os.path.join(os.path.dirname(__file__), ".github", "workflows", "ci.yml")
+if os.path.isfile(ci_path):
+    with open(ci_path, encoding="utf-8") as f:
+        ci_yml = f.read()
+    if "engine_validation_regression.py" in ci_yml:
+        ok("ci.yml runs engine_validation_regression.py (GitHub #7)")
+    else:
+        fail("ci.yml missing engine_validation_regression.py job")
+
+evr_path = os.path.join(os.path.dirname(__file__), "engine_validation_regression.py")
+if os.path.isfile(evr_path):
+    with open(evr_path, encoding="utf-8") as f:
+        evr = f.read()
+    if "INVALID_GAS_FRACTIONS" in evr and "validateDomDecoGases" in evr:
+        ok("engine_validation_regression.py: malformed input probes present")
+    else:
+        fail("engine_validation_regression.py incomplete")
+else:
+    fail("engine_validation_regression.py missing")
+
 print(f"\nLSP D-Planner Audit — {path}")
 print("=" * 60)
 

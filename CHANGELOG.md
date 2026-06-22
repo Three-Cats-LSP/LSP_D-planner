@@ -12,6 +12,7 @@ All notable changes to LSP D-Planner are documented here.
 - **`ZHLEngine.calculate()` / `VPMEngine.calculate()`** — Validate before any engine or DOM mutation; return structured error instead of silently clamping N2 to zero.
 - **UI path** — `validateDomDecoGases()` blocks `runDecoSchedule()` when saved/restored gas fields are invalid.
 - **Tests** — Section G in `tests-verify.html` covers ZHL and VPM rejection and boundary cases.
+- **CI** — `engine_validation_regression.py` runs malformed-input probes on every push/PR.
 
 - **`APP_VERSION`** — bumped to `2.20.30`.
 
