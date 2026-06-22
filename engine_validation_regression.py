@@ -82,6 +82,8 @@ def run_checks(page, port):
       out.badDecoZhl = zhl(40, 25, 21, 0, [{ o2: 50, he: 60 }]);
       out.badMixVpm = vpm(40, 25, 50, 60);
       out.negHeVpm = vpm(40, 25, 21, -5);
+      out.nanHeZhl = zhl(40, 25, 21, NaN);
+      out.nanHeVpm = vpm(40, 25, 21, NaN);
       out.nanO2Vpm = vpm(40, 25, NaN, 0);
 
       const dom = document.getElementById('decoGas');
@@ -117,6 +119,8 @@ def run_checks(page, port):
         ("ZHL invalid deco gas", "badDecoZhl", "INVALID_GAS_FRACTIONS"),
         ("VPM O2+He>100%", "badMixVpm", "INVALID_GAS_FRACTIONS"),
         ("VPM negative He", "negHeVpm", "INVALID_GAS_FRACTIONS"),
+        ("ZHL NaN He", "nanHeZhl", "INVALID_GAS_FRACTIONS"),
+        ("VPM NaN He", "nanHeVpm", "INVALID_GAS_FRACTIONS"),
         ("VPM NaN O2", "nanO2Vpm", "INVALID_GAS_FRACTIONS"),
     ]:
         got = results[key].get("code")
