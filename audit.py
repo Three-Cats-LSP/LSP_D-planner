@@ -2195,7 +2195,7 @@ if vpm_depth_start > 0 and "endParseDepthM(depthRaw)" in vpm_depth_block:
 else:
     fail("VPM gas consumption still uses parseFloat on depth cell (BUG-61 imperial)")
 
-if "_headlessEntry = !!window._zhlHeadless" in js and "window._zhlHeadless = _headlessEntry" in js:
+if "_zhlHeadlessDepth" in js and "window._zhlHeadless = _headlessEntry > 0" in js:
     ok("ZHLEngine.calculate preserves _zhlHeadless across calls (BUG-74)")
 else:
     fail("ZHLEngine.calculate still clears _zhlHeadless after headless runs (BUG-74)")
