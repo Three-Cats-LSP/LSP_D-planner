@@ -7933,7 +7933,14 @@ const VPMEngine = (() => {
         const validation = validateEngineInputs(levels, decoGases);
         if (!validation.ok) return engineValidationError(validation);
         if (!levels || levels.length === 0) {
-            return { error: 'No bottom segments defined', stops: [], totalTime: 0 };
+            return {
+                error: 'No bottom segments defined',
+                code: 'INVALID_PROFILE',
+                stops: [],
+                plan: [],
+                totalTime: 0,
+                totalRuntime: 0,
+            };
         }
         const stepSize = settings.stepSize || (settings.metric ? 3 : 10);
         const lastStop = settings.lastStop || (settings.metric ? 3 : 10);
