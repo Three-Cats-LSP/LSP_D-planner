@@ -2316,41 +2316,41 @@ manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
 pkg_path = os.path.join(os.path.dirname(__file__), "package.json")
 pkg_lock_path = os.path.join(os.path.dirname(__file__), "package-lock.json")
 version_ok = True
-if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.29['\"]", js):
-    ok("APP_VERSION bumped to 2.20.29")
+if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.30['\"]", js):
+    ok("APP_VERSION bumped to 2.20.30")
 else:
     version_ok = False
-    fail("APP_VERSION not bumped to 2.20.29")
+    fail("APP_VERSION not bumped to 2.20.30")
 if os.path.isfile(sw_path):
     with open(sw_path, encoding="utf-8") as f:
         sw_check = f.read()
-    if "lsp-dplanner-v2.20.29" in sw_check:
-        ok("sw.js CACHE_VERSION synced to 2.20.29")
+    if "lsp-dplanner-v2.20.30" in sw_check:
+        ok("sw.js CACHE_VERSION synced to 2.20.30")
     else:
         version_ok = False
-        fail("sw.js CACHE_VERSION not synced to 2.20.29")
+        fail("sw.js CACHE_VERSION not synced to 2.20.30")
 if os.path.isfile(pkg_path):
     with open(pkg_path, encoding="utf-8") as f:
         pkg = f.read()
-    if '"version": "2.20.29"' in pkg:
-        ok("package.json version synced to 2.20.29")
+    if '"version": "2.20.30"' in pkg:
+        ok("package.json version synced to 2.20.30")
     else:
         version_ok = False
-        fail("package.json version not synced to 2.20.29")
+        fail("package.json version not synced to 2.20.30")
 if os.path.isfile(pkg_lock_path):
     with open(pkg_lock_path, encoding="utf-8") as f:
         pkg_lock = f.read()
-    if '"version": "2.20.29"' in pkg_lock:
-        ok("package-lock.json version synced to 2.20.29")
+    if '"version": "2.20.30"' in pkg_lock:
+        ok("package-lock.json version synced to 2.20.30")
     else:
         version_ok = False
-        fail("package-lock.json version not synced to 2.20.29")
+        fail("package-lock.json version not synced to 2.20.30")
 gradle_path = os.path.join(os.path.dirname(__file__), "android", "app", "build.gradle")
 if os.path.isfile(gradle_path):
     with open(gradle_path, encoding="utf-8") as f:
         gradle = f.read()
-    if 'versionName "2.20.29"' in gradle and "versionCode 22029" in gradle:
-        ok("android/app/build.gradle versionCode/versionName synced to 2.20.29")
+    if 'versionName "2.20.30"' in gradle and "versionCode 22030" in gradle:
+        ok("android/app/build.gradle versionCode/versionName synced to 2.20.30")
     else:
         version_ok = False
         fail("android/app/build.gradle version drift — sync versionCode/versionName with APP_VERSION")
@@ -2660,6 +2660,43 @@ if os.path.isfile(sw_path):
         ok("sw.js: offline fallback chains cache.match promises")
     else:
         fail("sw.js: offline fallback still uses || on Promise")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 61 (OC) — GitHub #7 engine gas-fraction validation
+# ══════════════════════════════════════════════════════════════════════════════
+
+if "function validateEngineInputs" in js and "INVALID_GAS_FRACTIONS" in js:
+    ok("validateEngineInputs: shared validator with INVALID_GAS_FRACTIONS code")
+else:
+    fail("validateEngineInputs: missing or incomplete")
+
+zhl_idx = js.find("const ZHLEngine")
+if zhl_idx >= 0:
+    zhl_calc = js.find("function calculate(levels, decoGases, settings)", zhl_idx)
+    if zhl_calc >= 0 and "validateEngineInputs(levels, decoGases)" in js[zhl_calc:zhl_calc + 400]:
+        ok("ZHLEngine.calculate: validates inputs before engine run")
+    else:
+        fail("ZHLEngine.calculate: missing validateEngineInputs guard")
+
+vpm_calc = js.find("function calculate(levels, decoGases, settings, model)")
+if vpm_calc >= 0 and "validateEngineInputs(levels, decoGases)" in js[vpm_calc:vpm_calc + 400]:
+    ok("VPMEngine.calculate: validates inputs before engine run")
+else:
+    fail("VPMEngine.calculate: missing validateEngineInputs guard")
+
+if "function validateDomDecoGases" in js and "validateDomDecoGases()" in js:
+    ok("runDecoSchedule: validateDomDecoGases blocks invalid UI gas state")
+else:
+    fail("runDecoSchedule: missing validateDomDecoGases guard")
+
+verify_path = os.path.join(os.path.dirname(__file__), "tests-verify.html")
+if os.path.isfile(verify_path):
+    with open(verify_path, encoding="utf-8") as f:
+        verify = f.read()
+    if "INVALID_GAS_FRACTIONS" in verify and "Engine Input Validation" in verify:
+        ok("tests-verify.html: GitHub #7 gas validation regression section")
+    else:
+        fail("tests-verify.html: missing #7 validation tests")
 
 print(f"\nLSP D-Planner Audit — {path}")
 print("=" * 60)

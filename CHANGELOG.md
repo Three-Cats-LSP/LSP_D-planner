@@ -4,6 +4,19 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.30 — 2026-06-21
+
+### Fixed (GitHub #7 — invalid gas fraction validation)
+
+- **`validateEngineInputs()`** — Shared validator for dive levels and deco gases; rejects non-finite, out-of-range, and O2+He>100% mixtures with stable codes (`INVALID_GAS_FRACTIONS`, `INVALID_DEPTH`, `INVALID_TIME`, `INVALID_PROFILE`).
+- **`ZHLEngine.calculate()` / `VPMEngine.calculate()`** — Validate before any engine or DOM mutation; return structured error instead of silently clamping N2 to zero.
+- **UI path** — `validateDomDecoGases()` blocks `runDecoSchedule()` when saved/restored gas fields are invalid.
+- **Tests** — Section G in `tests-verify.html` covers ZHL and VPM rejection and boundary cases.
+
+- **`APP_VERSION`** — bumped to `2.20.30`.
+
+---
+
 ## v2.20.29 — 2026-06-21
 
 ### Fixed (GitHub #5 follow-up — imperial test step size)
