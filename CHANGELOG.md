@@ -4,6 +4,14 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.40.02-final — 2026-06-24  ★ Final OC release (archived)
+
+Development has moved to **[LSP D-Planner+](https://github.com/Three-Cats-LSP/LSP_D-planner-plus)** ([live](https://threecats-lsp.com/d-planner-plus/)). This repository is frozen; no further updates will be made here.
+
+Last feature release: **v2.40.02** (Tier 3 ZHL engine, offline PWA/APK shell).
+
+---
+
 ## v2.40.02 — 2026-06-23
 
 ### Fixed — fully self-contained offline shell (PWA + Android APK)

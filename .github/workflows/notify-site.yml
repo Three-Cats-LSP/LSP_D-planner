@@ -1,24 +1,11 @@
-name: Notify Site on Push
+name: Notify Site on Push (disabled — archived repo)
 
+# Legacy OC repo is frozen at v2.40.02-final. Hub sync disabled.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'index.html'
-      - 'tests.html'
-      - 'tests-extended.html'
-      - 'tests-massive.html'
-      - 'tests-massive-main.html'
-      - 'tests-verify.html'
+  workflow_dispatch:
 
 jobs:
-  notify:
+  noop:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger site sync
-        run: |
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.SYNC_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/Three-Cats-LSP/threecats-lsp.com/dispatches \
-            -d '{"event_type":"sync-d-planner"}'
+      - run: echo "LSP_D-planner is archived; use LSP_D-planner-plus for site sync."

@@ -1,5 +1,7 @@
 # LSP D-Planner
 
+> **Archived — development continues in [LSP D-Planner+](https://github.com/Three-Cats-LSP/LSP_D-planner-plus)** ([live app](https://threecats-lsp.com/d-planner-plus/)). This open-circuit edition is frozen at **v2.40.02-final**.
+
 Free open-source decompression planner for recreational and technical divers. Runs entirely in the browser — no install, no build step, no server, no account.
 
 Part of the [Three Cats LSP](https://threecats-lsp.com) **Diver's Toolkit**.
@@ -7,9 +9,9 @@ Part of the [Three Cats LSP](https://threecats-lsp.com) **Diver's Toolkit**.
 🌐 **Live app:** https://threecats-lsp.com/d-planner/  
 📲 **Android APK:** https://threecats-lsp.com/d-planner/download.html  
 
-**Current version: 2.40.02**
+**Current version: 2.40.02 (final)**
 
-> **Looking for rebreather planning?** See [LSP D-Planner + CCR](https://github.com/Three-Cats-LSP/LSP_D-planner-CCR) — CCR, pSCR, bailout on Bühlmann + VPM-B.
+> **Unified app:** See [LSP D-Planner+](https://github.com/Three-Cats-LSP/LSP_D-planner-plus) — OC + CCR + Tier 3 engine in one app.
 
 ---
 
