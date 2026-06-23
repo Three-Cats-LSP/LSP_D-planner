@@ -68,8 +68,10 @@ def run_checks(page, port):
     results = page.evaluate(
         """(settings) => {
       const lv = (d, t, o2, he) => [{ depth: d, time: t, o2, he }];
-      const zhl = (d, t, o2, he, gases) => window.ZHLEngine.calculate(lv(d, t, o2, he), gases || [], settings);
-      const vpm = (d, t, o2, he, gases) => window.VPMEngine.calculate(lv(d, t, o2, he), gases || [], settings, 'VPMB');
+      const zhlLv = (levels, gases) => window.ZHLEngine.calculate(levels, gases || [], settings);
+      const zhl = (d, t, o2, he, gases) => zhlLv(lv(d, t, o2, he), gases);
+      const vpmLv = (levels, gases, s) => window.VPMEngine.calculate(levels, gases || [], s, 'VPMB');
+      const vpm = (d, t, o2, he, gases) => vpmLv(lv(d, t, o2, he), gases, settings);
       const out = {};
 
       out.valid = zhl(40, 25, 21, 0);
@@ -85,6 +87,25 @@ def run_checks(page, port):
       out.nanHeZhl = zhl(40, 25, 21, NaN);
       out.nanHeVpm = vpm(40, 25, 21, NaN);
       out.nanO2Vpm = vpm(40, 25, NaN, 0);
+      out.vpmEmpty = vpmLv([], [], settings);
+      out.zhlEmpty = zhlLv([], []);
+      out.zhlMl = zhlLv(
+        [{ depth: 60, time: 20, o2: 18, he: 45 }, { depth: 42, time: 8, o2: 18, he: 45 }],
+        []
+      );
+      out.zhlSingle = zhlLv([{ depth: 60, time: 20, o2: 18, he: 45 }], []);
+      out.zhlRedescend = zhlLv(
+        [{ depth: 60, time: 20, o2: 18, he: 45 }, { depth: 42, time: 8, o2: 18, he: 45 }, { depth: 50, time: 5, o2: 18, he: 45 }],
+        []
+      );
+      out.zhlDeepNotFirst = zhlLv(
+        [{ depth: 30, time: 10, o2: 21, he: 0 }, { depth: 60, time: 20, o2: 18, he: 45 }],
+        []
+      );
+      out.vpmNoSettings = vpmLv(lv(40, 25, 21, 0), null, null);
+      out.vpmNoGases = vpmLv(lv(40, 25, 21, 0), undefined, {});
+      out.vpmNullLevel = vpmLv([null], [], {});
+      out.vpmNullGas = vpmLv(lv(40, 25, 21, 0), [null], {});
 
       const dom = document.getElementById('decoGas');
       const prevMix = dom ? dom.value : null;
@@ -122,6 +143,69 @@ def run_checks(page, port):
         ("ZHL NaN He", "nanHeZhl", "INVALID_GAS_FRACTIONS"),
         ("VPM NaN He", "nanHeVpm", "INVALID_GAS_FRACTIONS"),
         ("VPM NaN O2", "nanO2Vpm", "INVALID_GAS_FRACTIONS"),
+    ]:
+        got = results[key].get("code")
+        if got == code:
+            ok(f"{label} → {code}")
+        else:
+            fail(f"{label}: expected {code}, got {got!r} ({results[key]})")
+
+    for label, key, code in [
+        ("VPM empty levels", "vpmEmpty", "INVALID_PROFILE"),
+        ("ZHL empty levels", "zhlEmpty", "INVALID_PROFILE"),
+    ]:
+        got = results[key].get("code")
+        if got == code:
+            ok(f"{label} → {code}")
+        else:
+            fail(f"{label}: expected {code}, got {got!r} ({results[key]})")
+
+    for label, key in [
+        ("VPM empty levels totalRuntime", "vpmEmpty"),
+        ("ZHL empty levels totalRuntime", "zhlEmpty"),
+    ]:
+        r = results[key]
+        if r.get("totalRuntime") == 0 and r.get("error"):
+            ok(f"{label} is 0")
+        else:
+            fail(f"{label}: expected totalRuntime 0, got {r!r}")
+
+    zhl_ml = results["zhlMl"]
+    zhl_single = results["zhlSingle"]
+    if not zhl_ml.get("error") and not zhl_single.get("error"):
+        if zhl_ml.get("totalRuntime", 0) > zhl_single.get("totalRuntime", 0):
+            ok("ZHL multi-level longer than deepest-only profile")
+        else:
+            fail(
+                f"ZHL multi-level not distinguished: ml={zhl_ml.get('totalRuntime')} "
+                f"single={zhl_single.get('totalRuntime')}"
+            )
+    else:
+        fail(f"ZHL multi-level calc failed: ml={zhl_ml!r} single={zhl_single!r}")
+
+    for label, key in [
+        ("ZHL re-descend profile", "zhlRedescend"),
+        ("ZHL deepest not first", "zhlDeepNotFirst"),
+    ]:
+        r = results[key]
+        if r.get("code") == "INVALID_PROFILE" and r.get("error"):
+            ok(f"{label} → INVALID_PROFILE")
+        else:
+            fail(f"{label}: expected INVALID_PROFILE, got {r!r}")
+
+    if results["vpmNoSettings"].get("totalRuntime", 0) > 0 and not results["vpmNoSettings"].get("error"):
+        ok("VPM null settings uses defaults (no throw)")
+    else:
+        fail(f"VPM null settings failed: {results['vpmNoSettings']}")
+
+    if results["vpmNoGases"].get("totalRuntime", 0) > 0 and not results["vpmNoGases"].get("error"):
+        ok("VPM undefined decoGases uses empty list (no throw)")
+    else:
+        fail(f"VPM undefined decoGases failed: {results['vpmNoGases']}")
+
+    for label, key, code in [
+        ("VPM null level", "vpmNullLevel", "INVALID_PROFILE"),
+        ("VPM null gas", "vpmNullGas", "INVALID_GAS_FRACTIONS"),
     ]:
         got = results[key].get("code")
         if got == code:

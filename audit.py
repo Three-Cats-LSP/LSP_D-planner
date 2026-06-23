@@ -2718,6 +2718,47 @@ if os.path.isfile(evr_path):
 else:
     fail("engine_validation_regression.py missing")
 
+# ══════════════════════════════════════════════════════════════════════════════
+# GROUP 62 (OC) — ZHL multi-level headless + profile validation (v2.20.30)
+# ══════════════════════════════════════════════════════════════════════════════
+
+vpm_calc_idx = js.find("function calculate(levels, decoGases, settings, model)")
+vpm_empty = js[vpm_calc_idx:vpm_calc_idx + 3500] if vpm_calc_idx >= 0 else ""
+ev_err = js[js.find("function engineValidationError"):js.find("function engineValidationError") + 400] if "function engineValidationError" in js else ""
+if (
+    "No bottom segments defined" in vpm_empty
+    and "totalRuntime: 0" in vpm_empty.split("No bottom segments defined")[1][:400]
+) or (
+    "validateEngineInputs(levels, decoGases)" in vpm_empty[:600]
+    and "totalRuntime: 0" in ev_err
+):
+    ok("VPM empty-levels error includes totalRuntime: 0 (VPM/ZHL parity)")
+else:
+    fail("VPM empty-levels error missing totalRuntime: 0 (VPM/ZHL parity)")
+
+if "splitZhlProfileLevels" in js and "_zhlContinuationLevels" in js and "phaseNextStop" in js:
+    ok("ZHL headless multi-level continuation wired (splitZhlProfileLevels)")
+else:
+    fail("ZHL headless multi-level continuation missing")
+
+if "validateZhlHeadlessProfile" in js and "cannot re-descend after a shallower level" in js:
+    ok("validateZhlHeadlessProfile rejects unsupported ZHL profile shapes")
+else:
+    fail("validateZhlHeadlessProfile missing (unsupported multi-level ZHL profiles)")
+
+if "validateEngineInputs" in js and "engineValidationError" in js:
+    ok("validateEngineInputs + engineValidationError exported for VPM API hardening")
+else:
+    fail("validateEngineInputs / engineValidationError missing")
+
+if os.path.isfile(evr_path):
+    with open(evr_path, encoding="utf-8") as f:
+        evr_ml = f.read()
+    if "zhlRedescend" in evr_ml and "zhlMl" in evr_ml:
+        ok("engine_validation_regression.py: ZHL multi-level profile probes present")
+    else:
+        fail("engine_validation_regression.py missing ZHL multi-level profile probes")
+
 print(f"\nLSP D-Planner Audit — {path}")
 print("=" * 60)
 
