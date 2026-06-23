@@ -2316,41 +2316,41 @@ manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
 pkg_path = os.path.join(os.path.dirname(__file__), "package.json")
 pkg_lock_path = os.path.join(os.path.dirname(__file__), "package-lock.json")
 version_ok = True
-if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.31['\"]", js):
-    ok("APP_VERSION bumped to 2.20.31")
+if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.32['\"]", js):
+    ok("APP_VERSION bumped to 2.20.32")
 else:
     version_ok = False
-    fail("APP_VERSION not bumped to 2.20.31")
+    fail("APP_VERSION not bumped to 2.20.32")
 if os.path.isfile(sw_path):
     with open(sw_path, encoding="utf-8") as f:
         sw_check = f.read()
-    if "lsp-dplanner-v2.20.31" in sw_check:
-        ok("sw.js CACHE_VERSION synced to 2.20.31")
+    if "lsp-dplanner-v2.20.32" in sw_check:
+        ok("sw.js CACHE_VERSION synced to 2.20.32")
     else:
         version_ok = False
-        fail("sw.js CACHE_VERSION not synced to 2.20.31")
+        fail("sw.js CACHE_VERSION not synced to 2.20.32")
 if os.path.isfile(pkg_path):
     with open(pkg_path, encoding="utf-8") as f:
         pkg = f.read()
-    if '"version": "2.20.31"' in pkg:
-        ok("package.json version synced to 2.20.31")
+    if '"version": "2.20.32"' in pkg:
+        ok("package.json version synced to 2.20.32")
     else:
         version_ok = False
-        fail("package.json version not synced to 2.20.31")
+        fail("package.json version not synced to 2.20.32")
 if os.path.isfile(pkg_lock_path):
     with open(pkg_lock_path, encoding="utf-8") as f:
         pkg_lock = f.read()
-    if '"version": "2.20.31"' in pkg_lock:
-        ok("package-lock.json version synced to 2.20.31")
+    if '"version": "2.20.32"' in pkg_lock:
+        ok("package-lock.json version synced to 2.20.32")
     else:
         version_ok = False
-        fail("package-lock.json version not synced to 2.20.31")
+        fail("package-lock.json version not synced to 2.20.32")
 gradle_path = os.path.join(os.path.dirname(__file__), "android", "app", "build.gradle")
 if os.path.isfile(gradle_path):
     with open(gradle_path, encoding="utf-8") as f:
         gradle = f.read()
-    if 'versionName "2.20.31"' in gradle and "versionCode 22031" in gradle:
-        ok("android/app/build.gradle versionCode/versionName synced to 2.20.31")
+    if 'versionName "2.20.32"' in gradle and "versionCode 22032" in gradle:
+        ok("android/app/build.gradle versionCode/versionName synced to 2.20.32")
     else:
         version_ok = False
         fail("android/app/build.gradle version drift — sync versionCode/versionName with APP_VERSION")
@@ -2715,6 +2715,10 @@ if zhl_eng_idx >= 0:
             ok("ZHLEngine.calculate: unreachable empty-level guard removed (BUG-2)")
         else:
             fail("ZHLEngine.calculate: still has alternate empty-level error path (BUG-2)")
+        if "restoreFieldValues(prevHeadlessFields)" in js and "saveFieldValues([" in js:
+            ok("ZHLEngine.calculate: restores rate/stop/ppO2 DOM fields after headless run (BUG-1/#8)")
+        else:
+            fail("ZHLEngine.calculate: missing headless DOM field restore (BUG-1/#8)")
 
 ci_path = os.path.join(os.path.dirname(__file__), ".github", "workflows", "ci.yml")
 if os.path.isfile(ci_path):
@@ -2733,6 +2737,10 @@ if os.path.isfile(evr_path):
         ok("engine_validation_regression.py: malformed input probes present")
     else:
         fail("engine_validation_regression.py incomplete")
+    if "zhlRestoresHeadlessFields" in evr:
+        ok("engine_validation_regression.py: ZHL DOM field restore probe present (#8)")
+    else:
+        fail("engine_validation_regression.py missing ZHL DOM field restore probe (#8)")
 else:
     fail("engine_validation_regression.py missing")
 

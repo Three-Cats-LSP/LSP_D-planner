@@ -117,6 +117,41 @@ def run_checks(page, port):
         });
       })();
 
+      out.zhlRestoresHeadlessFields = (() => {
+        const saved = {
+          ascentRate: '9',
+          decoAscentRate: '6',
+          surfaceAscentRate: '9',
+          descentRate: '18',
+          minStopTime: '2',
+          decoStep: '5',
+          lastDecoStop: '6',
+          ppo2Bottom: '1.2',
+          ppo2Deco: '1.5',
+        };
+        Object.entries(saved).forEach(([id, value]) => {
+          const el = document.getElementById(id);
+          if (el) el.value = value;
+        });
+        const r = window.ZHLEngine.calculate(lv(40, 25, 21, 0), [], {
+          ...settings,
+          ascentRate: 10,
+          decoAscentRate: 3,
+          surfaceAscentRate: 3,
+          descentRate: 20,
+          minStopTime: 1,
+          stepSize: 3,
+          lastStop: 3,
+          ppO2Bottom: 1.4,
+          ppO2Deco: 1.6,
+        });
+        const restored = Object.entries(saved).every(([id, value]) => {
+          const el = document.getElementById(id);
+          return !el || el.value === value;
+        });
+        return { ok: restored && !r.error && r.totalRuntime > 0, restored, result: r };
+      })();
+
       const dom = document.getElementById('decoGas');
       const prevMix = dom ? dom.value : null;
       const prevO2 = document.getElementById('botTrimixO2')?.value;
@@ -232,6 +267,12 @@ def run_checks(page, port):
         ok("VPM deco gas with omitted He produces finite schedule")
     else:
         fail(f"VPM omitted He deco gas failed: {results.get('vpmOmittedHe')}")
+
+    zhl_restore = results.get("zhlRestoresHeadlessFields", {})
+    if zhl_restore.get("ok"):
+        ok("ZHL headless call restores rate/stop/ppO2 DOM fields")
+    else:
+        fail(f"ZHL headless DOM field restore failed: {zhl_restore}")
 
     boundary = results["boundaryZhl"]
     if not boundary.get("code") and boundary.get("totalRuntime", 0) > 0:

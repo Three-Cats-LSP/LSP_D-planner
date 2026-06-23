@@ -4,6 +4,17 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.32 — 2026-06-19
+
+### Fixed — headless ZHL DOM field restore (GitHub #8 / BUG-1)
+
+- **ZHLEngine.calculate()** — Save and restore `ascentRate`, `decoAscentRate`, `surfaceAscentRate`, `descentRate`, `minStopTime`, `decoStep`, `lastDecoStop`, `ppo2Bottom`, and `ppo2Deco` on all exit paths so repeated headless calls no longer overwrite the live UI.
+- **Regression** — `engine_validation_regression.py` probes DOM field restore after a successful headless calculation.
+
+- **`APP_VERSION`** — bumped to `2.20.32`.
+
+---
+
 ## v2.20.31 — 2026-06-23
 
 ### Fixed — harness headless guard + dead error path (comparative bench BUG-2/BUG-3)
