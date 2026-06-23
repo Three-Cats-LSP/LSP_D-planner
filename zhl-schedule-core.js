@@ -1,6 +1,8 @@
 /**
- * ZHL Bühlmann schedule core (Tier 2) — pure computation, no DOM.
- * Requires Bühlmann helpers from index.html (initTissues, saturate, etc.).
+ * ZHL Bühlmann schedule core (Tier 2) — BUILD SOURCE ONLY.
+ * Not loaded by index.html or zhl-schedule-worker.js at runtime.
+ * Rebuilt into zhl-engine-bundle.js via tools/build_zhl_bundle.py.
+ * Requires Bühlmann helpers that the bundle preamble provides.
  */
 function runZhlScheduleCore(params) {
   const depthM = params.depthM;

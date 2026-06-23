@@ -4,7 +4,19 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
-## v2.40.00 — 2026-06-19
+## v2.40.01 — 2026-06-23
+
+### Fixed — startup and offline risks from v2.40.00 audit (GitHub #10)
+
+- **jsPDF** — Vendored locally at `vendor/jspdf.umd.min.js` with `defer`; app no longer blocks on cdnjs during startup.
+- **Service worker** — Install precaches Tier-3 ZHL assets (`zhl-engine-bundle.js`, worker bridge, worker script), `capacitor-bridge.js`, jsPDF, manifest, and icons.
+- **`zhl-schedule-core.js`** — Documented as build-source-only (not loaded at runtime).
+
+- **`APP_VERSION`** — bumped to `2.40.01`.
+
+---
+
+## v2.40.00 — 2026-06-23
 
 ### Refactor — Tier 3 ZHL engine isolation (Web Worker + shared bundle)
 
