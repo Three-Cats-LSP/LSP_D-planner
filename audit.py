@@ -2316,41 +2316,41 @@ manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
 pkg_path = os.path.join(os.path.dirname(__file__), "package.json")
 pkg_lock_path = os.path.join(os.path.dirname(__file__), "package-lock.json")
 version_ok = True
-if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.30['\"]", js):
-    ok("APP_VERSION bumped to 2.20.30")
+if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.31['\"]", js):
+    ok("APP_VERSION bumped to 2.20.31")
 else:
     version_ok = False
-    fail("APP_VERSION not bumped to 2.20.30")
+    fail("APP_VERSION not bumped to 2.20.31")
 if os.path.isfile(sw_path):
     with open(sw_path, encoding="utf-8") as f:
         sw_check = f.read()
-    if "lsp-dplanner-v2.20.30" in sw_check:
-        ok("sw.js CACHE_VERSION synced to 2.20.30")
+    if "lsp-dplanner-v2.20.31" in sw_check:
+        ok("sw.js CACHE_VERSION synced to 2.20.31")
     else:
         version_ok = False
-        fail("sw.js CACHE_VERSION not synced to 2.20.30")
+        fail("sw.js CACHE_VERSION not synced to 2.20.31")
 if os.path.isfile(pkg_path):
     with open(pkg_path, encoding="utf-8") as f:
         pkg = f.read()
-    if '"version": "2.20.30"' in pkg:
-        ok("package.json version synced to 2.20.30")
+    if '"version": "2.20.31"' in pkg:
+        ok("package.json version synced to 2.20.31")
     else:
         version_ok = False
-        fail("package.json version not synced to 2.20.30")
+        fail("package.json version not synced to 2.20.31")
 if os.path.isfile(pkg_lock_path):
     with open(pkg_lock_path, encoding="utf-8") as f:
         pkg_lock = f.read()
-    if '"version": "2.20.30"' in pkg_lock:
-        ok("package-lock.json version synced to 2.20.30")
+    if '"version": "2.20.31"' in pkg_lock:
+        ok("package-lock.json version synced to 2.20.31")
     else:
         version_ok = False
-        fail("package-lock.json version not synced to 2.20.30")
+        fail("package-lock.json version not synced to 2.20.31")
 gradle_path = os.path.join(os.path.dirname(__file__), "android", "app", "build.gradle")
 if os.path.isfile(gradle_path):
     with open(gradle_path, encoding="utf-8") as f:
         gradle = f.read()
-    if 'versionName "2.20.30"' in gradle and "versionCode 22030" in gradle:
-        ok("android/app/build.gradle versionCode/versionName synced to 2.20.30")
+    if 'versionName "2.20.31"' in gradle and "versionCode 22031" in gradle:
+        ok("android/app/build.gradle versionCode/versionName synced to 2.20.31")
     else:
         version_ok = False
         fail("android/app/build.gradle version drift — sync versionCode/versionName with APP_VERSION")
@@ -2381,6 +2381,10 @@ if os.path.isfile(harness_path):
             ok(f"lsp-test-harness.js defines {needle}")
         else:
             fail(f"lsp-test-harness.js missing {needle}")
+    if "ctx.win._zhlHeadless = true" in harness and harness.count("ctx.win._zhlHeadless = true") >= 2:
+        ok("lsp-test-harness.js reasserts _zhlHeadless around engine calls (BUG-3)")
+    else:
+        fail("lsp-test-harness.js missing _zhlHeadless reassert in calc()")
 else:
     fail("lsp-test-harness.js missing")
 
@@ -2392,6 +2396,10 @@ if os.path.isfile(tests_html_path):
         ok("tests.html wired to dual-engine harness")
     else:
         fail("tests.html missing LSPTestHarness.waitForApp")
+    if tests_html.count("ctx.win._zhlHeadless = true") >= 2:
+        ok("tests.html harness reasserts _zhlHeadless around engine calls (BUG-3)")
+    else:
+        fail("tests.html harness missing _zhlHeadless reassert in calc()")
     if "function ndlSettings" in tests_html and "ndlSettings()" in tests_html:
         ok("tests.html NDL group uses GF 100/100 via ndlSettings()")
     else:
@@ -2697,6 +2705,16 @@ if os.path.isfile(verify_path):
         ok("tests-verify.html: GitHub #7 gas validation regression section")
     else:
         fail("tests-verify.html: missing #7 validation tests")
+
+zhl_eng_idx = js.find("const ZHLEngine")
+if zhl_eng_idx >= 0:
+    zhl_calc = js.find("function calculate(levels, decoGases, settings)", zhl_eng_idx)
+    if zhl_calc >= 0 and zhl_calc < zhl_eng_idx + 8000:
+        zhl_block = js[zhl_calc:zhl_calc + 600]
+        if "validateEngineInputs(levels, decoGases)" in zhl_block and "error: 'No levels'" not in zhl_block:
+            ok("ZHLEngine.calculate: unreachable empty-level guard removed (BUG-2)")
+        else:
+            fail("ZHLEngine.calculate: still has alternate empty-level error path (BUG-2)")
 
 ci_path = os.path.join(os.path.dirname(__file__), ".github", "workflows", "ci.yml")
 if os.path.isfile(ci_path):

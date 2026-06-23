@@ -4,6 +4,17 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.20.31 — 2026-06-23
+
+### Fixed — harness headless guard + dead error path (comparative bench BUG-2/BUG-3)
+
+- **ZHLEngine** — Removed unreachable `No levels` return after `validateEngineInputs()` (empty profiles already return `INVALID_PROFILE`).
+- **`lsp-test-harness.js` / `tests.html`** — Reassert `ctx.win._zhlHeadless = true` before and after each harness `calc()` call so repeated ZHL invocations do not leak the headless guard.
+
+- **`APP_VERSION`** — bumped to `2.20.31`.
+
+---
+
 ## v2.20.30 — 2026-06-21
 
 ### Fixed (GitHub #7 — invalid gas fraction validation)
