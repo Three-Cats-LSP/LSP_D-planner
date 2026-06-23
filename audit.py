@@ -2759,6 +2759,11 @@ if os.path.isfile(evr_path):
     else:
         fail("engine_validation_regression.py missing ZHL multi-level profile probes")
 
+if "function gasFractionsFromPct" in js and "gasFractionsFromPct(g.o2, g.he)" in js:
+    ok("VPM deco gas normalization uses gasFractionsFromPct (omitted He → 0)")
+else:
+    fail("VPM deco gas normalization missing gasFractionsFromPct helper")
+
 print(f"\nLSP D-Planner Audit — {path}")
 print("=" * 60)
 

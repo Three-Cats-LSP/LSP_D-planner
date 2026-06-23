@@ -106,6 +106,16 @@ def run_checks(page, port):
       out.vpmNoGases = vpmLv(lv(40, 25, 21, 0), undefined, {});
       out.vpmNullLevel = vpmLv([null], [], {});
       out.vpmNullGas = vpmLv(lv(40, 25, 21, 0), [null], {});
+      out.vpmOmittedHe = vpmLv(lv(40, 25, 21, 0), [{ o2: 50 }], settings);
+      out.vpmOmittedHeFinite = (() => {
+        const r = out.vpmOmittedHe;
+        if (r.error || !(r.totalRuntime > 0)) return false;
+        return !(r.plan || []).some(s => {
+          const t = s.time ?? s.runtime;
+          const d = s.depth ?? s.endDepth ?? s.startDepth;
+          return !Number.isFinite(t) || !Number.isFinite(d) || (s.he != null && !Number.isFinite(s.he));
+        });
+      })();
 
       const dom = document.getElementById('decoGas');
       const prevMix = dom ? dom.value : null;
@@ -149,6 +159,11 @@ def run_checks(page, port):
             ok(f"{label} → {code}")
         else:
             fail(f"{label}: expected {code}, got {got!r} ({results[key]})")
+
+    if results.get("vpmOmittedHeFinite"):
+        ok("VPM deco gas with omitted He produces finite schedule")
+    else:
+        fail(f"VPM omitted He deco gas failed: {results.get('vpmOmittedHe')}")
 
     for label, key, code in [
         ("VPM empty levels", "vpmEmpty", "INVALID_PROFILE"),
@@ -212,6 +227,11 @@ def run_checks(page, port):
             ok(f"{label} → {code}")
         else:
             fail(f"{label}: expected {code}, got {got!r} ({results[key]})")
+
+    if results.get("vpmOmittedHeFinite"):
+        ok("VPM deco gas with omitted He produces finite schedule")
+    else:
+        fail(f"VPM omitted He deco gas failed: {results.get('vpmOmittedHe')}")
 
     boundary = results["boundaryZhl"]
     if not boundary.get("code") and boundary.get("totalRuntime", 0) > 0:
