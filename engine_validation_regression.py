@@ -51,7 +51,7 @@ def start_server():
 def run_checks(page, port):
     page.goto(f"http://127.0.0.1:{port}/index.html?massiveSuite=1", wait_until="domcontentloaded")
     page.wait_for_function(
-        "() => window.ZHLEngine && window.VPMEngine && window.validateEngineInputs",
+        "() => window.ZHLEngine && window.VPMEngine && window.validateEngineInputs && window.ZhlEngineBundle",
         timeout=60000,
     )
     page.wait_for_timeout(3000)
@@ -285,6 +285,28 @@ def run_checks(page, port):
         ok("validateDomDecoGases rejects invalid bottom trimix in DOM")
     else:
         fail(f"DOM gas validation failed: {dom}")
+
+    worker_parity = page.evaluate(
+        """async (settings) => {
+      const levels = [{ depth: 40, time: 25, o2: 21, he: 0 }];
+      const sync = window.ZHLEngine.calculate(levels, [], settings);
+      const worker = await window.ZHLEngine.calculateInWorker(levels, [], settings);
+      const stopsMatch = (sync.stops || []).length === (worker.stops || []).length;
+      return {
+        ok: !sync.error && !worker.error && sync.totalRuntime === worker.totalRuntime
+            && sync.tts === worker.tts && stopsMatch,
+        syncRt: sync.totalRuntime,
+        workerRt: worker.totalRuntime,
+        syncErr: sync.error,
+        workerErr: worker.error,
+      };
+    }""",
+        settings,
+    )
+    if worker_parity.get("ok"):
+        ok("ZHL worker calculateInWorker matches sync calculate (Tier 3 parity)")
+    else:
+        fail(f"ZHL worker parity failed: {worker_parity}")
 
 
 def main():

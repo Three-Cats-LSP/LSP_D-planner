@@ -35,6 +35,16 @@ if not scripts:
 js = scripts[0]
 js_lines = js.split("\n")
 
+# Tier 3: Bühlmann core lives in zhl-engine-bundle.js — merge for ZHL pattern checks
+bundle_path = os.path.join(os.path.dirname(path) if os.path.dirname(path) else ".", "zhl-engine-bundle.js")
+if not os.path.isabs(bundle_path):
+    bundle_path = os.path.join(os.path.dirname(os.path.abspath(path)), "zhl-engine-bundle.js")
+zhl_bundle_js = ""
+if os.path.isfile(bundle_path):
+    with open(bundle_path, encoding="utf-8") as f:
+        zhl_bundle_js = f.read()
+zhl_src = js + "\n" + zhl_bundle_js
+
 # Helper: line number in JS block (1-indexed)
 def js_line(char_pos):
     return js[:char_pos].count("\n") + 1
@@ -162,9 +172,9 @@ check_sig("getGasLabel",     "fHe",        "formats trimix as O2/He notation")
 check_sig("toggleBottomTrimix", "",        "shows/hides He fields on bottom gas card")
 check_sig("updateHeHalfTime",   "",        "syncs ZHL16C_HE_HT + VPMEngine He HT")
 
-# optimalSwitchDepth is nested — search without ^ anchor
-m_osd = re.search(r"function optimalSwitchDepth\s*\(([^)]*)\)", js)
-if m_osd and "fO2override" in m_osd.group(1):
+# optimalSwitchDepth is nested — search without ^ anchor (Tier 2: zhlOptimalSwitchDepth)
+m_osd = re.search(r"function (?:optimalSwitchDepth|zhlOptimalSwitchDepth)\s*\(([^)]*)\)", js)
+if m_osd and ("fO2override" in m_osd.group(1) or m_osd.group(1).strip().startswith("fO2")):
     ok(f"optimalSwitchDepth({m_osd.group(1)}) — fO2override param for trimix")
 else:
     sig = m_osd.group(1) if m_osd else "NOT FOUND"
@@ -248,7 +258,7 @@ else:
 
 # 4.4 All optimalSwitchDepth() call sites pass fO2 as second arg
 # (the fix: pass fO2 so it doesn't use 1-fN2 internally)
-osd_calls = find_all(r"\boptimalSwitchDepth\(([^)]+)\)")
+osd_calls = find_all(r"\b(?:optimalSwitchDepth|zhlOptimalSwitchDepth)\(([^)]+)\)")
 osd_calls_nosig = [m for m in osd_calls if "fO2override" not in m.group(1) and "function" not in js[max(0,m.start()-20):m.start()]]
 osd_single_arg = [(js_line(m.start()), m.group(0)[:60]) for m in osd_calls_nosig if count_args(m.group(1)) < 2]
 if osd_single_arg:
@@ -1064,7 +1074,7 @@ else:
     fail("enforceMinDecoProfile() missing — minimum deco profile feature not implemented")
 
 # 21.2 Called in Buhlmann path
-if "enforceMinDecoProfile(collapsed," in js:
+if "enforceMinDecoProfile(collapsed," in zhl_src:
     ok("enforceMinDecoProfile called in Buhlmann path")
 else:
     fail("enforceMinDecoProfile not called in Buhlmann path — min deco profile ignored for ZHL")
@@ -1416,34 +1426,34 @@ else:
 
 # 28.1 firstStopDepth must be declared as `let` (mutable), not `const`
 # The old bug used `const firstStopDepth = ...` pre-computed from bottom tissues.
-if re.search(r'let firstStopDepth = 0;', js):
+if re.search(r'let firstStopDepth = 0;', zhl_src):
     ok("GF anchor: firstStopDepth declared as `let` (mutable, dynamically anchored)")
 else:
     fail("GF anchor: firstStopDepth must be `let firstStopDepth = 0` — pre-computed const causes spurious stops")
 
 # 28.2 candidateFirstStop used for stop list, not firstStopDepth
 # The candidate stop list must be built from candidateFirstStop, not the old firstStopDepth.
-if re.search(r'const candidateFirstStop = bottomCeil > 0', js):
+if re.search(r'const candidateFirstStop = bottomCeil > 0', zhl_src):
     ok("GF anchor: stop list built from candidateFirstStop (not pre-computed firstStopDepth)")
 else:
     fail("GF anchor: missing candidateFirstStop — stop list must use candidate variable, not firstStopDepth")
 
 # 28.3 firstStopDepth is anchored in the mustStop branch
 # The fix must set firstStopDepth = cur when the first required stop is found.
-if re.search(r'firstStopDepth\s*=\s*cur;\s*//\s*anchor GF line', js):
+if re.search(r'firstStopDepth\s*=\s*cur;\s*//\s*anchor GF line', zhl_src):
     ok("GF anchor: firstStopDepth set to cur at first mustStop (anchor from actual first stop)")
 else:
     fail("GF anchor: firstStopDepth not anchored at first mustStop — spurious stop bug will recur")
 
 # 28.4 minStopZoneDepth is declared as `let` (not const) and starts as null
 # With dynamic anchoring, minStopZoneDepth must be null until first stop is known.
-if re.search(r'let minStopZoneDepth = null;', js):
+if re.search(r'let minStopZoneDepth = null;', zhl_src):
     ok("GF anchor: minStopZoneDepth starts as null (set when first stop is known)")
 else:
     fail("GF anchor: minStopZoneDepth must be `let ... = null` — const from pre-computed firstStopDepth is broken")
 
 # 28.5 minStopZoneDepth is set in mustStop branch alongside firstStopDepth
-if re.search(r'minStopZoneDepth\s*=\s*cur;\s*//\s*enable min-stop', js):
+if re.search(r'minStopZoneDepth\s*=\s*cur;\s*//\s*enable min-stop', zhl_src):
     ok("GF anchor: minStopZoneDepth set to cur at first mustStop (min-stop enforcement enabled)")
 else:
     fail("GF anchor: minStopZoneDepth not set at first mustStop — min-stop enforcement may fail")
@@ -1461,20 +1471,22 @@ else:
 # ══════════════════════════════════════════════════════════════════════════════
 
 # 29.1 addExposure() helper present (refactored from inline duplicate logic)
-if re.search(r'function addExposure\(ppO2, dur\)', js):
+if re.search(r'function addExposure\(ppO2, dur\)', js) or re.search(r'function addHeadlessExposure\(', zhl_src):
     ok("Headless CNS/OTU: addExposure() helper present (shared by descent/bottom/steps)")
 else:
     fail("Headless CNS/OTU: addExposure() helper missing — descent/bottom fix may be reverted")
 
 # 29.2 Descent exposure added before the steps loop
-if re.search(r'hDescentTime = level\.depth / hDescentRate', js) and \
-   re.search(r'addExposure\(\(hAltP \+ \(level\.depth / 2\) \* hBAR\) \* fO2bot, hDescentTime\)', js):
+if (re.search(r'hDescentTime = level\.depth / hDescentRate', js) and \
+   re.search(r'addExposure\(\(hAltP \+ \(level\.depth / 2\) \* hBAR\) \* fO2bot, hDescentTime\)', js)) or \
+   re.search(r'addHeadlessExposure\(hCNSfrac, hOTU, \(altSurfaceP \+ \(level\.depth / 2\) \* BAR_PER_METRE\) \* fO2bot, hDescentTime\)', zhl_src):
     ok("Headless CNS/OTU: descent exposure (avg depth = level.depth/2) now included")
 else:
     fail("Headless CNS/OTU: descent exposure missing — CNS/OTU will under-report vs live app")
 
 # 29.3 Bottom-time exposure added before the steps loop
-if re.search(r'addExposure\(\(hAltP \+ level\.depth \* hBAR\) \* fO2bot, level\.time\)', js):
+if re.search(r'addExposure\(\(hAltP \+ level\.depth \* hBAR\) \* fO2bot, level\.time\)', js) or \
+   re.search(r'addHeadlessExposure\(hCNSfrac, hOTU, \(altSurfaceP \+ level\.depth \* BAR_PER_METRE\) \* fO2bot, level\.time\)', zhl_src):
     ok("Headless CNS/OTU: bottom-time exposure (full level.time at full depth) now included")
 else:
     fail("Headless CNS/OTU: bottom-time exposure missing — CNS/OTU will under-report vs live app, since bottom time is the majority of most dives' O2 exposure")
@@ -1493,7 +1505,7 @@ else:
 # ══════════════════════════════════════════════════════════════════════════════
 
 # 30.1 gfAt() returns gfL (not gfH) when firstStopDepth is unanchored
-if re.search(r'if \(!firstStopDepth \|\| firstStopDepth <= 0\) return gfL;', js):
+if re.search(r'if \(!firstStopDepth \|\| firstStopDepth <= 0\) return gfL;', zhl_src):
     ok("GF anchor: gfAt() returns gfL pre-anchor (correct — GF Low determines first stop per Baker)")
 elif re.search(r'if \(!firstStopDepth \|\| firstStopDepth <= 0\) return gfH;', js):
     fail("GF anchor: gfAt() returns gfH pre-anchor — REGRESSION. Anchors 1-3 steps shallower than correct; GF Low must be used to find the first stop, not GF High.")
@@ -1512,19 +1524,19 @@ else:
 # ══════════════════════════════════════════════════════════════════════════════
 
 # 31.1 TTS computed in the engine (headless-safe) as rt - bt
-if re.search(r'const ttsMin = Math\.max\(0, rt - bt\);', js):
+if re.search(r'const ttsMin = Math\.max\(0, rt - bt\);', zhl_src):
     ok("TTS: computed as rt-bt (ascent+deco only) before the headless early-return")
 else:
     fail("TTS: rt-bt computation missing — TTS will be unavailable in headless tests")
 
 # 31.2 TTS stored on window._lastPlan
-if re.search(r'tts: Math\.round\(ttsMin \* 10\) / 10,', js):
+if re.search(r'tts: Math\.round\(ttsMin \* 10\) / 10,', zhl_src):
     ok("TTS: stored on window._lastPlan.tts")
 else:
     fail("TTS: not stored on _lastPlan — headless ZHLEngine.calculate() callers cannot read it")
 
 # 31.3 TTS exposed in ZHLEngine.calculate() return object
-if re.search(r'tts: lp\.tts \|\| 0,', js):
+if re.search(r'tts: lp\.tts \|\| 0,', zhl_src):
     ok("TTS: exposed in ZHLEngine.calculate() return object")
 else:
     fail("TTS: missing from calculate() return object")
@@ -1536,13 +1548,13 @@ else:
     fail("TTS: not displayed in footer — feature incomplete")
 
 # 31.5 ambientCrossingDepth() function present — the GF-independent decozone calc
-if re.search(r'function ambientCrossingDepth\(tissues\)', js):
+if re.search(r'function ambientCrossingDepth\(tissues\)', zhl_src):
     ok("Decozone: ambientCrossingDepth() GF-independent function present")
 else:
     fail("Decozone: ambientCrossingDepth() missing — decozone fix may be reverted")
 
 # 31.6 decoZoneStart in _lastPlan uses the new GF-independent value, not firstStopDepth
-if re.search(r'decoZoneStart: trueDecoZoneStart,', js):
+if re.search(r'decoZoneStart: trueDecoZoneStart,', zhl_src):
     ok("Decozone: _lastPlan.decoZoneStart uses trueDecoZoneStart (GF-independent)")
 elif re.search(r'decoZoneStart: hasDeco \? firstStopDepth : 0,', js):
     fail("Decozone: _lastPlan.decoZoneStart still aliases firstStopDepth — REGRESSION, will vary incorrectly with GF Lo/Hi")
@@ -1567,19 +1579,19 @@ else:
 # ══════════════════════════════════════════════════════════════════════════════
 
 # 32.1 Final ascent leg present after the main stop loop, using surfaceRate
-if re.search(r'const finalAscentDur = cur / surfaceRate;', js):
+if re.search(r'const finalAscentDur = cur / surfaceRate;', zhl_src):
     ok("Final ascent: surfaceRate-based leg from lastStop to surface present")
 else:
     fail("Final ascent: surfaceRate leg missing — surfacing time/off-gassing undercounted")
 
 # 32.2 Final ascent applies off-gassing via saturateLinear (not treated as instant)
-if re.search(r'tissues = saturateLinear\(tissues, cur, 0, finalAscentDur', js):
+if re.search(r'tissues = saturateLinear\(tissues, cur, 0, finalAscentDur', zhl_src):
     ok("Final ascent: off-gassing applied via saturateLinear during the final leg")
 else:
     fail("Final ascent: off-gassing not applied — tissue state wrong for repetitive-dive surface interval")
 
 # 32.3 Final ascent leg is pushed as its own step (visible in plan/exports)
-if re.search(r"type: 'ascent', from: cur, to: 0,", js):
+if re.search(r"type: 'ascent', from: cur, to: 0,", zhl_src):
     ok("Final ascent: pushed as a visible step (from=lastStop, to=0)")
 else:
     fail("Final ascent: step not pushed — RT/TTS may update but plan/exports won't show the leg")
@@ -1601,7 +1613,7 @@ else:
 # ══════════════════════════════════════════════════════════════════════════════
 
 # 33.1 holdStep no longer forces coarse resolution for the first stop in headless mode
-if re.search(r'const holdStep = isFirstDecoStop \? 1/6 : 1;', js):
+if re.search(r'const holdStep = isFirstDecoStop \? 1/6 : 1;', zhl_src):
     ok("holdStep: first-stop fine resolution (1/6 min) applies regardless of headless mode")
 elif re.search(r'const holdStep = \(window\._zhlHeadless\) \? 1 :', js):
     fail("holdStep: REGRESSION — headless mode still forces coarse 1-min resolution on the first stop, producing different RT/TTS than the real app for identical inputs")
@@ -1616,7 +1628,7 @@ else:
 # ══════════════════════════════════════════════════════════════════════════════
 
 # 34.1 computeSurfaceGF function defined
-if re.search(r'function computeSurfaceGF\(tissues\)', js):
+if re.search(r'function computeSurfaceGF\(tissues\)', zhl_src):
     ok("computeSurfaceGF: function defined")
 else:
     fail("computeSurfaceGF: function missing — Surface GF metric not computable")
@@ -1628,7 +1640,7 @@ else:
     fail("computeSurfaceGF: M-value denominator formula not found — Surface GF may be wrong")
 
 # 34.3 surfaceGF stored in ZHL _lastPlan
-if re.search(r'surfaceGF:\s*computeSurfaceGF\(tissues\)', js):
+if re.search(r'surfaceGF:\s*computeSurfaceGF\(tissues\)', zhl_src):
     ok("surfaceGF: stored in ZHL _lastPlan via computeSurfaceGF(tissues)")
 else:
     fail("surfaceGF: not stored in ZHL _lastPlan — footer metric missing")
@@ -1701,13 +1713,13 @@ else:
     fail("_ADV_FIELDS: shallowGradient missing — setting not saved/loaded with config presets")
 
 # 34.15 gfAt respects shallowGradient
-if re.search(r'shallowGradient.*value.*===.*on', js) or re.search(r"shallowGradient.*'on'", js):
+if re.search(r'shallowGradient.*value.*===.*on', js) or re.search(r"shallowGradient.*'on'", js) or re.search(r'params\.shallowGradient', zhl_src):
     ok("gfAt: shallowGradient setting read at runtime")
 else:
     fail("gfAt: shallowGradient setting not referenced — toggle has no effect")
 
 # 34.16 gfAt shallow gradient: clamps to gfH at lastStop when ON
-if re.search(r'sgOn && depthM <= lastStop.*return gfH', js, re.DOTALL):
+if re.search(r'sgOn && depthM <= lastStop.*return gfH', zhl_src, re.DOTALL):
     ok("gfAt: shallow gradient ON returns gfH at lastStop and shallower")
 else:
     fail("gfAt: shallow gradient ON does not apply gfH at lastStop")
@@ -2195,10 +2207,15 @@ if vpm_depth_start > 0 and "endParseDepthM(depthRaw)" in vpm_depth_block:
 else:
     fail("VPM gas consumption still uses parseFloat on depth cell (BUG-61 imperial)")
 
-if "_zhlHeadlessDepth" in js and "window._zhlHeadless = _headlessEntry > 0" in js:
+zhl_eng_block = js[js.find("const ZHLEngine"):js.find("const ZHLEngine") + 12000] if "const ZHLEngine" in js else ""
+if "ZhlEngineBundle.calculate" in zhl_eng_block and "setEl('decoDepth'" not in zhl_eng_block:
+    ok("ZHLEngine.calculate uses ZhlEngineBundle (Tier 3 — no DOM mutation)")
+elif "runZhlScheduleCore(params)" in zhl_eng_block and "setEl('decoDepth'" not in zhl_eng_block:
+    ok("ZHLEngine.calculate uses pure runZhlScheduleCore (Tier 2 — no DOM mutation)")
+elif "_zhlHeadlessDepth" in js and "window._zhlHeadless = _headlessEntry > 0" in js:
     ok("ZHLEngine.calculate preserves _zhlHeadless across calls (BUG-74)")
 else:
-    fail("ZHLEngine.calculate still clears _zhlHeadless after headless runs (BUG-74)")
+    fail("ZHLEngine.calculate: missing Tier-3 bundle or Tier-2 pure core (BUG-74)")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # GROUP 42 — v2.30.9 shared fixes (BUG-40/41/42)
@@ -2316,41 +2333,41 @@ manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
 pkg_path = os.path.join(os.path.dirname(__file__), "package.json")
 pkg_lock_path = os.path.join(os.path.dirname(__file__), "package-lock.json")
 version_ok = True
-if re.search(r"APP_VERSION\s*=\s*['\"]2\.20\.32['\"]", js):
-    ok("APP_VERSION bumped to 2.20.32")
+if re.search(r"APP_VERSION\s*=\s*['\"]2\.40\.00['\"]", js):
+    ok("APP_VERSION bumped to 2.40.00")
 else:
     version_ok = False
-    fail("APP_VERSION not bumped to 2.20.32")
+    fail("APP_VERSION not bumped to 2.40.00")
 if os.path.isfile(sw_path):
     with open(sw_path, encoding="utf-8") as f:
         sw_check = f.read()
-    if "lsp-dplanner-v2.20.32" in sw_check:
-        ok("sw.js CACHE_VERSION synced to 2.20.32")
+    if "lsp-dplanner-v2.40.00" in sw_check:
+        ok("sw.js CACHE_VERSION synced to 2.40.00")
     else:
         version_ok = False
-        fail("sw.js CACHE_VERSION not synced to 2.20.32")
+        fail("sw.js CACHE_VERSION not synced to 2.40.00")
 if os.path.isfile(pkg_path):
     with open(pkg_path, encoding="utf-8") as f:
         pkg = f.read()
-    if '"version": "2.20.32"' in pkg:
-        ok("package.json version synced to 2.20.32")
+    if '"version": "2.40.00"' in pkg:
+        ok("package.json version synced to 2.40.00")
     else:
         version_ok = False
-        fail("package.json version not synced to 2.20.32")
+        fail("package.json version not synced to 2.40.00")
 if os.path.isfile(pkg_lock_path):
     with open(pkg_lock_path, encoding="utf-8") as f:
         pkg_lock = f.read()
-    if '"version": "2.20.32"' in pkg_lock:
-        ok("package-lock.json version synced to 2.20.32")
+    if '"version": "2.40.00"' in pkg_lock:
+        ok("package-lock.json version synced to 2.40.00")
     else:
         version_ok = False
-        fail("package-lock.json version not synced to 2.20.32")
+        fail("package-lock.json version not synced to 2.40.00")
 gradle_path = os.path.join(os.path.dirname(__file__), "android", "app", "build.gradle")
 if os.path.isfile(gradle_path):
     with open(gradle_path, encoding="utf-8") as f:
         gradle = f.read()
-    if 'versionName "2.20.32"' in gradle and "versionCode 22032" in gradle:
-        ok("android/app/build.gradle versionCode/versionName synced to 2.20.32")
+    if 'versionName "2.40.00"' in gradle and "versionCode 24000" in gradle:
+        ok("android/app/build.gradle versionCode/versionName synced to 2.40.00")
     else:
         version_ok = False
         fail("android/app/build.gradle version drift — sync versionCode/versionName with APP_VERSION")
@@ -2710,13 +2727,15 @@ zhl_eng_idx = js.find("const ZHLEngine")
 if zhl_eng_idx >= 0:
     zhl_calc = js.find("function calculate(levels, decoGases, settings)", zhl_eng_idx)
     if zhl_calc >= 0 and zhl_calc < zhl_eng_idx + 8000:
-        zhl_block = js[zhl_calc:zhl_calc + 600]
+        zhl_block = js[zhl_calc:zhl_calc + 3500]
         if "validateEngineInputs(levels, decoGases)" in zhl_block and "error: 'No levels'" not in zhl_block:
             ok("ZHLEngine.calculate: unreachable empty-level guard removed (BUG-2)")
         else:
             fail("ZHLEngine.calculate: still has alternate empty-level error path (BUG-2)")
         if "restoreFieldValues(prevHeadlessFields)" in js and "saveFieldValues([" in js:
             ok("ZHLEngine.calculate: restores rate/stop/ppO2 DOM fields after headless run (BUG-1/#8)")
+        elif "runZhlScheduleCore(params)" in zhl_block or "ZhlEngineBundle.calculate" in zhl_block:
+            ok("ZHLEngine.calculate: Tier-2/3 pure core — DOM restore not required (BUG-1/#8)")
         else:
             fail("ZHLEngine.calculate: missing headless DOM field restore (BUG-1/#8)")
 
@@ -2741,8 +2760,43 @@ if os.path.isfile(evr_path):
         ok("engine_validation_regression.py: ZHL DOM field restore probe present (#8)")
     else:
         fail("engine_validation_regression.py missing ZHL DOM field restore probe (#8)")
+    if "workerParity" in evr or "calculateInWorker matches sync" in evr:
+        ok("engine_validation_regression.py: ZHL worker parity probe present (Tier 3)")
+    else:
+        fail("engine_validation_regression.py missing ZHL worker parity probe (Tier 3)")
+
+if "function runZhlScheduleCore(params)" in js:
+    ok("runZhlScheduleCore(params): Tier-2/3 Bühlmann core adapter present")
 else:
-    fail("engine_validation_regression.py missing")
+    fail("runZhlScheduleCore(params) missing — Tier refactor incomplete")
+if "buildZhlScheduleParamsFromEngine" in js and "buildZhlScheduleParamsFromDom" in js:
+    ok("ZHL param builders: engine + DOM adapters present (Tier 2/3)")
+else:
+    fail("ZHL Tier-2/3 param builders missing")
+
+bundle_path = os.path.join(os.path.dirname(__file__), "zhl-engine-bundle.js")
+worker_path = os.path.join(os.path.dirname(__file__), "zhl-schedule-worker.js")
+bridge_path = os.path.join(os.path.dirname(__file__), "zhl-worker-bridge.js")
+if os.path.isfile(bundle_path) and "ZhlEngineBundle" in open(bundle_path, encoding="utf-8").read():
+    ok("zhl-engine-bundle.js: Tier-3 isolated Bühlmann module present")
+else:
+    fail("zhl-engine-bundle.js missing or incomplete (Tier 3)")
+if os.path.isfile(worker_path) and "importScripts('zhl-engine-bundle.js')" in open(worker_path, encoding="utf-8").read():
+    ok("zhl-schedule-worker.js: worker imports bundle (Tier 3)")
+else:
+    fail("zhl-schedule-worker.js missing or incomplete (Tier 3)")
+if os.path.isfile(bridge_path) and "ZhlWorkerBridge" in open(bridge_path, encoding="utf-8").read():
+    ok("zhl-worker-bridge.js: main-thread worker bridge present (Tier 3)")
+else:
+    fail("zhl-worker-bridge.js missing or incomplete (Tier 3)")
+if "zhl-engine-bundle.js" in html and "zhl-worker-bridge.js" in html:
+    ok("index.html loads Tier-3 bundle + worker bridge scripts")
+else:
+    fail("index.html missing Tier-3 script tags")
+if "calculateInWorker" in zhl_eng_block:
+    ok("ZHLEngine.calculateInWorker exported (Tier 3 worker API)")
+else:
+    fail("ZHLEngine.calculateInWorker missing (Tier 3)")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # GROUP 62 (OC) — ZHL multi-level headless + profile validation (v2.20.30)
@@ -2762,7 +2816,7 @@ if (
 else:
     fail("VPM empty-levels error missing totalRuntime: 0 (VPM/ZHL parity)")
 
-if "splitZhlProfileLevels" in js and "_zhlContinuationLevels" in js and "phaseNextStop" in js:
+if "splitZhlProfileLevels" in js and "_zhlContinuationLevels" in js and "phaseNextStop" in zhl_src:
     ok("ZHL headless multi-level continuation wired (splitZhlProfileLevels)")
 else:
     fail("ZHL headless multi-level continuation missing")

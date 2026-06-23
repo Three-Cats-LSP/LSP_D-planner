@@ -4,6 +4,32 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.40.00 — 2026-06-19
+
+### Refactor — Tier 3 ZHL engine isolation (Web Worker + shared bundle)
+
+- **`zhl-engine-bundle.js`** — Self-contained Bühlmann module (`runZhlScheduleCore`, `ZHLEngine.calculate` logic, physics tables); loaded on main thread and in the worker via `importScripts`.
+- **`zhl-schedule-worker.js` + `zhl-worker-bridge.js`** — Optional async `ZHLEngine.calculateInWorker()` for isolated heap; sync `ZHLEngine.calculate()` unchanged for harnesses.
+- **`index.html`** — Removed ~700-line inline core; DOM param builder stays on main thread with `environment` passed into the bundle.
+- **Regression** — Worker parity probe in `engine_validation_regression.py`.
+
+- **`APP_VERSION`** — bumped to `2.40.00`.
+
+---
+
+## v2.20.33 — 2026-06-23
+
+### Refactor — Tier 2 ZHL schedule core (pure engine path)
+
+- **`runZhlScheduleCore(params)`** — Extracted Bühlmann computation into a DOM-free function; live UI and headless API share one code path.
+- **`buildZhlScheduleParamsFromDom()` / `buildZhlScheduleParamsFromEngine()`** — Adapters read the form or test settings into a params object.
+- **`ZHLEngine.calculate()`** — Calls the pure core directly; no DOM save/restore, no `_zhlHeadless` wiring, no `runDecoSchedule()` mutation.
+- **`runDecoSchedule()`** — Bühlmann branch delegates to core; render path unchanged.
+
+- **`APP_VERSION`** — bumped to `2.20.33`.
+
+---
+
 ## v2.20.32 — 2026-06-19
 
 ### Fixed — headless ZHL DOM field restore (GitHub #8 / BUG-1)
