@@ -4,6 +4,20 @@ All notable changes to LSP D-Planner are documented here.
 
 ---
 
+## v2.40.02 — 2026-06-23
+
+### Fixed — fully self-contained offline shell (PWA + Android APK)
+
+- **UI fonts** — Bebas Neue, JetBrains Mono, and Outfit self-hosted under `vendor/fonts/` (no Google Fonts CDN).
+- **PDF fonts** — DejaVu Sans vendored locally; Unicode PDF export works offline.
+- **Partner icon** — Get In Water footer icon vendored to `vendor/icons/giw-icon-192.png`.
+- **Service worker** — Install precaches all vendored fonts and icons.
+- **Android APK** — `tools/sync_www.py` copies full offline asset tree (ZHL bundle, worker, vendor/) into `www/` before Capacitor sync.
+
+- **`APP_VERSION`** — bumped to `2.40.02`.
+
+---
+
 ## v2.40.01 — 2026-06-23
 
 ### Fixed — startup and offline risks from v2.40.00 audit (GitHub #10)

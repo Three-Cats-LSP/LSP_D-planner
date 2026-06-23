@@ -1,10 +1,12 @@
 {
   "name": "lsp-d-planner",
-  "version": "2.40.01",
+  "version": "2.40.02",
   "description": "LSP D-Planner — decompression planning app",
   "private": true,
   "scripts": {
-    "cap:sync": "npx cap sync android",
+    "vendor:offline": "python tools/vendor_offline_assets.py",
+    "sync:www": "python tools/sync_www.py",
+    "cap:sync": "npm run sync:www && npx cap sync android",
     "cap:open": "npx cap open android"
   },
   "dependencies": {

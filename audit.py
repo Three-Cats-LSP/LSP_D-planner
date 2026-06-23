@@ -2164,6 +2164,34 @@ if os.path.isfile(sw_path):
 else:
     fail("sw.js missing")
 
+if "vendor/fonts/fonts.css" in html and "fonts.googleapis.com" not in html:
+    ok("UI fonts self-hosted locally — no Google Fonts CDN (#10 offline shell)")
+else:
+    fail("index.html still depends on Google Fonts CDN (#10 offline shell)")
+if "vendor/icons/giw-icon-192.png" in html and "threecats-lsp.com/get-in-water/icon" not in html:
+    ok("Get In Water icon self-hosted — no remote icon fetch on load")
+else:
+    fail("index.html still loads remote Get In Water icon")
+if "vendor/fonts/DejaVuSans.ttf" in js and "jsdelivr.net/npm/dejavu" not in js:
+    ok("PDF DejaVu fonts loaded from local vendor path")
+else:
+    fail("PDF export still fetches DejaVu fonts from CDN")
+if os.path.isfile(sw_path):
+    with open(sw_path, encoding="utf-8") as f:
+        sw_src = f.read()
+    if "vendor/fonts/fonts.css" in sw_src and "vendor/icons/giw-icon-192.png" in sw_src:
+        ok("sw.js precaches self-hosted fonts and partner icons")
+    else:
+        fail("sw.js missing precache for vendored fonts/icons")
+apk_wf = os.path.join(os.path.dirname(__file__), ".github", "workflows", "build-apk.yml")
+if os.path.isfile(apk_wf):
+    with open(apk_wf, encoding="utf-8") as f:
+        apk_yml = f.read()
+    if "sync_www.py" in apk_yml:
+        ok("build-apk.yml uses tools/sync_www.py for full offline www bundle")
+    else:
+        fail("build-apk.yml missing tools/sync_www.py — Android APK may lack ZHL/vendor assets")
+
 if "vendor/jspdf.umd.min.js" in html and "cdnjs.cloudflare.com/ajax/libs/jspdf" not in html:
     ok("jsPDF vendored locally — startup not blocked on CDN (#10)")
 else:
@@ -2342,41 +2370,41 @@ manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
 pkg_path = os.path.join(os.path.dirname(__file__), "package.json")
 pkg_lock_path = os.path.join(os.path.dirname(__file__), "package-lock.json")
 version_ok = True
-if re.search(r"APP_VERSION\s*=\s*['\"]2\.40\.01['\"]", js):
-    ok("APP_VERSION bumped to 2.40.01")
+if re.search(r"APP_VERSION\s*=\s*['\"]2\.40\.02['\"]", js):
+    ok("APP_VERSION bumped to 2.40.02")
 else:
     version_ok = False
-    fail("APP_VERSION not bumped to 2.40.01")
+    fail("APP_VERSION not bumped to 2.40.02")
 if os.path.isfile(sw_path):
     with open(sw_path, encoding="utf-8") as f:
         sw_check = f.read()
-    if "lsp-dplanner-v2.40.01" in sw_check:
-        ok("sw.js CACHE_VERSION synced to 2.40.01")
+    if "lsp-dplanner-v2.40.02" in sw_check:
+        ok("sw.js CACHE_VERSION synced to 2.40.02")
     else:
         version_ok = False
-        fail("sw.js CACHE_VERSION not synced to 2.40.01")
+        fail("sw.js CACHE_VERSION not synced to 2.40.02")
 if os.path.isfile(pkg_path):
     with open(pkg_path, encoding="utf-8") as f:
         pkg = f.read()
-    if '"version": "2.40.01"' in pkg:
-        ok("package.json version synced to 2.40.01")
+    if '"version": "2.40.02"' in pkg:
+        ok("package.json version synced to 2.40.02")
     else:
         version_ok = False
-        fail("package.json version not synced to 2.40.01")
+        fail("package.json version not synced to 2.40.02")
 if os.path.isfile(pkg_lock_path):
     with open(pkg_lock_path, encoding="utf-8") as f:
         pkg_lock = f.read()
-    if '"version": "2.40.01"' in pkg_lock:
-        ok("package-lock.json version synced to 2.40.01")
+    if '"version": "2.40.02"' in pkg_lock:
+        ok("package-lock.json version synced to 2.40.02")
     else:
         version_ok = False
-        fail("package-lock.json version not synced to 2.40.01")
+        fail("package-lock.json version not synced to 2.40.02")
 gradle_path = os.path.join(os.path.dirname(__file__), "android", "app", "build.gradle")
 if os.path.isfile(gradle_path):
     with open(gradle_path, encoding="utf-8") as f:
         gradle = f.read()
-    if 'versionName "2.40.01"' in gradle and "versionCode 24001" in gradle:
-        ok("android/app/build.gradle versionCode/versionName synced to 2.40.01")
+    if 'versionName "2.40.02"' in gradle and "versionCode 24002" in gradle:
+        ok("android/app/build.gradle versionCode/versionName synced to 2.40.02")
     else:
         version_ok = False
         fail("android/app/build.gradle version drift — sync versionCode/versionName with APP_VERSION")
