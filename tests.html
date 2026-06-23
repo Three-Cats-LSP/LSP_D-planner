@@ -160,9 +160,17 @@ var LSPTestHarness = (function () {
     var lv = clone(levels || []);
     var gs = clone(gases || []);
     var st = clone(settings || {});
-    var r = (model === 'ZHLC_GF')
-      ? ctx.zhl.calculate(lv, gs, st)
-      : ctx.vpm.calculate(lv, gs, st, model);
+    var r;
+    if (model === 'ZHLC_GF') {
+      ctx.win._zhlHeadless = true;
+      try {
+        r = ctx.zhl.calculate(lv, gs, st);
+      } finally {
+        ctx.win._zhlHeadless = true;
+      }
+    } else {
+      r = ctx.vpm.calculate(lv, gs, st, model);
+    }
     if (!r || typeof r !== 'object') throw new Error('Engine returned no result');
     if (r.error) throw new Error(r.error);
     return r;
