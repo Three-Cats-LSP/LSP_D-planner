@@ -1023,6 +1023,32 @@ if "altSurfaceP" in mod_fn and "BAR_PER_METRE" in mod_fn:
 else:
     fail("calcMOD() (Tools tab) uses hardcoded sea-level formula — wrong at altitude")
 
+# 20.3c2 updateGasMODDisplays() planner gas-card MOD uses altSurfaceP
+ugmd_start = js.find("function updateGasMODDisplays()")
+ugmd_end = js.find("\nfunction ", ugmd_start + 1) if ugmd_start > 0 else -1
+ugmd_fn = js[ugmd_start:ugmd_end] if ugmd_start > 0 and ugmd_end > ugmd_start else ""
+if ugmd_start > 0 and "altSurfaceP" in ugmd_fn and "(ppO2limit / fO2 - 1)" not in ugmd_fn:
+    ok("updateGasMODDisplays() uses altSurfaceP — planner MOD fields altitude-correct")
+else:
+    fail("updateGasMODDisplays() still uses sea-level (ppO2/fO2 - 1) formula — wrong at altitude")
+
+# 20.3c3 nitroxMOD() REC mode uses altSurfaceP + BAR_PER_METRE
+nitrox_mod_m = re.search(r"function nitroxMOD\([^)]*\)\s*\{[^}]{0,200}\}", js)
+if nitrox_mod_m and "altSurfaceP" in nitrox_mod_m.group(0) and "BAR_PER_METRE" in nitrox_mod_m.group(0):
+    ok("nitroxMOD() uses altSurfaceP + BAR_PER_METRE — REC altitude-correct")
+elif nitrox_mod_m and "altSurfaceP" in nitrox_mod_m.group(0):
+    ok("nitroxMOD() uses altSurfaceP — REC altitude-correct")
+else:
+    fail("nitroxMOD() uses hardcoded sea-level * 10 formula — wrong at altitude")
+
+# 20.3c4 setAltitude() refreshes MOD displays when altitude changes
+set_alt_start = js.find("function setAltitude()")
+set_alt_fn = js[set_alt_start:set_alt_start + 3500] if set_alt_start > 0 else ""
+if set_alt_start > 0 and "updateGasMODDisplays" in set_alt_fn and "calcMOD" in set_alt_fn:
+    ok("setAltitude() refreshes MOD displays (updateGasMODDisplays + calcMOD)")
+else:
+    fail("setAltitude() missing MOD refresh calls — stale MOD after altitude change")
+
 # 20.3d setUnits() refreshes Tools panels (END Calc, Best Mix, MOD, EAD, Gas Table, Surface Int)
 set_units_end = js[js.find("function setUnits("):js.find("function setUnits(") + 14000]
 required_refreshes = ["calcEND_tool", "calcBestMix", "renderEADTable", "renderGasTable", "calcSurfInt", "calcAvgDepth"]
